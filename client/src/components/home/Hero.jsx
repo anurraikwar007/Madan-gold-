@@ -1,450 +1,565 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  ShieldCheck,
+  Truck,
+  Sparkles,
+} from "lucide-react";
 
-import gsap from "gsap";
 
-import { ArrowRight } from "lucide-react";
-
-const images = [
-  {
-    id: 1,
-    title: "Royal Ring",
-    price: "₹24,999",
-    image:
-      "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?q=80&w=1200&auto=format&fit=crop",
-  },
+const slides = [
 
   {
-    id: 2,
-    title: "Luxury Necklace",
-    price: "₹89,999",
+    title: "Crafted For",
+    highlight: "Timeless Moments",
+    desc:
+      "Discover premium 925 silver jewellery designed with elegance and modern craftsmanship.",
     image:
-      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1617038220319-276d3cfab638?q=80&w=1600&auto=format&fit=crop",
+    tag: "New Silver Collection",
   },
 
+
   {
-    id: 3,
-    title: "Diamond Earrings",
-    price: "₹12,999",
+    title: "Jewellery That",
+    highlight: "Defines You",
+    desc:
+      "Elegant designs created for everyday luxury and unforgettable occasions.",
     image:
-      "https://images.unsplash.com/photo-1635767798638-3e25273a8236?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1600&auto=format&fit=crop",
+    tag: "Premium Designs",
   },
+
+
+  {
+    title: "Celebrate Your",
+    highlight: "Special Moments",
+    desc:
+      "Explore handcrafted jewellery collections for men, women and kids.",
+    image:
+      "https://images.unsplash.com/photo-1605100804763-247f67b3557e?q=80&w=1600&auto=format&fit=crop",
+    tag: "Festive Collection",
+  },
+
 ];
 
-const Hero = () => {
-  const heroRef = useRef(null);
 
-  const trackRef = useRef(null);
+
+const Hero = () => {
+
+
+  const [active, setActive] = useState(0);
+
 
   useEffect(() => {
 
-    /* ========================= */
-    /* HERO TEXT REVEAL */
-    /* ========================= */
+    const timer = setInterval(() => {
 
-    gsap.fromTo(
-      ".hero-badge",
-      {
-        y: 40,
-        opacity: 0,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-      }
-    );
+      setActive((prev) =>
+        prev === slides.length - 1
+          ? 0
+          : prev + 1
+      );
 
-    gsap.fromTo(
-      ".hero-title",
-      {
-        y: 100,
-        opacity: 0,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1.2,
-        delay: 0.2,
-        ease: "power4.out",
-      }
-    );
+    },5000);
 
-    gsap.fromTo(
-      ".hero-subtitle",
-      {
-        y: 60,
-        opacity: 0,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        delay: 0.4,
-      }
-    );
 
-    gsap.fromTo(
-      ".hero-buttons",
-      {
-        y: 40,
-        opacity: 0,
-      },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        delay: 0.6,
-      }
-    );
+    return () => clearInterval(timer);
 
-    /* ========================= */
-    /* AUTO SCROLL */
-    /* ========================= */
 
-    const track = trackRef.current;
+  },[]);
 
-    let position = 0;
 
-    let animationFrame;
 
-    const animate = () => {
-      position -= 0.4;
+  const slide = slides[active];
 
-      if (Math.abs(position) >= track.scrollWidth / 2) {
-        position = 0;
-      }
 
-      track.style.transform = `translateX(${position}px)`;
-
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrame);
-
-  }, []);
 
   return (
+
     <section
-      ref={heroRef}
       className="
-        relative
-        overflow-hidden
-        min-h-screen
-        bg-[#FAF9F6]
-        pt-32
-        pb-32
+      relative
+      min-h-[600px]
+      lg:min-h-[640px]
+      overflow-hidden
+      bg-gradient-to-br
+      from-[#fffaf0]
+      via-[#faf7ef]
+      to-[#f3e7cf]
       "
     >
 
-      {/* GOLD BLUR */}
+
+      {/* GOLD LIGHT */}
+
       <div
         className="
-          absolute
-          top-[-100px]
-          left-1/2
-          -translate-x-1/2
-          w-[500px]
-          h-[500px]
-          bg-[#D4AF37]/20
-          blur-[120px]
-          rounded-full
-          pointer-events-none
+        absolute
+        -top-20
+        -right-20
+        w-[350px]
+        h-[350px]
+        rounded-full
+        bg-[#D4AF37]/20
+        blur-[100px]
         "
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
 
-        {/* TOP TEXT */}
-        <div className="text-center max-w-4xl mx-auto">
 
-          <p
-            className="
-              hero-badge
-              text-[#D4AF37]
-              uppercase
-              tracking-[0.35em]
-              text-xs
-              sm:text-sm
-              font-medium
-            "
-          >
-            Luxury Jewelry Collection
-          </p>
+      <div
+        className="
+        max-w-7xl
+        mx-auto
+        px-5
+        sm:px-8
+        lg:px-10
+        pt-24
+        lg:pt-28
+        "
+      >
 
-          <h1
-            className="
-              hero-title
-              heading
-              text-5xl
-              sm:text-6xl
-              md:text-7xl
-              lg:text-8xl
-              leading-[0.95]
-              text-[#111111]
-              mt-6
-            "
-          >
-            Jewelry
-            <br />
-            Crafted For
-            <br />
-            Modern Luxury
-          </h1>
 
-          <p
-            className="
-              hero-subtitle
-              text-gray-600
-              max-w-2xl
-              mx-auto
-              mt-8
-              text-sm
-              sm:text-lg
-              leading-relaxed
-            "
-          >
-            Discover handcrafted gold & diamond jewelry designed
-            to elevate every moment with timeless elegance.
-          </p>
 
-          {/* BUTTONS */}
-          <div
-            className="
-              hero-buttons
-              flex
-              flex-col
-              sm:flex-row
+        <div
+          className="
+          grid
+          grid-cols-1
+          lg:grid-cols-2
+          gap-10
+          items-center
+          "
+        >
+
+
+
+          {/* LEFT */}
+
+
+          <div>
+
+
+            <div
+              className="
+              inline-flex
               items-center
-              justify-center
-              gap-4
-              mt-10
-            "
-          >
-
-            <button
-              className="
-                bg-[#111111]
-                hover:bg-[#D4AF37]
-                hover:text-black
-                text-white
-                px-8
-                py-4
-                rounded-full
-                transition-all
-                duration-300
-                flex
-                items-center
-                gap-2
-                font-medium
-                w-full
-                sm:w-auto
-                justify-center
+              gap-2
+              bg-white/80
+              backdrop-blur
+              border
+              border-black/5
+              rounded-full
+              px-5
+              py-2
               "
             >
-              Shop Collection
-              <ArrowRight size={18} />
-            </button>
 
-            <button
-              className="
-                border
-                border-black/10
-                hover:border-[#D4AF37]
-                bg-white/70
-                backdrop-blur-xl
-                px-8
-                py-4
-                rounded-full
-                transition-all
-                duration-300
-                font-medium
-                w-full
-                sm:w-auto
-              "
-            >
-              Explore Luxury
-            </button>
+              <Sparkles
+                size={15}
+                className="text-[#D4AF37]"
+              />
 
-          </div>
-
-        </div>
-
-        {/* ========================= */}
-        {/* HORIZONTAL LUXURY CARDS */}
-        {/* ========================= */}
-
-        <div className="relative mt-20 overflow-hidden">
-
-          {/* LEFT FADE */}
-          <div
-            className="
-              absolute
-              left-0
-              top-0
-              w-24
-              h-full
-              z-20
-              bg-gradient-to-r
-              from-[#FAF9F6]
-              to-transparent
-              pointer-events-none
-            "
-          />
-
-          {/* RIGHT FADE */}
-          <div
-            className="
-              absolute
-              right-0
-              top-0
-              w-24
-              h-full
-              z-20
-              bg-gradient-to-l
-              from-[#FAF9F6]
-              to-transparent
-              pointer-events-none
-            "
-          />
-
-          {/* TRACK */}
-          <div
-            ref={trackRef}
-            className="
-              flex
-              gap-6
-              w-max
-              will-change-transform
-            "
-          >
-
-            {[...images, ...images].map((item, index) => (
-              <div
-                key={index}
+              <span
                 className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-[2rem]
-                  shrink-0
-                  w-[280px]
-                  sm:w-[340px]
-                  md:w-[420px]
-                  h-[420px]
-                  sm:h-[500px]
-                  bg-black
-                  cursor-pointer
+                text-[11px]
+                uppercase
+                tracking-[0.25em]
+                font-semibold
                 "
               >
 
-                {/* IMAGE */}
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  loading="lazy"
-                  className="
-                    w-full
-                    h-full
-                    object-cover
-                    transition-all
-                    duration-700
-                    md:grayscale
-                    md:group-hover:grayscale-0
-                    md:group-hover:scale-110
-                  "
+                {slide.tag}
+
+              </span>
+
+            </div>
+
+
+
+
+            <h1
+              className="
+              mt-6
+              text-4xl
+              sm:text-5xl
+              lg:text-6xl
+              font-bold
+              leading-[1.05]
+              text-[#111]
+              "
+            >
+
+              {slide.title}
+
+              <br />
+
+              <span
+                className="
+                text-[#D4AF37]
+                italic
+                "
+              >
+
+                {slide.highlight}
+
+              </span>
+
+
+            </h1>
+
+
+
+            <p
+              className="
+              mt-5
+              max-w-lg
+              text-gray-600
+              text-sm
+              sm:text-base
+              leading-relaxed
+              "
+            >
+
+              {slide.desc}
+
+            </p>
+
+
+
+
+            <div
+              className="
+              flex
+              flex-wrap
+              gap-4
+              mt-7
+              "
+            >
+
+
+              <Link
+                to="/shop"
+                className="
+                bg-[#111]
+                text-white
+                px-7
+                py-3.5
+                rounded-full
+                flex
+                items-center
+                gap-3
+                text-sm
+                font-semibold
+                hover:bg-[#D4AF37]
+                hover:text-black
+                transition
+                "
+              >
+
+                Shop Collection
+
+                <ArrowRight size={17}/>
+
+              </Link>
+
+
+
+              <Link
+                to="/shop"
+                className="
+                bg-white
+                border
+                border-black/10
+                px-7
+                py-3.5
+                rounded-full
+                text-sm
+                font-semibold
+                "
+              >
+
+                Explore
+
+              </Link>
+
+
+            </div>
+
+
+
+
+            {/* TRUST */}
+
+            <div
+              className="
+              grid
+              grid-cols-3
+              gap-3
+              mt-8
+              "
+            >
+
+
+              <div
+                className="
+                bg-white
+                rounded-2xl
+                p-3
+                shadow-sm
+                "
+              >
+
+                <ShieldCheck
+                  size={20}
+                  className="text-[#D4AF37]"
                 />
 
-                {/* OVERLAY */}
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-t
-                    from-black/80
-                    via-black/10
-                    to-transparent
-                  "
-                />
-
-                {/* CONTENT */}
-                <div
-                  className="
-                    absolute
-                    bottom-0
-                    left-0
-                    w-full
-                    p-6
-                    sm:p-8
-                    translate-y-6
-                    opacity-0
-                    group-hover:translate-y-0
-                    group-hover:opacity-100
-                    transition-all
-                    duration-500
-                  "
-                >
-
-                  <p
-                    className="
-                      text-[#D4AF37]
-                      uppercase
-                      tracking-[0.3em]
-                      text-xs
-                    "
-                  >
-                    Premium Collection
-                  </p>
-
-                  <h3
-                    className="
-                      heading
-                      text-3xl
-                      sm:text-4xl
-                      text-white
-                      mt-3
-                    "
-                  >
-                    {item.title}
-                  </h3>
-
-                  <div className="flex items-center justify-between mt-5">
-
-                    <p className="text-white text-lg">
-                      {item.price}
-                    </p>
-
-                    <button
-                      className="
-                        bg-[#D4AF37]
-                        text-black
-                        px-5
-                        py-3
-                        rounded-full
-                        font-medium
-                        hover:scale-105
-                        transition-all
-                      "
-                    >
-                      View
-                    </button>
-
-                  </div>
-
-                </div>
+                <p className="text-xs mt-2 font-semibold">
+                  Certified
+                </p>
 
               </div>
-            ))}
+
+
+
+              <div
+                className="
+                bg-white
+                rounded-2xl
+                p-3
+                shadow-sm
+                "
+              >
+
+                <Truck
+                  size={20}
+                  className="text-[#D4AF37]"
+                />
+
+                <p className="text-xs mt-2 font-semibold">
+                  Delivery
+                </p>
+
+              </div>
+
+
+
+
+              <div
+                className="
+                bg-white
+                rounded-2xl
+                p-3
+                shadow-sm
+                "
+              >
+
+                <Sparkles
+                  size={20}
+                  className="text-[#D4AF37]"
+                />
+
+                <p className="text-xs mt-2 font-semibold">
+                  Premium
+                </p>
+
+              </div>
+
+
+            </div>
+
+
 
           </div>
 
+
+
+
+
+
+          {/* RIGHT IMAGE */}
+
+
+
+          <div
+            className="
+            relative
+            "
+          >
+
+
+
+            <div
+              className="
+              absolute
+              inset-0
+              bg-[#D4AF37]/20
+              blur-[70px]
+              rounded-full
+              "
+            />
+
+
+
+            <div
+              className="
+              relative
+              overflow-hidden
+              rounded-[2.5rem]
+              h-[400px]
+              sm:h-[470px]
+              lg:h-[500px]
+              shadow-2xl
+              "
+            >
+
+              <img
+                key={slide.image}
+                src={slide.image}
+                alt="Jewellery"
+                className="
+                w-full
+                h-full
+                object-cover
+                transition-all
+                duration-[1500ms]
+                scale-105
+                "
+              />
+
+
+              <div
+                className="
+                absolute
+                inset-0
+                bg-gradient-to-t
+                from-black/50
+                via-transparent
+                "
+              />
+
+
+
+            </div>
+
+
+
+
+            {/* FLOAT CARD */}
+
+
+
+            <div
+              className="
+              absolute
+              bottom-6
+              left-5
+              right-5
+              bg-white/90
+              backdrop-blur-xl
+              rounded-3xl
+              p-4
+              shadow-xl
+              "
+            >
+
+              <p
+                className="
+                text-xs
+                text-gray-500
+                "
+              >
+                Featured Collection
+              </p>
+
+
+              <h3
+                className="
+                text-lg
+                font-bold
+                mt-1
+                "
+              >
+                925 Silver Jewellery
+              </h3>
+
+
+              <p
+                className="
+                text-[#D4AF37]
+                font-semibold
+                text-sm
+                mt-1
+                "
+              >
+                Luxury Everyday Wear
+              </p>
+
+
+            </div>
+
+
+          </div>
+
+
+
         </div>
+
 
       </div>
 
+
+
+
+
+      {/* DOTS */}
+
+
+      <div
+        className="
+        absolute
+        bottom-5
+        left-1/2
+        -translate-x-1/2
+        flex
+        gap-2
+        "
+      >
+
+        {
+          slides.map((_,i)=>(
+
+            <button
+              key={i}
+              onClick={()=>setActive(i)}
+              className={`
+              h-2
+              rounded-full
+              transition-all
+              ${
+                active===i
+                ?"w-9 bg-[#D4AF37]"
+                :"w-3 bg-black/20"
+              }
+              `}
+            />
+
+          ))
+        }
+
+
+      </div>
+
+
+
     </section>
+
   );
+
 };
+
+
 
 export default Hero;

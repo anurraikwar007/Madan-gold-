@@ -10,7 +10,7 @@ import EmptyState from "../components/common/EmptyState";
 
 import { useProducts } from "../context/ProductContext";
 
-import MetalCategories from "../components/home/MetalCategories";
+import GenderCategories from "../components/home/GenderCategories";
 
 import CategorySlider from "../components/home/CategorySlider";
 
@@ -62,12 +62,13 @@ const Home = () => {
        
        <MobileSearchBar />
 
-       {/* SHOP BY METAL */}
-        <MetalCategories />
+       {/* SHOP BY GENDER */}
+        
+       <GenderCategories />
 
         <CategorySlider />
 
-        <CategoryGrid />
+        
        
        <BestSellerSlider />
 

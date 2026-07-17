@@ -1,25 +1,50 @@
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+} from "react";
 
 import { products as initialProducts } from "../data/products";
 
-const ProductContext = createContext();
+
+const ProductContext = createContext(null);
+
+
 
 export const ProductProvider = ({ children }) => {
 
+
   const [products] = useState(initialProducts);
+
 
   const [loading] = useState(false);
 
+
+
   return (
+
     <ProductContext.Provider
+
       value={{
         products,
         loading,
       }}
+
     >
+
       {children}
+
     </ProductContext.Provider>
+
   );
+
 };
 
-export const useProducts = () => useContext(ProductContext);
+
+
+
+export const useProducts = () => {
+
+  return useContext(ProductContext);
+
+};
