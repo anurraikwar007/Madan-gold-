@@ -1,0 +1,693 @@
+import mongoose from "mongoose";
+import slugify from "slugify";
+
+// ======================================================
+// Image Schema
+// ======================================================
+
+const imageSchema = new mongoose.Schema(
+  {
+    public_id: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    url: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    alt: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    isPrimary: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+// ======================================================
+// Inventory Schema
+// ======================================================
+
+const inventorySchema = new mongoose.Schema(
+  {
+    stock: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+
+    reservedStock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    availableStock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    lowStockThreshold: {
+      type: Number,
+      default: 5,
+      min: 0,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+// ======================================================
+// Product Schema
+// ======================================================
+
+const productSchema = new mongoose.Schema(
+  {
+    // =====================================
+    // Basic Information
+    // =====================================
+
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 150,
+    },
+
+    slug: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
+    sku: {
+      type: String,
+      unique: true,
+      uppercase: true,
+      trim: true,
+    },
+
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    shortDescription: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 250,
+    },
+
+    // =====================================
+    // Category
+    // =====================================
+
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // =====================================
+    // Jewellery Details
+    // =====================================
+
+    metal: {
+      type: String,
+      enum: [
+        "Gold",
+        "Silver",
+        "Platinum",
+      ],
+      required: true,
+    },
+
+    purity: {
+      type: String,
+      enum: [
+        "14K",
+        "18K",
+        "22K",
+        "24K",
+        "925 Silver",
+        "950 Platinum",
+      ],
+      required: true,
+    },
+
+    gender: {
+      type: String,
+      enum: [
+        "Men",
+        "Women",
+        "Kids",
+        "Unisex",
+      ],
+      default: "Unisex",
+    },
+
+    weight: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    // =====================================
+    // Pricing
+    // =====================================
+
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    discountPrice: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    makingCharges: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    gst: {
+      type: Number,
+      default: 3,
+      min: 0,
+    },
+
+    // =====================================
+    // Inventory
+    // =====================================
+
+    inventory: {
+      type: inventorySchema,
+      default: () => ({
+        stock: 0,
+        reservedStock: 0,
+        availableStock: 0,
+        lowStockThreshold: 5,
+      }),
+    },
+
+    // =====================================
+    // Images
+    // =====================================
+
+    images: {
+      type: [imageSchema],
+      default: [],
+    },
+
+    // =====================================
+    // Product Status
+    // =====================================
+
+    featured: {
+      type: Boolean,
+      default: false,
+    },
+
+    bestseller: {
+      type: Boolean,
+      default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    // =====================================
+    // Ratings
+    // =====================================
+
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // =====================================
+    // SEO
+    // =====================================
+
+    seoTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    seoDescription: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    seoKeywords: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
+// ======================================================
+// Auto Generate Slug
+// ======================================================
+
+productSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug = slugify(this.name, {
+      lower: true,
+      strict: true,
+    });
+  }
+
+  next();
+});
+
+// ======================================================
+// Prevent Duplicate Slug
+// ======================================================
+
+productSchema.pre("save", async function (next) {
+  if (!this.isModified("slug")) {
+    return next();
+  }
+
+  const Product = mongoose.models.Product;
+
+  let baseSlug = this.slug;
+
+  let slug = baseSlug;
+
+  let counter = 1;
+
+  while (
+    await Product.exists({
+      slug,
+      _id: { $ne: this._id },
+    })
+  ) {
+    slug = `${baseSlug}-${counter++}`;
+  }
+
+  this.slug = slug;
+
+  next();
+});
+
+// ======================================================
+// Auto Inventory Calculation
+// ======================================================
+
+productSchema.pre("save", function (next) {
+  this.inventory.availableStock =
+    Math.max(
+      this.inventory.stock -
+        this.inventory.reservedStock,
+      0
+    );
+
+  next();
+});
+
+// ======================================================
+// Price Validation
+// ======================================================
+
+productSchema.pre("validate", function (next) {
+  if (
+    this.discountPrice > 0 &&
+    this.discountPrice >= this.price
+  ) {
+    return next(
+      new Error(
+        "Discount price must be less than price."
+      )
+    );
+  }
+
+  next();
+});
+
+// ======================================================
+// Auto SKU Generator
+// ======================================================
+
+productSchema.pre("save", async function (next) {
+  if (!this.isNew || this.sku) {
+    return next();
+  }
+
+  const metalPrefix = {
+    Gold: "GLD",
+    Silver: "SLV",
+    Platinum: "PLT",
+  };
+
+  const prefix =
+    metalPrefix[this.metal] || "PRD";
+
+  const count =
+    (await mongoose.models.Product.countDocuments()) +
+    1;
+
+  this.sku =
+    `MG-${prefix}-${String(count).padStart(6, "0")}`;
+
+  next();
+});
+
+// ======================================================
+// Virtual Final Price
+// ======================================================
+
+productSchema.virtual("finalPrice").get(
+  function () {
+    return this.discountPrice > 0
+      ? this.discountPrice
+      : this.price;
+  }
+);
+
+// ======================================================
+// Virtual Discount Percentage
+// ======================================================
+
+productSchema.virtual(
+  "discountPercentage"
+).get(function () {
+  if (!this.discountPrice) {
+    return 0;
+  }
+
+  return Math.round(
+    ((this.price -
+      this.discountPrice) /
+      this.price) *
+      100
+  );
+});
+
+// ======================================================
+// Query Helpers
+// ======================================================
+
+productSchema.query.active = function () {
+  return this.where({
+    isActive: true,
+    isDeleted: false,
+  });
+};
+
+productSchema.query.featured =
+  function () {
+    return this.where({
+      featured: true,
+      isActive: true,
+      isDeleted: false,
+    });
+  };
+
+productSchema.query.bestseller =
+  function () {
+    return this.where({
+      bestseller: true,
+      isActive: true,
+      isDeleted: false,
+    });
+  };
+
+// ======================================================
+// Hide Deleted Products
+// ======================================================
+
+productSchema.pre(/^find/, function (next) {
+  this.where({
+    isDeleted: false,
+  });
+
+  next();
+});
+
+// ======================================================
+// Inventory Methods
+// ======================================================
+
+productSchema.methods.reserveStock =
+  function (quantity) {
+    if (
+      this.inventory.availableStock <
+      quantity
+    ) {
+      return false;
+    }
+
+    this.inventory.availableStock -=
+      quantity;
+
+    this.inventory.reservedStock +=
+      quantity;
+
+    return true;
+  };
+
+productSchema.methods.releaseStock =
+  function (quantity) {
+    this.inventory.availableStock +=
+      quantity;
+
+    this.inventory.reservedStock -=
+      quantity;
+  };
+
+productSchema.methods.confirmStock =
+  function (quantity) {
+    this.inventory.stock -= quantity;
+
+    this.inventory.reservedStock -=
+      quantity;
+  };
+
+// ======================================================
+// JSON Options
+// ======================================================
+
+productSchema.set("toJSON", {
+  virtuals: true,
+});
+
+productSchema.set("toObject", {
+  virtuals: true,
+});
+// ======================================================
+// Production Optimized Indexes
+// ======================================================
+
+// Product Search
+
+productSchema.index(
+  {
+    name: "text",
+    description: "text",
+    seoKeywords: "text",
+  },
+  {
+    name: "product_text_search",
+    weights: {
+      name: 10,
+      seoKeywords: 5,
+      description: 2,
+    },
+  }
+);
+
+// Customer Listing
+
+productSchema.index(
+  {
+    isActive: 1,
+    category: 1,
+    metal: 1,
+    purity: 1,
+    gender: 1,
+    "inventory.availableStock": 1,
+  },
+  {
+    name: "catalog_filter",
+  }
+);
+
+// Price Sorting
+
+productSchema.index(
+{
+    isActive:1,
+    category:1,
+    discountPrice:1,
+    price:1
+},
+{
+    name:"price_sort"
+}
+);
+
+// Rating
+
+productSchema.index(
+  {
+    isActive: 1,
+    averageRating: -1,
+    totalReviews: -1,
+  },
+  {
+    name: "rating_sort",
+  }
+);
+
+// Featured
+
+productSchema.index(
+  {
+    featured: 1,
+    isActive: 1,
+    createdAt: -1,
+  },
+  {
+    name: "featured_products",
+  }
+);
+
+// Best Seller
+
+productSchema.index(
+  {
+    bestseller: 1,
+    isActive: 1,
+    averageRating: -1,
+  },
+  {
+    name: "bestseller_products",
+  }
+);
+
+// New Arrivals
+
+productSchema.index(
+  {
+    isActive: 1,
+    createdAt: -1,
+  },
+  {
+    name: "new_arrivals",
+  }
+);
+
+// Inventory Dashboard
+
+productSchema.index(
+  {
+    "inventory.availableStock": 1,
+    "inventory.lowStockThreshold": 1,
+  },
+  {
+    name: "inventory_dashboard",
+  }
+);
+
+// ======================================================
+// Static Methods
+// ======================================================
+
+productSchema.statics.getLowStockProducts =
+async function () {
+
+  return this.find({
+    isActive: true,
+
+    $expr: {
+      $lte: [
+        "$inventory.availableStock",
+        "$inventory.lowStockThreshold",
+      ],
+    },
+  });
+
+};
+
+productSchema.statics.getOutOfStockProducts =
+async function () {
+
+  return this.find({
+    isActive: true,
+
+    "inventory.availableStock": 0,
+  });
+
+};
+
+// ======================================================
+// Instance Methods
+// ======================================================
+
+productSchema.methods.isAvailable =
+function (qty = 1) {
+
+  return (
+    this.inventory.availableStock >= qty &&
+    this.isActive &&
+    !this.isDeleted
+  );
+
+};
+
+// ======================================================
+// Export
+// ======================================================
+
+const Product =
+  mongoose.models.Product ||
+  mongoose.model(
+    "Product",
+    productSchema
+  );
+
+export default Product;
