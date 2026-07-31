@@ -1,168 +1,340 @@
 import { Router } from "express";
 
+import {
+  login,
+  me,
+} from "../controllers/adminAuth.controller.js";
+
+
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
+import validate from "../middleware/validate.js";
+
+
+import {
+  adminLoginSchema,
+} from "../validators/auth.validator.js";
+
 
 import ProductController from "../controllers/product.controller.js";
 import CategoryController from "../controllers/category.controller.js";
 import CouponController from "../controllers/coupon.controller.js";
 import OrderController from "../controllers/order.controller.js";
 import DashboardController from "../controllers/dashboard.controller.js";
+
+
 const router = Router();
 
-/* ===========================================================
-   Dashboard
-=========================================================== */
 
+
+/*
+===========================================================
+Admin Authentication Routes
+===========================================================
+*/
+
+
+/**
+ * @route   POST /api/v1/admin/login
+ * @desc    Admin login
+ * @access  Public
+ */
+router.post(
+  "/login",
+  validate(adminLoginSchema),
+  login
+);
+
+
+
+/**
+ * @route   GET /api/v1/admin/me
+ * @desc    Get admin profile
+ * @access  Private (Admin)
+ */
 router.get(
-  "/dashboard",
+  "/me",
   authMiddleware,
   roleMiddleware("Admin"),
+  me
+);
+
+
+
+/*
+===========================================================
+Admin Protected Routes
+===========================================================
+*/
+
+router.use(
+  authMiddleware,
+  roleMiddleware("Admin")
+);
+/*
+===========================================================
+Dashboard
+===========================================================
+*/
+
+
+/**
+ * @route   GET /api/v1/admin/dashboard
+ * @desc    Admin dashboard data
+ * @access  Private (Admin)
+ */
+router.get(
+  "/dashboard",
   DashboardController.getDashboard
 );
 
-/* ===========================================================
-   Products
-=========================================================== */
 
+
+/*
+===========================================================
+Products Management
+===========================================================
+*/
+
+
+/**
+ * @route   POST /api/v1/admin/products
+ * @desc    Create product
+ * @access  Private (Admin)
+ */
 router.post(
   "/products",
-  authMiddleware,
-  roleMiddleware("Admin"),
   ProductController.create
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/products
+ * @desc    Get all products
+ * @access  Private (Admin)
+ */
 router.get(
   "/products",
-  authMiddleware,
-  roleMiddleware("Admin"),
   ProductController.getAll
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/products/:id
+ * @desc    Get single product
+ * @access  Private (Admin)
+ */
 router.get(
   "/products/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   ProductController.getOne
 );
 
+
+
+/**
+ * @route   PUT /api/v1/admin/products/:id
+ * @desc    Update product
+ * @access  Private (Admin)
+ */
 router.put(
   "/products/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   ProductController.update
 );
 
+
+
+/**
+ * @route   DELETE /api/v1/admin/products/:id
+ * @desc    Delete product
+ * @access  Private (Admin)
+ */
 router.delete(
   "/products/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   ProductController.remove
 );
 
-/* ===========================================================
-   Categories
-=========================================================== */
 
-/* Categories */
 
+/*
+===========================================================
+Category Management
+===========================================================
+*/
+
+
+/**
+ * @route   POST /api/v1/admin/categories
+ * @desc    Create category
+ * @access  Private (Admin)
+ */
 router.post(
   "/categories",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CategoryController.createCategory
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/categories
+ * @desc    Get all categories
+ * @access  Private (Admin)
+ */
 router.get(
   "/categories",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CategoryController.getCategories
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/categories/:id
+ * @desc    Get category by id
+ * @access  Private (Admin)
+ */
 router.get(
   "/categories/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CategoryController.getCategoryById
 );
 
+
+
+/**
+ * @route   PUT /api/v1/admin/categories/:id
+ * @desc    Update category
+ * @access  Private (Admin)
+ */
 router.put(
   "/categories/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CategoryController.updateCategory
 );
 
+
+
+/**
+ * @route   DELETE /api/v1/admin/categories/:id
+ * @desc    Delete category
+ * @access  Private (Admin)
+ */
 router.delete(
   "/categories/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CategoryController.deleteCategory
 );
+/*
+===========================================================
+Coupon Management
+===========================================================
+*/
 
-/* ===========================================================
-   Coupons
-=========================================================== */
 
+/**
+ * @route   POST /api/v1/admin/coupons
+ * @desc    Create coupon
+ * @access  Private (Admin)
+ */
 router.post(
   "/coupons",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CouponController.create
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/coupons
+ * @desc    Get all coupons
+ * @access  Private (Admin)
+ */
 router.get(
   "/coupons",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CouponController.getAll
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/coupons/:id
+ * @desc    Get coupon by id
+ * @access  Private (Admin)
+ */
 router.get(
   "/coupons/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CouponController.getById
 );
 
+
+
+/**
+ * @route   PUT /api/v1/admin/coupons/:id
+ * @desc    Update coupon
+ * @access  Private (Admin)
+ */
 router.put(
   "/coupons/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CouponController.update
 );
 
+
+
+/**
+ * @route   DELETE /api/v1/admin/coupons/:id
+ * @desc    Delete coupon
+ * @access  Private (Admin)
+ */
 router.delete(
   "/coupons/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   CouponController.delete
 );
 
-/* ===========================================================
-   Orders
-=========================================================== */
 
+
+/*
+===========================================================
+Order Management
+===========================================================
+*/
+
+
+/**
+ * @route   GET /api/v1/admin/orders
+ * @desc    Get all orders
+ * @access  Private (Admin)
+ */
 router.get(
   "/orders",
-  authMiddleware,
-  roleMiddleware("Admin"),
   OrderController.getAll
 );
 
+
+
+/**
+ * @route   GET /api/v1/admin/orders/:id
+ * @desc    Get single order
+ * @access  Private (Admin)
+ */
 router.get(
   "/orders/:id",
-  authMiddleware,
-  roleMiddleware("Admin"),
   OrderController.getOne
 );
 
+
+
+/**
+ * @route   PATCH /api/v1/admin/orders/:id/status
+ * @desc    Update order status
+ * @access  Private (Admin)
+ */
 router.patch(
   "/orders/:id/status",
-  authMiddleware,
-  roleMiddleware("Admin"),
   OrderController.updateStatus
 );
+
+
+
+/*
+===========================================================
+Export Router
+===========================================================
+*/
 
 export default router;
