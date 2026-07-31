@@ -68,11 +68,12 @@ export const verify = asyncHandler(async (req, res) => {
 
 export const reject = asyncHandler(async (req, res) => {
   const { remark } = req.body;
-
-  const order = await rejectPayment(
-    req.params.id,
-    remark
-  );
+  
+const order = await rejectPayment(
+  req.params.id,
+  remark,
+  req.user._id
+);
 
   return res.status(200).json(
     apiResponse.success(

@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import DashboardController from "../controllers/dashboard.controller.js";
 
-import authenticate from "../middleware/auth.middleware.js";
-import authorize from "../middleware/authorize.middleware.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import roleMiddleware from "../middleware/role.middleware.js";
 
 const router = Router();
 
@@ -13,8 +13,8 @@ const router = Router();
 
 router.get(
   "/",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getDashboard
 );
 
@@ -24,8 +24,8 @@ router.get(
 
 router.get(
   "/analytics",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getAnalytics
 );
 
@@ -35,8 +35,8 @@ router.get(
 
 router.get(
   "/products",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getProductStatistics
 );
 
@@ -46,8 +46,8 @@ router.get(
 
 router.get(
   "/categories",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getCategoryStatistics
 );
 
@@ -57,8 +57,8 @@ router.get(
 
 router.get(
   "/orders",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getOrderStatistics
 );
 
@@ -68,8 +68,8 @@ router.get(
 
 router.get(
   "/revenue",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getRevenueStatistics
 );
 
@@ -79,8 +79,8 @@ router.get(
 
 router.get(
   "/customers",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getCustomerStatistics
 );
 
@@ -90,8 +90,8 @@ router.get(
 
 router.get(
   "/sales/monthly",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getMonthlySales
 );
 
@@ -101,8 +101,8 @@ router.get(
 
 router.get(
   "/orders/recent",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getRecentOrders
 );
 
@@ -112,8 +112,8 @@ router.get(
 
 router.get(
   "/products/top-selling",
-  authenticate,
-  authorize("Admin"),
+  authMiddleware,
+  roleMiddleware("Admin"),
   DashboardController.getTopSellingProducts
 );
 

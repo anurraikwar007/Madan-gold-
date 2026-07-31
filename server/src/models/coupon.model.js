@@ -71,10 +71,6 @@ const couponSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ==========================================
-    // Soft Delete
-    // ==========================================
-
     isDeleted: {
       type: Boolean,
       default: false,
@@ -85,10 +81,6 @@ const couponSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-    // ==========================================
-    // Audit
-    // ==========================================
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -108,28 +100,160 @@ const couponSchema = new mongoose.Schema(
   }
 );
 
-// ==========================================
+// ======================================================
+// Validation
+// ======================================================
+
+couponSchema.pre("validate", function (next) {
+
+  if (this.validTill <= this.validFrom) {
+
+    return next(
+      new Error(
+        "validTill must be greater than validFrom."
+      )
+    );
+
+  }
+
+  if (
+    this.discountType === "Percentage" &&
+    this.discountValue > 100
+  ) {
+
+    return next(
+      new Error(
+        "Percentage discount cannot exceed 100."
+      )
+    );
+
+  }
+
+  next();
+
+});
+
+// ======================================================
+// Hide Deleted Coupons
+// ======================================================
+
+couponSchema.pre(/^find/, function (next) {
+
+  this.where({
+    isDeleted: false,
+  });
+
+  next();
+
+});
+
+// ======================================================
+// Instance Method
+// ======================================================
+
+couponSchema.methods.isValidCoupon =
+function () {
+
+  const now = new Date();
+
+  return (
+
+    this.isActive &&
+
+    !this.isDeleted &&
+
+    this.usedCount < this.usageLimit &&
+
+    now >= this.validFrom &&
+
+    now <= this.validTill
+
+  );
+
+};
+
+// ======================================================
 // Compound Indexes
-// ==========================================
+// ======================================================
 
-couponSchema.index({
-  isDeleted: 1,
-  isActive: 1,
-});
-
-couponSchema.index({
-  validFrom: 1,
-  validTill: 1,
-});
-
-couponSchema.index({
-  code: 1,
-  isDeleted: 1,
-});
-
-const Coupon = mongoose.model(
-  "Coupon",
-  couponSchema
+couponSchema.index(
+  {
+    isDeleted: 1,
+    isActive: 1,
+  }
 );
+
+couponSchema.index(
+  {
+    validFrom: 1,
+    validTill: 1,
+  }
+);
+
+couponSchema.index(
+  {
+    code: 1,
+    isDeleted: 1,
+  }
+);
+// ======================================================
+// Static Methods
+// ======================================================
+
+couponSchema.statics.getActiveCoupons =
+function () {
+
+  const now = new Date();
+
+  return this.find({
+
+    isDeleted: false,
+
+    isActive: true,
+
+    validFrom: {
+      $lte: now,
+    },
+
+    validTill: {
+      $gte: now,
+    },
+
+    $expr: {
+      $lt: [
+        "$usedCount",
+        "$usageLimit",
+      ],
+    },
+
+  });
+
+};
+
+couponSchema.statics.getExpiredCoupons =
+function () {
+
+  return this.find({
+
+    isDeleted: false,
+
+    validTill: {
+      $lt: new Date(),
+    },
+
+  });
+
+};
+
+// ======================================================
+// Export
+// ======================================================
+
+const Coupon =
+  mongoose.models.Coupon ||
+  mongoose.model(
+    "Coupon",
+    couponSchema
+  );
 
 export default Coupon;

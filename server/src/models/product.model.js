@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
+import Counter from "./counter.model.js";
+
 
 // ======================================================
 // Image Schema
@@ -308,30 +310,46 @@ productSchema.pre("save", function (next) {
 // ======================================================
 
 productSchema.pre("save", async function (next) {
-  if (!this.isModified("slug")) {
+
+  if (!this.isNew || this.sku) {
     return next();
   }
 
-  const Product = mongoose.models.Product;
+  const metalPrefix = {
+    Gold: "GLD",
+    Silver: "SLV",
+    Platinum: "PLT",
+  };
 
-  let baseSlug = this.slug;
+  const prefix =
+    metalPrefix[this.metal] || "PRD";
 
-  let slug = baseSlug;
+  const counter =
+    await Counter.findOneAndUpdate(
 
-  let counter = 1;
+      {
+        name: "productSku",
+        date: "GLOBAL",
+      },
 
-  while (
-    await Product.exists({
-      slug,
-      _id: { $ne: this._id },
-    })
-  ) {
-    slug = `${baseSlug}-${counter++}`;
-  }
+      {
+        $inc: {
+          sequence: 1,
+        },
+      },
 
-  this.slug = slug;
+      {
+        new: true,
+        upsert: true,
+      }
+
+    );
+
+  this.sku =
+    `MG-${prefix}-${String(counter.sequence).padStart(6, "0")}`;
 
   next();
+
 });
 
 // ======================================================
@@ -369,32 +387,60 @@ productSchema.pre("validate", function (next) {
 });
 
 // ======================================================
-// Auto SKU Generator
+// Auto SKU Generator (Production Safe)
 // ======================================================
 
 productSchema.pre("save", async function (next) {
+
   if (!this.isNew || this.sku) {
     return next();
   }
 
-  const metalPrefix = {
-    Gold: "GLD",
-    Silver: "SLV",
-    Platinum: "PLT",
-  };
+  try {
 
-  const prefix =
-    metalPrefix[this.metal] || "PRD";
+    const metalPrefix = {
+      Gold: "GLD",
+      Silver: "SLV",
+      Platinum: "PLT",
+    };
 
-  const count =
-    (await mongoose.models.Product.countDocuments()) +
-    1;
+    const prefix =
+      metalPrefix[this.metal] || "PRD";
 
-  this.sku =
-    `MG-${prefix}-${String(count).padStart(6, "0")}`;
+    const counter =
+      await Counter.findOneAndUpdate(
 
-  next();
+        {
+          name: "PRODUCT",
+          date: "GLOBAL",
+        },
+
+        {
+          $inc: {
+            sequence: 1,
+          },
+        },
+
+        {
+          new: true,
+          upsert: true,
+        }
+
+      );
+
+    this.sku =
+      `MG-${prefix}-${String(counter.sequence).padStart(6, "0")}`;
+
+    next();
+
+  } catch (error) {
+
+    next(error);
+
+  }
+
 });
+
 
 // ======================================================
 // Virtual Final Price

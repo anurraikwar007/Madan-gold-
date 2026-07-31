@@ -112,9 +112,9 @@ const categorySchema = new mongoose.Schema(
     },
 
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Admin",
+          default: null,
     },
 
     updatedBy: {

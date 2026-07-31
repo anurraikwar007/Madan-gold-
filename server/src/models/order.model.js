@@ -189,22 +189,22 @@ const orderSchema = new mongoose.Schema(
       default: null,
     },
 
-    verifiedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
-      default: null,
+    paymentVerifiedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
+    default: null,
+   },
+
+    paymentVerifiedAt: {
+    type: Date,
+    default: null,
     },
 
-    verifiedAt: {
-      type: Date,
-      default: null,
-    },
-
-    verificationRemark: {
-      type: String,
-      default: "",
-      trim: true,
-    },
+    paymentRemark: {
+    type: String,
+    default: "",
+    trim: true,
+     },
 
     orderStatus: {
       type: String,
@@ -258,6 +258,34 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+      
+    // =====================================
+// Invoice
+// =====================================
+
+invoiceNumber: {
+  type: String,
+  default: "",
+  trim: true,
+  index: true,
+},
+
+invoiceGenerated: {
+  type: Boolean,
+  default: false,
+},
+
+invoiceGeneratedAt: {
+  type: Date,
+  default: null,
+},
+
+invoiceUrl: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
 
     trackingNumber: {
       type: String,
