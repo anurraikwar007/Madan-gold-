@@ -1,37 +1,56 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+
+import cloudinary from "../config/cloudinary.js";
+import ApiError from "../utils/apiError.js";
 
 // ======================================================
-// Temp Upload Folder
+// Allowed Image Types
 // ======================================================
 
-const uploadPath = "src/uploads";
-
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, {
-    recursive: true,
-  });
-}
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 // ======================================================
-// Storage
+// Cloudinary Storage
 // ======================================================
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, uploadPath);
-  },
+const storage = new CloudinaryStorage({
+  cloudinary,
 
-  filename(req, file, cb) {
-    const uniqueName =
-      Date.now() +
-      "-" +
-      Math.round(Math.random() * 1e9) +
-      path.extname(file.originalname);
+  params: async (req, file) => ({
+    folder: "manikya",
 
-    cb(null, uniqueName);
-  },
+    resource_type: "image",
+
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+    ],
+
+    use_filename: false,
+
+    unique_filename: true,
+
+    overwrite: false,
+
+    transformation: [
+      {
+        width: 1200,
+        crop: "limit",
+
+        fetch_format: "auto",
+
+        quality: "auto:good",
+      },
+    ],
+  }),
 });
 
 // ======================================================
@@ -39,27 +58,24 @@ const storage = multer.diskStorage({
 // ======================================================
 
 const fileFilter = (req, file, cb) => {
-  const allowed = [
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-  ];
 
-  if (allowed.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error(
+  if (
+    !allowedMimeTypes.includes(
+      file.mimetype
+    )
+  ) {
+    return cb(
+      new ApiError(
+        400,
         "Only JPG, JPEG, PNG and WEBP images are allowed."
-      ),
-      false
+      )
     );
   }
-};
 
+  cb(null, true);
+};
 // ======================================================
-// Upload
+// Multer Configuration
 // ======================================================
 
 const upload = multer({
@@ -68,8 +84,90 @@ const upload = multer({
   fileFilter,
 
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 10,
+
+    fileSize: 1024 * 1024, // 1 MB upload limit
   },
 });
+
+// ======================================================
+// Upload Helpers
+// ======================================================
+
+// Single Image Upload
+export const singleUpload = (fieldName = "image") =>
+  upload.single(fieldName);
+
+// Multiple Images Upload
+export const multipleUpload = (
+  fieldName = "images",
+  maxCount = 10
+) =>
+  upload.array(
+    fieldName,
+    maxCount
+  );
+
+// Multiple Fields Upload
+export const fieldsUpload = (
+  fields = []
+) =>
+  upload.fields(fields);
+
+// ======================================================
+// Enterprise Error Handler
+// ======================================================
+
+export const uploadErrorHandler = (
+  err,
+  req,
+  res,
+  next
+) => {
+
+  if (err instanceof multer.MulterError) {
+
+    switch (err.code) {
+
+      case "LIMIT_FILE_SIZE":
+        return next(
+          new ApiError(
+            400,
+            "Maximum image size allowed is 1 MB."
+          )
+        );
+
+      case "LIMIT_FILE_COUNT":
+        return next(
+          new ApiError(
+            400,
+            "Too many images uploaded."
+          )
+        );
+
+      case "LIMIT_UNEXPECTED_FILE":
+        return next(
+          new ApiError(
+            400,
+            "Unexpected upload field."
+          )
+        );
+
+      default:
+        return next(
+          new ApiError(
+            400,
+            err.message
+          )
+        );
+    }
+  }
+
+  next(err);
+};
+
+// ======================================================
+// Default Export
+// ======================================================
 
 export default upload;

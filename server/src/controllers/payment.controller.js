@@ -6,6 +6,8 @@ import {
   getPendingPayments,
   verifyPayment,
   rejectPayment,
+  getPaymentHistory,
+  getPaymentDetails,
 } from "../services/payment.service.js";
 
 // ======================================
@@ -68,17 +70,52 @@ export const verify = asyncHandler(async (req, res) => {
 
 export const reject = asyncHandler(async (req, res) => {
   const { remark } = req.body;
-  
-const order = await rejectPayment(
-  req.params.id,
-  remark,
-  req.user._id
-);
+
+  const order = await rejectPayment(
+    req.params.id,
+    remark,
+    req.user._id
+  );
 
   return res.status(200).json(
     apiResponse.success(
       "Payment rejected successfully.",
       order
+    )
+  );
+});
+
+// ======================================
+// Customer Payment History
+// ======================================
+
+export const history = asyncHandler(async (req, res) => {
+  const payments = await getPaymentHistory(
+    req.user._id
+  );
+
+  return res.status(200).json(
+    apiResponse.success(
+      "Payment history fetched successfully.",
+      payments
+    )
+  );
+});
+
+// ======================================
+// Payment Details
+// ======================================
+
+export const paymentDetails = asyncHandler(async (req, res) => {
+  const payment = await getPaymentDetails(
+    req.params.id,
+    req.user
+  );
+
+  return res.status(200).json(
+    apiResponse.success(
+      "Payment details fetched successfully.",
+      payment
     )
   );
 });

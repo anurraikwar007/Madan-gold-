@@ -9,11 +9,25 @@ import {
   updateOrderStatus,
 } from "../services/order.service.js";
 
+import generateInvoice from "../utils/invoice.js";
+import Order from "../models/order.model.js";
+
 class OrderController {
+
+  // =====================================================
+  // Create Order
+  // =====================================================
+
   create = asyncHandler(async (req, res) => {
+
     const order = await createOrder(
       req.user._id,
-      req.body
+      req.body,
+      {
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
+        requestId: req.requestId,
+      }
     );
 
     return res.status(201).json(
@@ -22,9 +36,15 @@ class OrderController {
         order
       )
     );
+
   });
 
+  // =====================================================
+  // Customer Orders
+  // =====================================================
+
   myOrders = asyncHandler(async (req, res) => {
+
     const orders = await getCustomerOrders(
       req.user._id
     );
@@ -35,9 +55,15 @@ class OrderController {
         orders
       )
     );
+
   });
 
+  // =====================================================
+  // Get Single Order
+  // =====================================================
+
   getOne = asyncHandler(async (req, res) => {
+
     const order = await getOrderById(
       req.user._id,
       req.params.id
@@ -49,9 +75,15 @@ class OrderController {
         order
       )
     );
+
   });
 
+  // =====================================================
+  // Admin Orders
+  // =====================================================
+
   getAll = asyncHandler(async (req, res) => {
+
     const orders = await getAllOrders();
 
     return res.status(200).json(
@@ -60,12 +92,28 @@ class OrderController {
         orders
       )
     );
+
   });
 
+  // =====================================================
+  // Update Order Status
+  // =====================================================
+
   updateStatus = asyncHandler(async (req, res) => {
+
     const order = await updateOrderStatus(
+
       req.params.id,
-      req.body.orderStatus
+
+      req.body.orderStatus,
+
+      {
+        adminId: req.user._id,
+        ipAddress: req.ip,
+        userAgent: req.headers["user-agent"],
+        requestId: req.requestId,
+      }
+
     );
 
     return res.status(200).json(
@@ -74,7 +122,65 @@ class OrderController {
         order
       )
     );
+
   });
+
+  // =====================================================
+  // Download Invoice
+  // =====================================================
+
+  downloadInvoice = asyncHandler(async (req, res) => {
+
+    const query = {
+      _id: req.params.id,
+    };
+
+    // Customer sirf apna invoice download kar sakta hai
+
+    if (req.user.role !== "Admin") {
+      query.customer = req.user._id;
+    }
+
+    const order = await Order.findOne(query)
+      .populate("customer")
+      .populate("items.product");
+
+    if (!order) {
+      return res.status(404).json(
+        apiResponse.error("Order not found.")
+      );
+    }
+
+    if (!order.invoiceNumber) {
+
+      order.invoiceNumber =
+        `INV-${order.orderNumber}`;
+
+      order.invoiceGenerated = true;
+
+      order.invoiceGeneratedAt =
+        new Date();
+
+      await order.save();
+
+    }
+
+    res.setHeader(
+      "Content-Type",
+      "application/pdf"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${order.invoiceNumber}.pdf`
+    );
+
+    const pdf = generateInvoice(order);
+
+    pdf.pipe(res);
+
+  });
+
 }
 
 export default new OrderController();

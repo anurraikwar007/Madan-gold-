@@ -7,6 +7,8 @@ import AuditService from "./audit.service.js";
 
 import ApiError from "../utils/apiError.js";
 
+import Order from "../models/order.model.js";
+
 // ======================================================
 // Submit Payment
 // ======================================================
@@ -26,62 +28,56 @@ export const submitPayment = async (
 
     const order =
       await OrderRepository.findOne(
-
         {
           _id: orderId,
           customer: customerId,
         },
-
         {
           session,
         }
-
       );
 
     if (!order) {
-
       throw new ApiError(
         404,
         "Order not found."
       );
-
     }
 
     if (
       order.paymentMethod === "COD"
     ) {
-
       throw new ApiError(
         400,
         "COD orders do not require payment submission."
       );
-
     }
 
     if (
       order.paymentStatus === "Paid"
     ) {
-
       throw new ApiError(
         400,
         "Payment already verified."
       );
-
     }
 
     if (!transactionId) {
-
       throw new ApiError(
         400,
         "Transaction ID is required."
       );
-
     }
+
+    // =====================================
+    // Update Payment
+    // =====================================
 
     order.transactionId =
       transactionId;
 
-      order.paymentSubmittedAt = new Date();
+    order.paymentSubmittedAt =
+      new Date();
 
     order.paymentStatus =
       "Verification Pending";
@@ -90,30 +86,22 @@ export const submitPayment = async (
       session,
     });
 
+    // =====================================
+    // Audit Log
+    // =====================================
+
     await AuditService.log({
-
       entityType: "Payment",
-
       entityId: order._id,
-
       action: "PAYMENT_SUBMITTED",
-
       performedBy: customerId,
-
       changes: [
-
         {
-
           field: "transactionId",
-
           oldValue: null,
-
           newValue: transactionId,
-
         },
-
       ],
-
     });
 
     await session.commitTransaction();
@@ -133,42 +121,34 @@ export const submitPayment = async (
   }
 
 };
+
 // ======================================================
 // Get Pending Payments
 // ======================================================
 
-export const getPendingPayments = async () => {
+export const getPendingPayments =
+async () => {
 
   return await OrderRepository.find(
 
     {
-
-      paymentStatus: "Verification Pending",
+      paymentStatus:
+        "Verification Pending",
 
       paymentMethod: {
-
         $ne: "COD",
-
       },
-
     },
 
     {
-
       populate: [
-
         "customer",
-
         "items.product",
-
       ],
 
       sort: {
-
         createdAt: -1,
-
       },
-
     }
 
   );
@@ -180,11 +160,8 @@ export const getPendingPayments = async () => {
 // ======================================================
 
 export const verifyPayment = async (
-
   orderId,
-
   adminId
-
 ) => {
 
   const session =
@@ -196,110 +173,82 @@ export const verifyPayment = async (
 
     const order =
       await OrderRepository.findById(
-
         orderId,
-
         {
-
           session,
-
         }
-
       );
 
     if (!order) {
-
       throw new ApiError(
-
         404,
-
         "Order not found."
-
       );
-
     }
 
     if (
-
       order.paymentMethod === "COD"
-
     ) {
-
       throw new ApiError(
-
         400,
-
         "COD payment cannot be verified."
-
       );
-
     }
 
     if (
-
       order.paymentStatus === "Paid"
-
     ) {
-
       throw new ApiError(
-
         400,
-
         "Payment already verified."
-
       );
-
     }
 
-    order.paymentStatus = "Paid";
+    // =====================================
+    // Update Payment
+    // =====================================
 
-    order.paymentVerifiedAt = new Date();
-
-    order.paymentVerifiedBy = adminId;
-
-    if (
-
-      order.orderStatus === "Pending"
-
-    ) {
-
-      order.orderStatus = "Confirmed";
-
-    }
+    order.paymentStatus =
+      "Paid";
 
     order.paymentVerifiedAt =
       new Date();
 
+    order.paymentVerifiedBy =
+      adminId;
+
+    order.paymentRemark =
+      "Payment Verified";
+
+    if (
+      order.orderStatus ===
+      "Pending"
+    ) {
+      order.orderStatus =
+        "Confirmed";
+    }
+
     await order.save({
-
       session,
-
     });
 
+    // =====================================
+    // Audit
+    // =====================================
+
     await AuditService.log({
-
       entityType: "Payment",
-
       entityId: order._id,
-
       action: "PAYMENT_VERIFIED",
-
       performedBy: adminId,
-
       changes: [
-
         {
-
           field: "paymentStatus",
-
-          oldValue: "Verification Pending",
-
+          oldValue:
+            "Verification Pending",
           newValue: "Paid",
-
         },
-
       ],
-
     });
 
     await session.commitTransaction();
@@ -319,18 +268,15 @@ export const verifyPayment = async (
   }
 
 };
+
 // ======================================================
 // Reject Payment
 // ======================================================
 
 export const rejectPayment = async (
-
   orderId,
-
   remark,
-
-  adminId = null
-
+  adminId
 ) => {
 
   const session =
@@ -342,80 +288,58 @@ export const rejectPayment = async (
 
     const order =
       await OrderRepository.findById(
-
         orderId,
-
         {
           session,
         }
-
       );
 
     if (!order) {
-
       throw new ApiError(
         404,
         "Order not found."
       );
-
     }
 
     if (
-
       order.paymentMethod === "COD"
-
     ) {
-
       throw new ApiError(
         400,
         "COD payment cannot be rejected."
       );
-
     }
 
     if (
-
       order.paymentStatus === "Paid"
-
     ) {
-
       throw new ApiError(
         400,
         "Verified payment cannot be rejected."
       );
-
     }
 
     // =====================================
-    // Restore Inventory
+    // Restore Reserved Stock
     // =====================================
 
     for (const item of order.items) {
 
       await ProductRepository.findOneAndUpdate(
-
         {
           _id: item.product,
         },
-
         {
-
           $inc: {
-
             "inventory.reservedStock":
               -item.quantity,
-
             "inventory.availableStock":
               item.quantity,
-
           },
-
         },
-
         {
           session,
         }
-
       );
 
     }
@@ -432,10 +356,12 @@ export const rejectPayment = async (
 
     order.paymentRemark =
       remark;
-     
-      order.paymentVerifiedBy = adminId;
 
-      order.paymentVerifiedAt = new Date();
+    order.paymentVerifiedBy =
+      adminId;
+
+    order.paymentVerifiedAt =
+      new Date();
 
     order.cancelledAt =
       new Date();
@@ -449,43 +375,26 @@ export const rejectPayment = async (
     // =====================================
 
     await AuditService.log({
-
       entityType: "Payment",
-
       entityId: order._id,
-
       action: "PAYMENT_REJECTED",
-
       performedBy: adminId,
-
       changes: [
-
         {
-
           field: "paymentStatus",
-
           oldValue:
             "Verification Pending",
-
           newValue:
             "Rejected",
-
         },
-
         {
-
           field: "orderStatus",
-
           oldValue:
             "Pending",
-
           newValue:
             "Cancelled",
-
         },
-
       ],
-
     });
 
     await session.commitTransaction();
@@ -505,6 +414,7 @@ export const rejectPayment = async (
   }
 
 };
+
 // ======================================================
 // Check Payment Status
 // ======================================================
@@ -519,12 +429,10 @@ export const getPaymentStatus = async (
     );
 
   if (!order) {
-
     throw new ApiError(
       404,
       "Order not found."
     );
-
   }
 
   return {
@@ -543,8 +451,14 @@ export const getPaymentStatus = async (
     transactionId:
       order.transactionId ?? null,
 
+    paymentSubmittedAt:
+      order.paymentSubmittedAt ?? null,
+
     paymentVerifiedAt:
       order.paymentVerifiedAt ?? null,
+
+    paymentVerifiedBy:
+      order.paymentVerifiedBy ?? null,
 
     remark:
       order.paymentRemark ?? null,
@@ -557,34 +471,66 @@ export const getPaymentStatus = async (
 // Customer Payment History
 // ======================================================
 
-export const getCustomerPayments =
-async (customerId) => {
+export const getPaymentHistory = async (
+  customerId
+) => {
 
-  return await OrderRepository.find(
-
-    {
+  const orders =
+    await Order.find({
 
       customer: customerId,
 
-      paymentMethod: {
-
-        $ne: "COD",
-
-      },
-
-    },
-
-    {
-
-      sort: {
-
+    })
+      .select(
+        "orderNumber paymentStatus paymentMethod paymentApp transactionId totalAmount paymentSubmittedAt paymentVerifiedAt createdAt"
+      )
+      .sort({
         createdAt: -1,
+      });
 
-      },
+  return orders;
 
-    }
+};
 
-  );
+// ======================================================
+// Payment Details
+// ======================================================
+
+export const getPaymentDetails = async (
+  orderId,
+  user
+) => {
+
+  const query = {
+    _id: orderId,
+  };
+
+  // Customer sirf apna payment dekh sakta hai
+
+  if (user.role !== "Admin") {
+    query.customer =
+      user._id;
+  }
+
+  const order =
+    await Order.findOne(query)
+      .populate(
+        "customer",
+        "name email phone"
+      )
+      .populate(
+        "paymentVerifiedBy",
+        "name email"
+      );
+
+  if (!order) {
+    throw new ApiError(
+      404,
+      "Payment not found."
+    );
+  }
+
+  return order;
 
 };
 

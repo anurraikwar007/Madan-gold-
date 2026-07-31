@@ -34,6 +34,12 @@ router.get(
   OrderController.getOne
 );
 
+router.get(
+  "/:id/invoice",
+  authMiddleware,
+  OrderController.downloadInvoice
+);
+
 /*
 =========================================
 Admin Routes

@@ -5,6 +5,8 @@ import {
   pending,
   verify,
   reject,
+  history,
+  paymentDetails,
 } from "../controllers/payment.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -54,6 +56,21 @@ router.put(
   authMiddleware,
   roleMiddleware("Admin"),
   reject
+);
+
+// Payment History (Customer)
+router.get(
+    "/history",
+    authMiddleware,
+    roleMiddleware("Customer"),
+    history
+);
+
+// Payment Details
+router.get(
+    "/:id",
+    authMiddleware,
+    paymentDetails
 );
 
 export default router;
