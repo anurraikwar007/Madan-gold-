@@ -1,6 +1,7 @@
 import Admin from "../models/admin.model.js";
 import Customer from "../models/customer.model.js";
 import { generateToken } from "../utils/jwt.js";
+import bcrypt from "bcrypt";
 
 // =========================
 // Customer Register
@@ -35,13 +36,30 @@ export const registerCustomer = async (data) => {
 // =========================
 
 export const loginCustomer = async (email, password) => {
+
   const customer = await Customer.findOne({ email }).select("+password");
+
+  console.log("Email Entered :", email);
+  console.log("Customer Found :", customer);
 
   if (!customer) {
     throw new Error("Invalid email or password");
   }
+  console.log("==================================");
+  console.log("Email Entered :", email);
+  console.log("Customer Found :", customer);
+  console.log("Entered Password :", password);
+  console.log("DB Hash :", customer.password);
+  console.log("Entered Password :", password);
+  console.log("DB Hash :", customer.password);
 
   const isMatch = await customer.comparePassword(password);
+
+  console.log("Password Match :", isMatch);
+
+  const directMatch = await bcrypt.compare(password, customer.password);
+  console.log("Direct bcrypt.compare :", directMatch);
+
 
   if (!isMatch) {
     throw new Error("Invalid email or password");

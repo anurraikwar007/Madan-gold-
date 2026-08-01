@@ -41,7 +41,7 @@ Admin Routes
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin", "SuperAdmin"),
   validate(createProductSchema),
   ProductController.create
 );
@@ -50,16 +50,30 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin", "SuperAdmin"),
   validate(updateProductSchema),
   ProductController.update
+);
+
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  ProductController.toggleStatus
+);
+
+router.patch(
+  "/:id/restore",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  ProductController.restore
 );
 
 // Delete Product
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin", "SuperAdmin"),
   ProductController.remove
 );
 

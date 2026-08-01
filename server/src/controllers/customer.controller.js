@@ -5,20 +5,27 @@ import {
   registerCustomer,
   loginCustomer,
 } from "../services/auth.service.js";
+import Customer from "../models/customer.model.js";
 
 // =========================
 // Customer Register
 // =========================
 
 export const register = asyncHandler(async (req, res) => {
-  const customer = await registerCustomer(req.body);
 
-  return res.status(201).json(
-    apiResponse.success(
-      "Customer registered successfully.",
-      customer
-    )
-  );
+    const createdCustomer = await registerCustomer(req.body);
+
+    const customer = await Customer
+        .findById(createdCustomer._id)
+        .select("-password");
+
+    return res.status(201).json(
+        apiResponse.success(
+            "Customer registered successfully.",
+            customer
+        )
+    );
+
 });
 
 // =========================
@@ -28,13 +35,15 @@ export const register = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const data = await loginCustomer(email, password);
+  const { customer, token } = await loginCustomer(email, password);
+
+  customer.password = undefined;
 
   return res.status(200).json(
-    apiResponse.success(
-      "Login successful.",
-      data
-    )
+    apiResponse.success("Login successful.", {
+      customer,
+      token,
+    })
   );
 });
 
@@ -53,47 +62,40 @@ export const profile = asyncHandler(async (req, res) => {
 
 export const changePassword = asyncHandler(async (req, res) => {
 
-  const {
-    oldPassword,
-    newPassword,
-  } = req.body;
+    const {
+        oldPassword,
+        newPassword,
+    } = req.body;
 
+    const customer = await Customer
+        .findById(req.user.id)
+        .select("+password");
 
-  const customer = await Customer.findById(req.user.id);
+    if (!customer) {
+        return res
+            .status(404)
+            .json(apiResponse.error("Customer not found"));
+    }
 
+    const isMatch =
+        await customer.comparePassword(oldPassword);
 
-  if (!customer) {
-    return res
-      .status(404)
-      .json(
-        apiResponse.error("Customer not found")
-      );
-  }
+    if (!isMatch) {
+        return res
+            .status(401)
+            .json(apiResponse.error("Old password is incorrect"));
+    }
 
+    customer.password = newPassword;
 
-  const isMatch = await customer.comparePassword(
-    oldPassword
-  );
+    await customer.save();
 
+    customer.password = undefined;
 
-  if (!isMatch) {
-    return res
-      .status(401)
-      .json(
-        apiResponse.error("Old password is incorrect")
-      );
-  }
-
-
-  customer.password = newPassword;
-
-  await customer.save();
-
-
-  return res.status(200).json(
-    apiResponse.success(
-      "Password changed successfully"
-    )
-  );
+    return res.status(200).json(
+        apiResponse.success(
+            "Password changed successfully."
+        )
+    );
 
 });

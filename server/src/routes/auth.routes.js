@@ -9,6 +9,7 @@ import {
   register,
   login as customerLogin,
   profile,
+  changePassword,
 } from "../controllers/customer.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -50,6 +51,13 @@ router.get(
   profile
 );
 
+router.put(
+  "/change-password",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  changePassword
+);
+
 /*
 ==================================
 Admin Routes
@@ -67,7 +75,7 @@ router.post(
 router.get(
   "/admin/me",
   authMiddleware,
-  roleMiddleware("Admin"),
+ roleMiddleware("Admin", "SuperAdmin"),
   me
 );
 

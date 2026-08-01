@@ -1,97 +1,91 @@
 import Joi from "joi";
 
 // =====================================
+// Image Schema
+// =====================================
+
+const imageSchema = Joi.object({
+  public_id: Joi.string().required(),
+  url: Joi.string().uri().required(),
+  alt: Joi.string().allow("").default(""),
+  isPrimary: Joi.boolean().default(false),
+});
+
+// =====================================
+// Inventory Schema
+// =====================================
+
+const inventorySchema = Joi.object({
+  stock: Joi.number().min(0).required(),
+  reservedStock: Joi.number().min(0).default(0),
+  availableStock: Joi.number().min(0).default(0),
+  lowStockThreshold: Joi.number().min(0).default(5),
+});
+
+// =====================================
 // Create Product
 // =====================================
 
 export const createProductSchema = {
   body: Joi.object({
-    name: Joi.string()
-      .trim()
-      .min(3)
-      .max(150)
-      .required(),
 
-    slug: Joi.string()
-      .trim()
-      .lowercase()
-      .required(),
+    name: Joi.string().trim().min(3).max(150).required(),
 
-    sku: Joi.string()
-      .trim()
-      .uppercase()
-      .required(),
+    description: Joi.string().trim().required(),
 
-    description: Joi.string()
-      .trim()
-      .min(10)
-      .required(),
+    shortDescription: Joi.string().allow("").default(""),
 
-    category: Joi.string()
-      .valid(
-        "Ring",
-        "Necklace",
-        "Pendant",
-        "Bracelet",
-        "Bangle",
-        "Chain",
-        "Mangalsutra",
-        "Earrings",
-        "Nose Pin",
-        "Anklet",
-        "Coin",
-        "Other"
-      )
+    category: Joi.string().required(),
+
+    metal: Joi.string()
+      .valid("Gold", "Silver", "Platinum")
       .required(),
 
     purity: Joi.string()
       .valid(
+        "14K",
         "18K",
-        "20K",
         "22K",
         "24K",
-        "925 Silver"
+        "925 Silver",
+        "950 Platinum"
       )
       .required(),
 
-    weight: Joi.number()
-      .positive()
-      .required(),
+    gender: Joi.string()
+      .valid("Men", "Women", "Kids", "Unisex")
+      .default("Unisex"),
 
-    makingCharge: Joi.number()
-      .min(0)
-      .required(),
+    weight: Joi.number().positive().required(),
 
-    wastage: Joi.number()
-      .min(0)
-      .default(0),
+    price: Joi.number().positive().required(),
 
-    price: Joi.number()
-      .positive()
-      .required(),
+    discountPrice: Joi.number().min(0).default(0),
 
-    stock: Joi.number()
-      .integer()
-      .min(0)
-      .required(),
+    makingCharges: Joi.number().min(0).default(0),
+
+    gst: Joi.number().min(0).default(3),
+
+    featured: Joi.boolean().default(false),
+
+    bestseller: Joi.boolean().default(false),
+
+    isActive: Joi.boolean().default(true),
+
+    inventory: inventorySchema.required(),
 
     images: Joi.array()
-      .items(Joi.string())
-      .min(1)
-      .required(),
+      .items(imageSchema)
+      .default([]),
 
-    thumbnail: Joi.string()
-      .required(),
+    seoTitle: Joi.string().allow("").default(""),
 
-    isFeatured: Joi.boolean()
-      .default(false),
+    seoDescription: Joi.string().allow("").default(""),
 
-    isActive: Joi.boolean()
-      .default(true),
-
-    tags: Joi.array()
+    seoKeywords: Joi.array()
       .items(Joi.string())
       .default([]),
+
   }),
 };
 
@@ -101,77 +95,72 @@ export const createProductSchema = {
 
 export const updateProductSchema = {
   body: Joi.object({
-    name: Joi.string()
-      .trim()
-      .min(3)
-      .max(150),
 
-    slug: Joi.string()
-      .trim()
-      .lowercase(),
+    name: Joi.string().trim().min(3).max(150),
 
-    sku: Joi.string()
-      .trim()
-      .uppercase(),
+    description: Joi.string(),
 
-    description: Joi.string()
-      .trim()
-      .min(10),
+    shortDescription: Joi.string(),
 
-    category: Joi.string().valid(
-      "Ring",
-      "Necklace",
-      "Pendant",
-      "Bracelet",
-      "Bangle",
-      "Chain",
-      "Mangalsutra",
-      "Earrings",
-      "Nose Pin",
-      "Anklet",
-      "Coin",
-      "Other"
+    category: Joi.string(),
+
+    metal: Joi.string().valid(
+      "Gold",
+      "Silver",
+      "Platinum"
     ),
 
     purity: Joi.string().valid(
+      "14K",
       "18K",
-      "20K",
       "22K",
       "24K",
-      "925 Silver"
+      "925 Silver",
+      "950 Platinum"
+    ),
+
+    gender: Joi.string().valid(
+      "Men",
+      "Women",
+      "Kids",
+      "Unisex"
     ),
 
     weight: Joi.number().positive(),
 
-    makingCharge: Joi.number().min(0),
-
-    wastage: Joi.number().min(0),
-
     price: Joi.number().positive(),
 
-    stock: Joi.number().integer().min(0),
+    discountPrice: Joi.number().min(0),
 
-    images: Joi.array().items(Joi.string()),
+    makingCharges: Joi.number().min(0),
 
-    thumbnail: Joi.string(),
+    gst: Joi.number().min(0),
 
-    isFeatured: Joi.boolean(),
+    featured: Joi.boolean(),
+
+    bestseller: Joi.boolean(),
 
     isActive: Joi.boolean(),
 
-    tags: Joi.array().items(Joi.string()),
+    inventory: inventorySchema,
+
+    images: Joi.array().items(imageSchema),
+
+    seoTitle: Joi.string(),
+
+    seoDescription: Joi.string(),
+
+    seoKeywords: Joi.array().items(Joi.string()),
+
   }),
 };
 
 // =====================================
-// Product ID
+// Product Id
 // =====================================
 
 export const productIdSchema = {
   params: Joi.object({
-    id: Joi.string()
-      .length(24)
-      .hex()
-      .required(),
+    id: Joi.string().length(24).hex().required(),
   }),
 };

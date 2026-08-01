@@ -62,22 +62,12 @@ export class ProductDTO {
           Number(data.inventory?.stock || 0),
 
         reservedStock:
-          Number(
-            data.inventory?.reservedStock || 0
-          ),
-
-        availableStock:
-          Number(
-            data.inventory?.availableStock || 0
-          ),
+          Number(data.inventory?.reservedStock || 0),
 
         lowStockThreshold:
-          Number(
-            data.inventory?.lowStockThreshold || 5
-          ),
+          Number(data.inventory?.lowStockThreshold || 5),
 
       },
-
       images:
         Array.isArray(data.images)
           ? data.images

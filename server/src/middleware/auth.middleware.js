@@ -25,23 +25,33 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
   }
 
   // Verify JWT
-  const decoded = jwt.verify(token, env.JWT_SECRET);
+  console.log("================================");
+  console.log("Authorization Header:");
+  console.log(req.headers.authorization);
+  console.log("================================");
 
-  // Admin
-  if (decoded.role === "Admin") {
+  const decoded = jwt.verify(token, env.JWT_SECRET);
+  
+  
+ // Admin
+if (
+    decoded.role === "Admin" ||
+    decoded.role === "SuperAdmin"
+) {
     const admin = await Admin.findById(decoded.id);
 
     if (!admin) {
-      return res
-        .status(401)
-        .json(apiResponse.error("Admin not found."));
+    return res
+      .status(401)
+      .json(apiResponse.error("Admin not found."));
     }
 
+    console.log("Calling next()");
     req.admin = admin;
     req.user = admin;
 
     return next();
-  }
+    }
 
   // Customer
   if (decoded.role === "Customer") {

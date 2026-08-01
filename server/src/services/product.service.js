@@ -91,6 +91,8 @@ export const createProduct = async (
   // Audit Log
   // =====================================
 
+ try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -102,17 +104,11 @@ export const createProduct = async (
     performedBy: context.adminId,
 
     changes: [
-
       {
-
         field: "CREATE",
-
         oldValue: null,
-
         newValue: product,
-
       },
-
     ],
 
     ipAddress: context.ipAddress,
@@ -122,6 +118,12 @@ export const createProduct = async (
     requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Log Error:", error.message);
+
+}
 
   return product.toObject();
 
@@ -326,7 +328,10 @@ async (productId) => {
 
   const product =
     await ProductRepository.findById(
-      productId
+      productId,
+      {
+      lean: false,
+    }
     );
 
   if (
@@ -360,7 +365,10 @@ async (
 
   const product =
     await ProductRepository.findById(
-      productId
+      productId,
+      {
+      lean: false,
+    }
     );
 
   if (
@@ -487,6 +495,8 @@ async (
   // Audit Log
   // =====================================
 
+  try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -495,21 +505,23 @@ async (
 
     action: "UPDATE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes,
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return product.toObject();
 
@@ -527,7 +539,10 @@ async (
 
   const product =
     await ProductRepository.findById(
-      productId
+      productId,
+      {
+      lean: false,
+    }
     );
 
   if (
@@ -592,7 +607,11 @@ async (
 
       isDeleted: true,
 
-    });
+    },
+    {
+        lean:false
+    }
+  );
 
   if (!product) {
 
@@ -611,6 +630,8 @@ async (
   // Audit Log
   // =====================================
 
+ try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -619,21 +640,23 @@ async (
 
     action: "RESTORE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes: [],
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return product.toObject();
 
@@ -651,7 +674,10 @@ async (
 
   const product =
     await ProductRepository.findById(
-      productId
+      productId,
+      {
+      lean: false,
+    }
     );
 
   if (
@@ -679,6 +705,8 @@ async (
       product.toObject()
     );
 
+  try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -687,21 +715,23 @@ async (
 
     action: "STATUS_CHANGE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes,
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return product.toObject();
 
@@ -720,7 +750,10 @@ async (
 
   const product =
     await ProductRepository.findById(
-      productId
+      productId,
+      {
+      lean: false,
+    }
     );
 
   if (
@@ -772,6 +805,8 @@ async (
       product.toObject()
     );
 
+ try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -780,21 +815,23 @@ async (
 
     action: "UPDATE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes,
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return product.toObject();
 
@@ -1090,6 +1127,8 @@ async (
 
     );
 
+ try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -1098,33 +1137,29 @@ async (
 
     action: "STATUS_CHANGE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes: [
-
       {
-
         field: "bulkActivate",
-
         oldValue: null,
-
         newValue: productIds,
-
       },
-
     ],
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return result;
 
@@ -1157,6 +1192,8 @@ async (
 
     );
 
+ try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -1165,33 +1202,29 @@ async (
 
     action: "STATUS_CHANGE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes: [
-
       {
-
         field: "bulkDeactivate",
-
         oldValue: null,
-
         newValue: productIds,
-
       },
-
     ],
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+    console.error("Audit Error:", error.message);
+
+}
 
   return result;
 
@@ -1234,6 +1267,8 @@ async (
 
     );
 
+  try {
+
   await AuditService.log({
 
     entityType: "Product",
@@ -1242,33 +1277,29 @@ async (
 
     action: "DELETE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes: [
-
       {
-
         field: "bulkDelete",
-
         oldValue: null,
-
         newValue: productIds,
-
       },
-
     ],
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
+
+} catch (error) {
+
+  console.error("Audit Error:", error.message);
+
+}
 
   return result;
 

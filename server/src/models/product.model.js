@@ -294,25 +294,52 @@ const productSchema = new mongoose.Schema(
 // Auto Generate Slug
 // ======================================================
 
-productSchema.pre("save", function (next) {
+productSchema.pre("save", function () {
   if (this.isModified("name")) {
     this.slug = slugify(this.name, {
       lower: true,
       strict: true,
     });
   }
+});
 
-  next();
+
+
+// ======================================================
+// Auto Inventory Calculation
+// ======================================================
+
+productSchema.pre("save", function () {
+  this.inventory.availableStock = Math.max(
+    this.inventory.stock -
+    this.inventory.reservedStock,
+    0
+  );
 });
 
 // ======================================================
-// Prevent Duplicate Slug
+// Price Validation
 // ======================================================
 
-productSchema.pre("save", async function (next) {
+productSchema.pre("validate", function () {
+  if (
+    this.discountPrice > 0 &&
+    this.discountPrice >= this.price
+  ) {
+    throw new Error(
+      "Discount price must be less than price."
+    );
+  }
+});
+
+// ======================================================
+// Auto SKU Generator (Production Safe)
+// ======================================================
+
+productSchema.pre("save", async function () {
 
   if (!this.isNew || this.sku) {
-    return next();
+    return;
   }
 
   const metalPrefix = {
@@ -326,118 +353,23 @@ productSchema.pre("save", async function (next) {
 
   const counter =
     await Counter.findOneAndUpdate(
-
       {
-        name: "productSku",
+        name: "PRODUCT",
         date: "GLOBAL",
       },
-
       {
         $inc: {
           sequence: 1,
         },
       },
-
       {
         new: true,
         upsert: true,
       }
-
     );
 
   this.sku =
     `MG-${prefix}-${String(counter.sequence).padStart(6, "0")}`;
-
-  next();
-
-});
-
-// ======================================================
-// Auto Inventory Calculation
-// ======================================================
-
-productSchema.pre("save", function (next) {
-  this.inventory.availableStock =
-    Math.max(
-      this.inventory.stock -
-        this.inventory.reservedStock,
-      0
-    );
-
-  next();
-});
-
-// ======================================================
-// Price Validation
-// ======================================================
-
-productSchema.pre("validate", function (next) {
-  if (
-    this.discountPrice > 0 &&
-    this.discountPrice >= this.price
-  ) {
-    return next(
-      new Error(
-        "Discount price must be less than price."
-      )
-    );
-  }
-
-  next();
-});
-
-// ======================================================
-// Auto SKU Generator (Production Safe)
-// ======================================================
-
-productSchema.pre("save", async function (next) {
-
-  if (!this.isNew || this.sku) {
-    return next();
-  }
-
-  try {
-
-    const metalPrefix = {
-      Gold: "GLD",
-      Silver: "SLV",
-      Platinum: "PLT",
-    };
-
-    const prefix =
-      metalPrefix[this.metal] || "PRD";
-
-    const counter =
-      await Counter.findOneAndUpdate(
-
-        {
-          name: "PRODUCT",
-          date: "GLOBAL",
-        },
-
-        {
-          $inc: {
-            sequence: 1,
-          },
-        },
-
-        {
-          new: true,
-          upsert: true,
-        }
-
-      );
-
-    this.sku =
-      `MG-${prefix}-${String(counter.sequence).padStart(6, "0")}`;
-
-    next();
-
-  } catch (error) {
-
-    next(error);
-
-  }
 
 });
 
@@ -506,12 +438,12 @@ productSchema.query.bestseller =
 // Hide Deleted Products
 // ======================================================
 
-productSchema.pre(/^find/, function (next) {
+productSchema.pre(/^find/, function () {
   this.where({
     isDeleted: false,
   });
 
-  next();
+  
 });
 
 // ======================================================
