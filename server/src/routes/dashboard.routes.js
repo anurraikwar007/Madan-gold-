@@ -14,7 +14,7 @@ const router = Router();
 router.get(
   "/",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getDashboard
 );
 
@@ -25,7 +25,7 @@ router.get(
 router.get(
   "/analytics",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getAnalytics
 );
 
@@ -36,7 +36,7 @@ router.get(
 router.get(
   "/products",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getProductStatistics
 );
 
@@ -47,7 +47,7 @@ router.get(
 router.get(
   "/categories",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getCategoryStatistics
 );
 
@@ -58,7 +58,7 @@ router.get(
 router.get(
   "/orders",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getOrderStatistics
 );
 
@@ -69,7 +69,7 @@ router.get(
 router.get(
   "/revenue",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getRevenueStatistics
 );
 
@@ -80,7 +80,7 @@ router.get(
 router.get(
   "/customers",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getCustomerStatistics
 );
 
@@ -91,7 +91,7 @@ router.get(
 router.get(
   "/sales/monthly",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getMonthlySales
 );
 
@@ -102,7 +102,7 @@ router.get(
 router.get(
   "/orders/recent",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getRecentOrders
 );
 
@@ -113,8 +113,52 @@ router.get(
 router.get(
   "/products/top-selling",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   DashboardController.getTopSellingProducts
+);
+
+// =====================================================
+// Top Customers
+// =====================================================
+
+router.get(
+  "/customers/top",
+  authMiddleware,
+  roleMiddleware("Admin","SuperAdmin"),
+  DashboardController.getTopCustomers
+);
+  
+// =====================================================
+// Revenue Analytics
+// =====================================================
+
+  router.get(
+    "/revenue/analytics",
+    authMiddleware,
+    roleMiddleware("Admin", "SuperAdmin"),
+    DashboardController.getRevenueAnalytics
+);
+
+// =====================================================
+// Sales Trend
+// =====================================================
+
+router.get(
+  "/sales/trend",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  DashboardController.getSalesTrend
+);
+
+ // =====================================================
+ // Daily Revenue
+ // =====================================================
+
+ router.get(
+    "/daily-revenue",
+    authMiddleware,
+    roleMiddleware("Admin", "SuperAdmin"),
+    DashboardController.getDailyRevenue
 );
 
 export default router;

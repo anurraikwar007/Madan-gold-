@@ -38,7 +38,7 @@ Admin Routes
 router.get(
   "/pending",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   pending
 );
 
@@ -46,7 +46,7 @@ router.get(
 router.put(
   "/:id/verify",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   verify
 );
 
@@ -54,7 +54,7 @@ router.put(
 router.put(
   "/:id/reject",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   reject
 );
 

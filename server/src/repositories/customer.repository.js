@@ -6,6 +6,10 @@ class CustomerRepository extends BaseRepository {
   constructor() {
     super(Customer);
   }
+  
+  count(filter = {}) {
+    return this.model.countDocuments(filter);
+   }
 
 }
 

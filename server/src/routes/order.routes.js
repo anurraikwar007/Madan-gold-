@@ -49,14 +49,14 @@ Admin Routes
 router.get(
   "/admin/all",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   OrderController.getAll
 );
 
 router.put(
   "/admin/:id/status",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   OrderController.updateStatus
 );
 

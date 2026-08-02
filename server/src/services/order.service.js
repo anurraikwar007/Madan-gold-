@@ -13,6 +13,9 @@ import { generateOrderNumber } from "../utils/orderNumber.js";
 import { getObjectDiff } from "../utils/diff.util.js";
 
 import ApiError from "../utils/ApiError.js";
+import { ORDER_STATUS } from "../constants/order.constant.js";
+import { orderQueryDTO }
+from "../dto/orderQuery.dto.js";
 
 // ======================================================
 // Private Helpers
@@ -609,32 +612,52 @@ async (
 // Admin Orders
 // ======================================================
 
-export const getAllOrders =
-async () => {
+export const getAdminOrders = async (query) => {
 
-  return await OrderRepository.find(
+    const dto = orderQueryDTO(query);
 
-    {},
+    const filter = {};
 
-    {
-
-      populate: [
-
-        "customer",
-
-        "items.product",
-
-      ],
-
-      sort: {
-
-        createdAt: -1,
-
-      },
-
+    if (dto.orderStatus) {
+        filter.orderStatus = dto.orderStatus;
     }
 
-  );
+    if (dto.paymentStatus) {
+        filter.paymentStatus = dto.paymentStatus;
+    }
+
+    if (dto.customerId) {
+        filter.customer = dto.customerId;
+    }
+
+    if (dto.search) {
+        filter.$or = [
+            {
+                orderNumber: {
+                    $regex: dto.search,
+                    $options: "i",
+                },
+            },
+            {
+                transactionId: {
+                    $regex: dto.search,
+                    $options: "i",
+                },
+            },
+        ];
+    }
+
+    return OrderRepository.paginate(filter, {
+        page: dto.page,
+        limit: dto.limit,
+        sort: {
+            createdAt: -1,
+        },
+        populate: [
+            "customer",
+            "items.product",
+        ],
+    });
 
 };
 
@@ -726,10 +749,8 @@ async (
     };
 
     const allowed =
-
-      allowedTransitions[
-        order.orderStatus
-      ] || [];
+     ORDER_STATUS[order.orderStatus] 
+     || [];
 
     if (
       !allowed.includes(status)
@@ -795,7 +816,7 @@ async (
 
               $inc: {
 
-                stock: -item.quantity,
+                
 
                 "inventory.reservedStock":
                   -item.quantity,

@@ -55,7 +55,7 @@ router.post(
 router.get(
   "/me",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   me
 );
 
@@ -69,7 +69,7 @@ Admin Protected Routes
 
 router.use(
   authMiddleware,
-  roleMiddleware("Admin")
+  roleMiddleware("Admin","SuperAdmin")
 );
 /*
 ===========================================================

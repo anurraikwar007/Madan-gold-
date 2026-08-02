@@ -20,7 +20,7 @@ Admin Routes
 router.get(
   "/admin/all",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.getCategories
 );
 
@@ -28,7 +28,7 @@ router.get(
 router.get(
   "/admin/statistics",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.getStatistics
 );
 
@@ -36,7 +36,7 @@ router.get(
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   upload.single("image"),
   CategoryController.createCategory
 );
@@ -45,7 +45,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   upload.single("image"),
   CategoryController.updateCategory
 );
@@ -54,7 +54,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.deleteCategory
 );
 
@@ -62,7 +62,7 @@ router.delete(
 router.patch(
   "/:id/restore",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.restoreCategory
 );
 
@@ -70,7 +70,7 @@ router.patch(
 router.patch(
   "/:id/toggle-active",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.toggleActive
 );
 
@@ -78,7 +78,7 @@ router.patch(
 router.patch(
   "/:id/toggle-featured",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.toggleFeatured
 );
 
@@ -86,7 +86,7 @@ router.patch(
 router.patch(
   "/:id/display-order",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.updateDisplayOrder
 );
 
@@ -94,7 +94,7 @@ router.patch(
 router.patch(
   "/reorder",
   authMiddleware,
-  roleMiddleware("Admin"),
+  roleMiddleware("Admin","SuperAdmin"),
   CategoryController.reorderCategories
 );
 

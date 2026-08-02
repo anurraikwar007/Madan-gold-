@@ -5,6 +5,8 @@ class ProductRepository extends BaseRepository {
   constructor() {
     super(Product);
   }
+   
+
 
   // =====================================================
   // Find By ID (Active)
@@ -498,6 +500,27 @@ class ProductRepository extends BaseRepository {
       outOfStockProducts,
     };
   }
+
+   async lowStock(limit = 10) {
+
+    return this.model.find({
+
+        isActive: true,
+
+        "inventory.availableStock": {
+            $lte: 5,
+        },
+
+    })
+
+    .sort({
+        "inventory.availableStock": 1,
+    })
+
+    .limit(limit);
+
+}
+
 }
 
 export default new ProductRepository();

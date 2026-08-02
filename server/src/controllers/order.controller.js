@@ -2,11 +2,17 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { apiResponse } from "../utils/apiResponse.js";
 
 import {
-  createOrder,
-  getCustomerOrders,
-  getOrderById,
-  getAllOrders,
-  updateOrderStatus,
+
+createOrder,
+
+getCustomerOrders,
+
+getOrderById,
+
+getAdminOrders,
+
+updateOrderStatus,
+
 } from "../services/order.service.js";
 
 import generateInvoice from "../utils/invoice.js";
@@ -82,18 +88,24 @@ class OrderController {
   // Admin Orders
   // =====================================================
 
-  getAll = asyncHandler(async (req, res) => {
+  getAll = asyncHandler(async(req,res)=>{
 
-    const orders = await getAllOrders();
+    const orders =
+    await getAdminOrders(req.query);
 
     return res.status(200).json(
-      apiResponse.success(
-        "All orders fetched successfully.",
-        orders
-      )
+
+    apiResponse.success(
+
+    "Orders fetched successfully.",
+
+    orders
+
+    )
+
     );
 
-  });
+    });
 
   // =====================================================
   // Update Order Status
@@ -137,8 +149,12 @@ class OrderController {
 
     // Customer sirf apna invoice download kar sakta hai
 
-    if (req.user.role !== "Admin") {
-      query.customer = req.user._id;
+    const isAdmin =
+    ["Admin","SuperAdmin"]
+    .includes(req.user.role);
+
+    if(!isAdmin){
+    query.customer=req.user._id;
     }
 
     const order = await Order.findOne(query)

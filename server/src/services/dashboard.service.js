@@ -1,34 +1,96 @@
 import ProductRepository from "../repositories/product.repository.js";
 import CategoryRepository from "../repositories/category.repository.js";
+import DashboardRepository from "../repositories/dashboard.repository.js";
 import Order from "../models/order.model.js";
 import Admin from "../models/admin.model.js";
 import Customer from "../models/customer.model.js";
 
+
+     // =====================================
+    // Date Range Helper
+   // =====================================
+
+const getDateFilter = (range = "all") => {
+
+    const now = new Date();
+
+    switch (range) {
+
+        case "today":
+
+            return {
+                createdAt: {
+                    $gte: new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                }
+            };
+
+        case "week": {
+
+            const start = new Date(now);
+
+            start.setDate(now.getDate() - 7);
+
+            return {
+                createdAt: {
+                    $gte: start
+                }
+            };
+
+        }
+
+        case "month":
+
+        return {
+            createdAt: {
+                $gte: new Date(now.getFullYear(), now.getMonth(), 1)
+            }
+       };
+
+        case "year":
+
+            return {
+                createdAt: {
+                    $gte: new Date(now.getFullYear(), 0, 1)
+                }
+            };
+
+        default:
+
+            return {};
+
+    }
+
+};
+   
+   
+     
+
 class DashboardService {
+    
+   // ==========================================
+  // Revenue Analytics
+  // ==========================================
+
+ async getRevenueAnalytics(range = "all") {
+
+    const filter = getDateFilter(range);
+
+    return DashboardRepository.revenueAnalytics(filter);
+
+ }
+
   // =====================================================
   // Complete Dashboard
   // =====================================================
+  
+  async getTopCustomers(limit = 10) {
+
+    return DashboardRepository.topCustomers(limit);
+
+    }
 
   async getDashboard() {
-    const [
-      productStats,
-      categoryStats,
-      orderStats,
-      customerStats,
-      revenueStats,
-      pendingOrders,
-      lowStockProducts,
-      recentOrders,
-    ] = await Promise.all([
-      this.getProductStatistics(),
-      this.getCategoryStatistics(),
-      this.getOrderStatistics(),
-      this.getCustomerStatistics(),
-      this.getRevenueStatistics(),
-      this.getPendingOrders(),
-      ProductRepository.getLowStock(),
-      this.getRecentOrders(),
-    ]);
+    return DashboardRepository.summary();
 
     return {
       overview: {
@@ -171,36 +233,58 @@ class DashboardService {
   // Revenue Statistics
   // =====================================================
 
-  async getRevenueStatistics() {
-    const stats = await Order.aggregate([
-      {
-        $match: {
-          paymentStatus: "Paid",
-        },
-      },
-
-      {
-        $group: {
-          _id: null,
-
-          totalRevenue: {
-            $sum: "$pricing.total",
+      async getRevenueStatistics() {
+        const stats = await Order.aggregate([
+          {
+            $match: {
+              paymentStatus: "Paid",
+            },
           },
 
-          averageOrderValue: {
-            $avg: "$pricing.total",
-          },
-        },
-      },
-    ]);
+          {
+            $group: {
+              _id: null,
 
-    return (
-      stats[0] || {
-        totalRevenue: 0,
-        averageOrderValue: 0,
+                    totalRevenue: {
+                $sum: "$totalAmount",
+            },
+
+            averageOrderValue: {
+                $avg: "$totalAmount",
+            },
+            },
+          },
+        ]);
+
+        return (
+          stats[0] || {
+            totalRevenue: 0,
+            averageOrderValue: 0,
+          }
+        );
       }
-    );
-  }
+       // =====================================================
+      // Sales Trend
+     // =====================================================
+      async getSalesTrend(range = "all") {
+
+        const filter = getDateFilter(range);
+
+        return DashboardRepository.salesTrend(filter);
+
+    }
+
+    // =====================================================
+  // Daily Revenue
+  // =====================================================
+
+      async getDailyRevenue(range = "all") {
+
+    const filter = getDateFilter(range);
+
+    return DashboardRepository.dailyRevenue(filter);
+
+}
 
   // =====================================================
   // Customer Statistics
@@ -324,6 +408,8 @@ class DashboardService {
       },
     ]);
   }
+
+   
 
   // =====================================================
   // Dashboard Analytics
