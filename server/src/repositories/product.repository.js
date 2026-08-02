@@ -146,7 +146,61 @@ class ProductRepository extends BaseRepository {
         "inventory.availableStock": 1,
       })
       .lean();
+  }  
+
+   // =====================================================
+  // Related Products
+  // =====================================================
+
+  async relatedProducts(category, excludeId, limit = 8) {
+
+    return this.model.find({
+
+      category,
+
+      _id: { $ne: excludeId },
+
+      isDeleted: false,
+
+      isActive: true,
+
+    })
+
+    .limit(limit)
+
+    .sort({
+      createdAt: -1,
+    });
+
   }
+
+// =====================================================
+// Search Suggestions
+// =====================================================
+
+    async searchSuggestions(keyword) {
+
+      return this.model.find({
+
+        name: {
+
+          $regex: keyword,
+
+          $options: "i",
+
+        },
+
+        isDeleted: false,
+
+        isActive: true,
+
+      })
+
+      .select("name slug")
+
+      .limit(10);
+
+    }
 
   // =====================================================
   // Out Of Stock Products

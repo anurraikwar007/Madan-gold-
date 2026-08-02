@@ -1334,5 +1334,59 @@ async () => {
     }
 
   );
+    
+  
+
+};
+
+// ======================================================
+// Customer Product Details
+// ======================================================
+
+export const getCustomerProduct = async (id) => {
+
+  const product =
+    await ProductRepository.findActiveById(id);
+
+  if (!product) {
+    throw new Error("Product not found.");
+  }
+
+  return product;
+
+};
+
+// ======================================================
+// Related Products
+// ======================================================
+
+export const getRelatedProducts = async (id) => {
+
+  const product =
+    await ProductRepository.findActiveById(id);
+
+  if (!product) {
+    throw new Error("Product not found.");
+  }
+
+  return ProductRepository.relatedProducts(
+
+    product.category,
+
+    product._id
+
+  );
+
+};
+
+// ======================================================
+// Search Suggestions
+// ======================================================
+
+export const searchSuggestions = async (keyword) => {
+
+  if (!keyword) return [];
+
+  return ProductRepository.searchSuggestions(keyword);
 
 };

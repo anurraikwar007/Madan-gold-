@@ -1,12 +1,17 @@
 import { Router } from "express";
+import { singleUpload } from "../middleware/upload.middleware.js";
 
 import {
   register,
   login,
   profile,
-  //updateProfile,
+  updateCustomerProfile,
+  uploadAvatar,
   changePassword,
-  //logout,
+  getCustomerAddresses,
+  addCustomerAddress,
+  updateCustomerAddress,
+  deleteCustomerAddress,
 } from "../controllers/customer.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -97,12 +102,22 @@ router.get(
 router.put(
   "/profile",
   authMiddleware,
- // validate(updateProfileSchema),
-  //updateProfile
+  updateCustomerProfile
 );
 
+   /**
+ * @route   PATCH /api/v1/customers/avatar
+ * @desc    Update customer avatar
+ * @access  Private
+ */
+    router.patch(
+    "/avatar",
+    authMiddleware,
+    singleUpload("avatar"),
+    uploadAvatar
+   );
 
-/**
+ /**
  * @route   PATCH /api/v1/customers/change-password
  * @desc    Change customer password
  * @access  Private
@@ -113,7 +128,56 @@ router.patch(
  // validate(changePasswordSchema),
   changePassword
 );
+  
+ /*
+===========================================================
+Customer Address Routes
+===========================================================
+*/
 
+/**
+ * @route   GET /api/v1/customers/addresses
+ * @desc    Get customer addresses
+ * @access  Private
+ */
+router.get(
+  "/addresses",
+  authMiddleware,
+  getCustomerAddresses
+);
+
+/**
+ * @route   POST /api/v1/customers/addresses
+ * @desc    Add customer address
+ * @access  Private
+ */
+router.post(
+  "/addresses",
+  authMiddleware,
+  addCustomerAddress
+);
+
+/**
+ * @route   PUT /api/v1/customers/addresses/:id
+ * @desc    Update customer address
+ * @access  Private
+ */
+router.put(
+  "/addresses/:id",
+  authMiddleware,
+  updateCustomerAddress
+);
+
+/**
+ * @route   DELETE /api/v1/customers/addresses/:id
+ * @desc    Delete customer address
+ * @access  Private
+ */
+router.delete(
+  "/addresses/:id",
+  authMiddleware,
+  deleteCustomerAddress
+);
 
 
 export default router;

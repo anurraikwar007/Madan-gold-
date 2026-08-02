@@ -1,5 +1,6 @@
 import Admin from "../models/admin.model.js";
 import Customer from "../models/customer.model.js";
+import cloudinary from "../config/cloudinary.js";
 import { generateToken } from "../utils/jwt.js";
 import bcrypt from "bcrypt";
 
@@ -71,16 +72,235 @@ export const loginCustomer = async (email, password) => {
   };
 };
 
-// =========================
-// Admin Functions
-// =========================
+// ======================================================
+// Update Profile
+// ======================================================
 
-export const findAdminByEmail = async (email) => {
-  return await Admin.findOne({ email }).select("+password");
+export const updateProfile = async (
+    customerId,
+    payload
+) => {
+
+    const customer =
+        await CustomerRepository.findById(customerId);
+
+    if (!customer) {
+
+        throw new Error(
+            "Customer not found."
+        );
+
+    }
+
+    if (
+        payload.phone &&
+        payload.phone !== customer.phone
+    ) {
+
+        const exists =
+            await CustomerRepository.findOne({
+
+                phone: payload.phone,
+
+                _id: {
+                    $ne: customerId,
+                },
+
+            });
+
+        if (exists) {
+
+            throw new Error(
+                "Phone already exists."
+            );
+
+        }
+
+    }
+
+    Object.assign(
+        customer,
+        payload
+    );
+
+    await customer.save();
+
+    customer.password = undefined;
+
+    return customer;
+
 };
 
-export const updateLastLogin = async (id) => {
-  return await Admin.findByIdAndUpdate(id, {
-    lastLogin: new Date(),
-  });
+   // =========================
+  // Update Customer Avatar
+ // =========================
+
+  export const updateAvatar = async (
+    customerId,
+    avatar
+) => {
+
+    const customer =
+        await Customer.findById(customerId);
+
+    if (!customer) {
+        throw new Error("Customer not found");
+    }
+
+    // Delete old avatar
+    if (customer.avatar?.public_id) {
+
+        await cloudinary.uploader.destroy(
+            customer.avatar.public_id
+        );
+
+    }
+
+    customer.avatar = avatar;
+
+    await customer.save();
+
+    customer.password = undefined;
+
+    return customer;
+
+ };
+ 
+   // =========================
+  // Get Customer Addresses
+ // =========================
+
+    export const getAddresses = async (
+        customerId
+    ) => {
+
+        const customer =
+            await Customer.findById(customerId);
+
+        if (!customer) {
+            throw new Error("Customer not found");
+        }
+
+        return customer.addresses;
+
+    };
+
+     // =========================
+    // Add Customer Address
+   // =========================
+
+    export const addAddress = async (
+        customerId,
+        payload
+    ) => {
+
+        const customer =
+            await Customer.findById(customerId);
+
+        if (!customer) {
+            throw new Error("Customer not found");
+        }
+
+        if (payload.isDefault) {
+
+            customer.addresses.forEach(address => {
+                address.isDefault = false;
+            });
+
+        }
+
+        customer.addresses.push(payload);
+
+        await customer.save();
+
+        return customer.addresses;
+
+    };
+     // =========================
+    // Update Customer Address
+   // =========================
+
+    export const updateAddress = async (
+        customerId,
+        addressId,
+        payload
+    ) => {
+
+        const customer =
+            await Customer.findById(customerId);
+
+        if (!customer) {
+            throw new Error("Customer not found");
+        }
+
+        const address =
+            customer.addresses.id(addressId);
+
+        if (!address) {
+            throw new Error("Address not found");
+        }
+
+        if (payload.isDefault) {
+
+            customer.addresses.forEach(item => {
+                item.isDefault = false;
+            });
+
+        }
+
+        Object.assign(address, payload);
+
+        await customer.save();
+
+        return customer.addresses;
+
+    };
+   
+    // =========================
+    // Delete Customer Address
+    // =========================
+
+    export const deleteAddress = async (
+        customerId,
+        addressId
+    ) => {
+
+        const customer =
+            await Customer.findById(customerId);
+
+        if (!customer) {
+            throw new Error("Customer not found");
+        }
+
+        const address =
+            customer.addresses.id(addressId);
+
+        if (!address) {
+            throw new Error("Address not found");
+        }
+
+        address.deleteOne();
+
+        await customer.save();
+
+        return customer.addresses;
+
+    };
+
+    // =========================
+    // Admin Functions
+    // =========================
+
+    export const findAdminByEmail = async (email) => {
+      return await Admin.findOne({ email }).select("+password");
+    };
+    
+    // =========================
+    // Update Admin Last Login
+    // =========================
+    
+    export const updateLastLogin = async (id) => {
+      return await Admin.findByIdAndUpdate(id, {
+        lastLogin: new Date(),
+      });
 };

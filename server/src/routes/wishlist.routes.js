@@ -1,10 +1,10 @@
 import express from "express";
 
 import {
-  getWishlist,
-  addToWishlist,
-  removeFromWishlist,
-  clearWishlist,
+  getCustomerWishlist,
+  wishlistCount,
+  addWishlist,
+  removeWishlist,
 } from "../controllers/wishlist.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -23,7 +23,15 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("Customer"),
-  getWishlist
+  getCustomerWishlist
+);
+
+// Wishlist Count
+router.get(
+  "/count",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  wishlistCount
 );
 
 // Add Product To Wishlist
@@ -31,7 +39,7 @@ router.post(
   "/:productId",
   authMiddleware,
   roleMiddleware("Customer"),
-  addToWishlist
+  addWishlist
 );
 
 // Remove Product From Wishlist
@@ -39,15 +47,7 @@ router.delete(
   "/:productId",
   authMiddleware,
   roleMiddleware("Customer"),
-  removeFromWishlist
-);
-
-// Clear Wishlist
-router.delete(
-  "/",
-  authMiddleware,
-  roleMiddleware("Customer"),
-  clearWishlist
+  removeWishlist
 );
 
 export default router;

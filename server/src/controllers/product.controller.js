@@ -134,6 +134,64 @@ restore = asyncHandler(async (req, res) => {
     )
   );
 });
+
+  customerProduct = asyncHandler(async (req, res) => {
+
+  const product =
+    await getCustomerProduct(req.params.id);
+
+  return res.status(200).json(
+
+    apiResponse.success(
+
+      "Product fetched successfully.",
+
+      product
+
+    )
+
+  );
+
+});
+
+relatedProducts = asyncHandler(async (req, res) => {
+
+  const products =
+    await getRelatedProducts(req.params.id);
+
+  return res.status(200).json(
+
+    apiResponse.success(
+
+      "Related products fetched successfully.",
+
+      products
+
+    )
+
+  );
+
+});
+
+searchSuggestions = asyncHandler(async (req, res) => {
+
+  const data =
+    await searchSuggestions(req.query.q);
+
+  return res.status(200).json(
+
+    apiResponse.success(
+
+      "Suggestions fetched successfully.",
+
+      data
+
+    )
+
+  );
+
+});
+
 }
 
 export default new ProductController();

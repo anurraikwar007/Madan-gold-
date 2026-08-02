@@ -6,6 +6,7 @@ import {
   updateCartItem,
   removeCartItem,
   clearCart,
+  getCartSummary,
 } from "../controllers/cart.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -58,5 +59,20 @@ router.delete(
   roleMiddleware("Customer"),
   clearCart
 );
+  
+   // Get Cart Summary 
+
+  router.get(
+
+    "/summary",
+
+    authMiddleware,
+
+    roleMiddleware("Customer"),
+
+    getCartSummary
+
+);
+
 
 export default router;

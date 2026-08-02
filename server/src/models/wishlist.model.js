@@ -6,21 +6,33 @@ const wishlistSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
-      unique: true,
     },
 
-    products: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    ],
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const Wishlist = mongoose.model("Wishlist", wishlistSchema);
+// Prevent duplicate wishlist items
+wishlistSchema.index(
+  {
+    customer: 1,
+    product: 1,
+  },
+  {
+    unique: true,
+  }
+);
+
+const Wishlist = mongoose.model(
+  "Wishlist",
+  wishlistSchema
+);
 
 export default Wishlist;

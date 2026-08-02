@@ -1,105 +1,107 @@
-import Wishlist from "../models/wishlist.model.js";
-import Product from "../models/product.model.js";
+import WishlistRepository from "../repositories/wishlist.repository.js";
+import ProductRepository from "../repositories/product.repository.js";
 
-// ======================================
+// ======================================================
 // Get Wishlist
-// ======================================
+// ======================================================
 
 export const getWishlist = async (customerId) => {
-  let wishlist = await Wishlist.findOne({
-    customer: customerId,
-  }).populate("products");
 
-  if (!wishlist) {
-    wishlist = await Wishlist.create({
-      customer: customerId,
-      products: [],
-    });
-  }
+    return WishlistRepository.getCustomerWishlist(
+        customerId
+    );
 
-  return wishlist;
 };
 
-// ======================================
+// ======================================================
+// Wishlist Count
+// ======================================================
+
+export const getWishlistCount = async (customerId) => {
+
+    return WishlistRepository.countWishlist(
+        customerId
+    );
+
+};
+
+// ======================================================
 // Add To Wishlist
-// ======================================
+// ======================================================
 
 export const addToWishlist = async (
-  customerId,
-  productId
+    customerId,
+    productId
 ) => {
-  const product = await Product.findById(productId);
 
-  if (!product) {
-    throw new Error("Product not found.");
-  }
+    // ==========================================
+    // Product Exists
+    // ==========================================
 
-  let wishlist = await Wishlist.findOne({
-    customer: customerId,
-  });
+    const product =
+        await ProductRepository.findById(productId);
 
-  if (!wishlist) {
-    wishlist = await Wishlist.create({
-      customer: customerId,
-      products: [],
+    if (!product) {
+
+        throw new Error("Product not found.");
+
+    }
+
+    // ==========================================
+    // Already Exists
+    // ==========================================
+
+    const exists =
+        await WishlistRepository.findWishlist(
+            customerId,
+            productId
+        );
+
+    if (exists) {
+
+        throw new Error(
+            "Product already exists in wishlist."
+        );
+
+    }
+
+    // ==========================================
+    // Create Wishlist
+    // ==========================================
+
+    return WishlistRepository.create({
+
+        customer: customerId,
+
+        product: productId,
+
     });
-  }
 
-  const alreadyExists = wishlist.products.some(
-    (id) => id.toString() === productId
-  );
-
-  if (!alreadyExists) {
-    wishlist.products.push(productId);
-    await wishlist.save();
-  }
-
-  return await wishlist.populate("products");
 };
 
-// ======================================
-// Remove From Wishlist
-// ======================================
+// ======================================================
+// Remove Wishlist
+// ======================================================
 
 export const removeFromWishlist = async (
-  customerId,
-  productId
+    customerId,
+    productId
 ) => {
-  const wishlist = await Wishlist.findOne({
-    customer: customerId,
-  });
 
-  if (!wishlist) {
-    throw new Error("Wishlist not found.");
-  }
+    const item =
+        await WishlistRepository.removeWishlist(
+            customerId,
+            productId
+        );
 
-  wishlist.products = wishlist.products.filter(
-    (id) => id.toString() !== productId
-  );
+    if (!item) {
 
-  await wishlist.save();
+        throw new Error(
+            "Wishlist item not found."
+        );
 
-  return await wishlist.populate("products");
-};
+    }
 
-// ======================================
-// Clear Wishlist
-// ======================================
+    return true;
 
-export const clearWishlist = async (
-  customerId
-) => {
-  const wishlist = await Wishlist.findOne({
-    customer: customerId,
-  });
-
-  if (!wishlist) {
-    throw new Error("Wishlist not found.");
-  }
-
-  wishlist.products = [];
-
-  await wishlist.save();
-
-  return wishlist;
 };

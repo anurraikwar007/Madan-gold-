@@ -7,6 +7,7 @@ import {
   updateCartItem as updateCartItemService,
   removeCartItem as removeCartItemService,
   clearCart as clearCartService,
+  getCartSummary as getCartSummaryService
 } from "../services/cart.service.js";
 
 // ======================================
@@ -96,4 +97,30 @@ export const clearCart = asyncHandler(async (req, res) => {
       "Cart cleared successfully."
     )
   );
+});
+
+    // ======================================
+    // Cart Summary
+    // ======================================
+
+export const getCartSummary =
+asyncHandler(async (req, res) => {
+
+    const summary =
+        await getCartSummaryService(
+            req.user._id
+        );
+
+    return res.status(200).json(
+
+        apiResponse.success(
+
+            "Cart summary fetched successfully.",
+
+            summary
+
+        )
+
+    );
+
 });

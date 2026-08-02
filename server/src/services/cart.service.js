@@ -1,26 +1,30 @@
-import Cart from "../models/cart.model.js";
-import Product from "../models/product.model.js";
+import CartRepository from "../repositories/cart.repository.js";
+import ProductRepository from "../repositories/product.repository.js";
+import AuditService from "./audit.service.js";
+import { CartDTO } from "../dto/cart.dto.js";
 
 // ======================================
 // Get Cart
 // ======================================
 
 export const getCart = async (customerId) => {
-  let cart = await Cart.findOne({
-    customer: customerId,
-  }).populate("items.product");
+
+  let cart =
+    await CartRepository.findByCustomer(customerId);
 
   if (!cart) {
-    cart = await Cart.create({
-      customer: customerId,
-      items: [],
-      totalAmount: 0,
-    });
+
+    cart =
+      await CartRepository.createCart(customerId);
+
+    cart =
+      await CartRepository.findByCustomer(customerId);
+
   }
 
   return cart;
-};
 
+};
 // ======================================
 // Add To Cart
 // ======================================
@@ -30,46 +34,66 @@ export const addToCart = async (
   productId,
   quantity = 1
 ) => {
-  const product = await Product.findById(productId);
+
+  const dto =
+    CartDTO.add({ quantity });
+
+  const product =
+    await ProductRepository.findActiveById(productId);
 
   if (!product) {
     throw new Error("Product not found.");
   }
 
-  let cart = await Cart.findOne({
-    customer: customerId,
-  });
+  if (
+    product.inventory.availableStock <
+    dto.quantity
+  ) {
+    throw new Error("Insufficient stock.");
+  }
+
+  let cart =
+    await CartRepository.findByCustomer(customerId);
 
   if (!cart) {
-    cart = await Cart.create({
-      customer: customerId,
-      items: [],
-      totalAmount: 0,
-    });
+
+    cart =
+      await CartRepository.createCart(customerId);
+
   }
 
-  const item = cart.items.find(
-    (i) => i.product.toString() === productId
-  );
+  const item =
+    cart.items.find(
+
+      (i) =>
+        i.product._id.toString() === productId
+
+    );
 
   if (item) {
-    item.quantity += quantity;
-  } else {
-    cart.items.push({
-      product: productId,
-      quantity,
-      price: product.price,
-    });
+
+    item.quantity += dto.quantity;
+
   }
 
-  cart.totalAmount = cart.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  else {
 
-  await cart.save();
+    cart.items.push({
 
-  return await cart.populate("items.product");
+      product: product._id,
+
+      quantity: dto.quantity,
+
+      price: product.price,
+
+    });
+
+  }
+
+  await CartRepository.saveCart(cart);
+
+  return CartRepository.findByCustomer(customerId);
+
 };
 
 // ======================================
@@ -81,32 +105,47 @@ export const updateCartItem = async (
   productId,
   quantity
 ) => {
-  const cart = await Cart.findOne({
-    customer: customerId,
-  });
+
+  const dto =
+    CartDTO.update({ quantity });
+
+  const cart =
+    await CartRepository.findByCustomer(customerId);
 
   if (!cart) {
     throw new Error("Cart not found.");
   }
 
-  const item = cart.items.find(
-    (i) => i.product.toString() === productId
-  );
+  const item =
+    cart.items.find(
+      (i) =>
+        i.product._id.toString() === productId
+    );
 
   if (!item) {
     throw new Error("Item not found.");
   }
 
-  item.quantity = quantity;
+  const product =
+    await ProductRepository.findActiveById(productId);
 
-  cart.totalAmount = cart.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  if (!product) {
+    throw new Error("Product not found.");
+  }
 
-  await cart.save();
+  if (
+    product.inventory.availableStock <
+    dto.quantity
+  ) {
+    throw new Error("Insufficient stock.");
+  }
 
-  return await cart.populate("items.product");
+  item.quantity = dto.quantity;
+
+  await CartRepository.saveCart(cart);
+
+  return CartRepository.findByCustomer(customerId);
+
 };
 
 // ======================================
@@ -117,45 +156,82 @@ export const removeCartItem = async (
   customerId,
   productId
 ) => {
-  const cart = await Cart.findOne({
-    customer: customerId,
-  });
+
+  const cart =
+    await CartRepository.findByCustomer(customerId);
 
   if (!cart) {
     throw new Error("Cart not found.");
   }
 
-  cart.items = cart.items.filter(
-    (item) => item.product.toString() !== productId
-  );
+  cart.items =
+    cart.items.filter(
+      (item) =>
+        item.product._id.toString() !== productId
+    );
 
-  cart.totalAmount = cart.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  await CartRepository.saveCart(cart);
 
-  await cart.save();
+  return CartRepository.findByCustomer(customerId);
 
-  return await cart.populate("items.product");
 };
 
 // ======================================
 // Clear Cart
 // ======================================
 
-export const clearCart = async (customerId) => {
-  const cart = await Cart.findOne({
-    customer: customerId,
-  });
+export const clearCart = async (
+  customerId
+) => {
+
+  const cart =
+    await CartRepository.findByCustomer(customerId);
 
   if (!cart) {
     throw new Error("Cart not found.");
   }
 
   cart.items = [];
-  cart.totalAmount = 0;
 
-  await cart.save();
+  await CartRepository.saveCart(cart);
 
-  return cart;
+  return true;
+
+};
+
+// ======================================
+// Get Cart Summary
+// ======================================
+
+export const getCartSummary = async (
+  customerId
+) => {
+
+  const cart =
+    await CartRepository.findByCustomer(customerId);
+
+  if (!cart) {
+    throw new Error("Cart not found.");
+  }
+
+  return {
+
+    totalItems:
+      cart.totalItems,
+
+    totalAmount:
+      cart.totalAmount,
+
+    quantity:
+      cart.items.reduce(
+
+        (sum, item) =>
+          sum + item.quantity,
+
+        0
+
+      ),
+
+  };
+
 };

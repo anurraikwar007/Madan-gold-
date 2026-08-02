@@ -29,6 +29,36 @@ export const loginSchema = {
   }),
 };
 
+  // ======================================================
+// Update Profile
+// ======================================================
+
+export const updateProfileSchema = {
+
+    body: Joi.object({
+
+        name: Joi.string()
+            .trim()
+            .min(2)
+            .max(100),
+
+        phone: Joi.string()
+            .trim()
+            .pattern(/^[6-9]\d{9}$/),
+
+        gender: Joi.string()
+            .valid(
+                "Male",
+                "Female",
+                "Other"
+            ),
+
+        dob: Joi.date(),
+
+    }),
+
+};
+
 export const adminLoginSchema = {
   body: Joi.object({
     email: Joi.string().email().required(),
