@@ -46,7 +46,7 @@ class CouponRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -68,7 +68,7 @@ class CouponRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -154,7 +154,7 @@ class CouponRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
       }
     );
   }
@@ -173,7 +173,7 @@ class CouponRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
       }
     );
   }

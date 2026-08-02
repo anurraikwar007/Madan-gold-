@@ -190,7 +190,7 @@ class ProductRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -223,7 +223,7 @@ class ProductRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -256,7 +256,7 @@ class ProductRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -282,7 +282,7 @@ class ProductRepository extends BaseRepository {
         },
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );
@@ -345,7 +345,7 @@ class ProductRepository extends BaseRepository {
         $set: update,
       },
       {
-        new: true,
+         returnDocument: "after",
         session,
       }
     );

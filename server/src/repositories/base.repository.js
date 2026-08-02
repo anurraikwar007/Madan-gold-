@@ -220,7 +220,7 @@ class BaseRepository {
 
       {
 
-        new: true,
+         returnDocument: "after",
 
         runValidators: true,
 
@@ -250,7 +250,7 @@ class BaseRepository {
 
       {
 
-        new: true,
+        returnDocument: "after",
 
         runValidators: true,
 
