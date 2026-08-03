@@ -50,7 +50,6 @@ export const loginCustomer = async (email, password) => {
 
   
 
-  const directMatch = await bcrypt.compare(password, customer.password);
   
 
   if (!isMatch) {
@@ -118,10 +117,18 @@ export const updateProfile = async (
 
     }
 
-    Object.assign(
-        customer,
-        payload
-    );
+    const allowedFields = [
+    "name",
+    "phone",
+    "gender",
+    "dateOfBirth"
+    ];
+
+    for (const field of allowedFields) {
+    if (payload[field] !== undefined) {
+        customer[field] = payload[field];
+    }
+    }
 
     await customer.save();
 
@@ -248,8 +255,24 @@ export const updateProfile = async (
 
         }
 
-        Object.assign(address, payload);
+        const allowedFields = [
+        "fullName",
+        "phone",
+        "house",
+        "area",
+        "city",
+        "state",
+        "pincode",
+        "landmark",
+        "type",
+        "isDefault"
+        ];
 
+        for (const field of allowedFields) {
+        if (payload[field] !== undefined) {
+            address[field] = payload[field];
+        }
+        }
         await customer.save();
 
         return customer.addresses;

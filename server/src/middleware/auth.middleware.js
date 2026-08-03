@@ -24,34 +24,63 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
       .json(apiResponse.error("Unauthorized. Token missing."));
   }
 
-  // Verify JWT
-  console.log("================================");
-  console.log("Authorization Header:");
-  console.log(req.headers.authorization);
-  console.log("================================");
+ // Verify JWT
 
-  const decoded = jwt.verify(token, env.JWT_SECRET);
-  
-  
- // Admin
-if (
-    decoded.role === "Admin" ||
-    decoded.role === "SuperAdmin"
-) {
-    const admin = await Admin.findById(decoded.id);
+let decoded;
 
-    if (!admin) {
+try {
+
+    decoded = jwt.verify(token, env.JWT_SECRET);
+
+} catch {
+
     return res
-      .status(401)
-      .json(apiResponse.error("Admin not found."));
-    }
+        .status(401)
+        .json(apiResponse.error("Invalid or expired token."));
 
-    console.log("Calling next()");
-    req.admin = admin;
-    req.user = admin;
+}
 
-    return next();
-    }
+// Validate Payload
+
+if (!decoded.id || !decoded.role) {
+
+    return res
+        .status(401)
+        .json(apiResponse.error("Invalid token."));
+
+}
+
+// Validate Role
+
+if (
+    !["Admin", "SuperAdmin", "Customer"].includes(decoded.role)
+) {
+
+    return res
+        .status(401)
+        .json(apiResponse.error("Unauthorized."));
+
+}
+      
+    // Admin
+    if (
+        decoded.role === "Admin" ||
+        decoded.role === "SuperAdmin"
+       ) {
+        const admin = await Admin.findById(decoded.id);
+
+        if (!admin) {
+        return res
+          .status(401)
+          .json(apiResponse.error("Admin not found."));
+        }
+
+        
+        req.admin = admin;
+        req.user = admin;
+
+        return next();
+        }
 
   // Customer
   if (decoded.role === "Customer") {

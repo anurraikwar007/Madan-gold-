@@ -9,6 +9,10 @@ import {
   deleteProduct,
   restoreProduct,
   toggleProductStatus,
+  getCustomerProduct,
+  getRelatedProducts,
+  searchSuggestions
+
 } from "../services/product.service.js";
 
 class ProductController {

@@ -468,21 +468,32 @@ productSchema.methods.reserveStock =
     return true;
   };
 
-productSchema.methods.releaseStock =
-  function (quantity) {
-    this.inventory.availableStock +=
-      quantity;
+    productSchema.methods.releaseStock = function (quantity) {
 
-    this.inventory.reservedStock -=
-      quantity;
-  };
+      this.inventory.availableStock = Math.min(
+        this.inventory.stock,
+        this.inventory.availableStock + quantity
+      );
 
-productSchema.methods.confirmStock =
-  function (quantity) {
-    this.inventory.stock -= quantity;
+      this.inventory.reservedStock = Math.max(
+        0,
+        this.inventory.reservedStock - quantity
+      );
 
-    this.inventory.reservedStock -=
-      quantity;
+    };
+
+    productSchema.methods.confirmStock = function (quantity) {
+
+    this.inventory.stock = Math.max(
+      0,
+      this.inventory.stock - quantity
+    );
+
+    this.inventory.reservedStock = Math.max(
+      0,
+      this.inventory.reservedStock - quantity
+    );
+
   };
 
 // ======================================================

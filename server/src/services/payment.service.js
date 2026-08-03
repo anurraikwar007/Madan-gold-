@@ -68,7 +68,12 @@ export const submitPayment = async (
         "Transaction ID is required."
       );
     }
-
+      if (order.transactionId) {
+    throw new ApiError(
+        400,
+        "Payment already submitted."
+    );
+   }
     // =====================================
     // Update Payment
     // =====================================

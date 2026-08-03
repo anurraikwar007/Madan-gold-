@@ -344,8 +344,80 @@ async revenueAnalytics(rangeFilter = {}) {
     };
 
 }
- 
 
+    // ==========================================
+    // Top Customers
+    // ==========================================
+
+    async topCustomers(limit = 10) {
+
+      return Order.aggregate([
+
+        {
+          $match: {
+            paymentStatus: "Paid",
+          },
+        },
+
+        {
+          $group: {
+            _id: "$customer",
+
+            totalOrders: {
+              $sum: 1,
+            },
+
+            totalSpent: {
+              $sum: "$totalAmount",
+            },
+          },
+        },
+
+        {
+          $sort: {
+            totalSpent: -1,
+          },
+        },
+
+        {
+          $limit: limit,
+        },
+
+        {
+          $lookup: {
+            from: "customers",
+            localField: "_id",
+            foreignField: "_id",
+            as: "customer",
+          },
+        },
+
+        {
+          $unwind: "$customer",
+        },
+
+        {
+          $project: {
+            _id: 0,
+
+            customerId: "$customer._id",
+
+            name: "$customer.name",
+
+            email: "$customer.email",
+
+            phone: "$customer.phone",
+
+            totalOrders: 1,
+
+            totalSpent: 1,
+          },
+        },
+
+      ]);
+
+    }
+ 
 
 }
 

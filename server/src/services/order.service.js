@@ -298,15 +298,13 @@ export const createOrder = async (
     const gst =
       Number(dto.gst || 0);
 
-    const finalAmount =
-
-      cart.totalAmount -
-
-      discount +
-
-      shippingCharge +
-
-      gst;
+    const finalAmount = Math.max(
+       0,
+       cart.totalAmount -
+        discount +
+        shippingCharge +
+        gst
+    );
 
     // =====================================
     // Order Number
@@ -709,44 +707,6 @@ async (
     // =====================================
     // Status Transition Validation
     // =====================================
-
-    const allowedTransitions = {
-
-      Pending: [
-
-        "Confirmed",
-
-        "Cancelled",
-
-      ],
-
-      Confirmed: [
-
-        "Processing",
-
-        "Cancelled",
-
-      ],
-
-      Processing: [
-
-        "Shipped",
-
-        "Cancelled",
-
-      ],
-
-      Shipped: [
-
-        "Delivered",
-
-      ],
-
-      Delivered: [],
-
-      Cancelled: [],
-
-    };
 
     const allowed =
      ORDER_STATUS[order.orderStatus] 

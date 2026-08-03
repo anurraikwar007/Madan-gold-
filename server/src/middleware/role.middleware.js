@@ -11,8 +11,7 @@ const roleMiddleware = (...roles) => {
 
     const userRole = req.user.role;
 
-    console.log("User Role :", req.user.role);
-    console.log("Allowed :", roles);
+    
 
     if (!roles.includes(userRole)) {
       return res

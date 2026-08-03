@@ -56,15 +56,24 @@ export const createCoupon = async (
 
   if (
     payload.discountType === "Flat"
-  ) {
-    if (
-      payload.discountValue <= 0
+      ) {
+        if (
+          payload.discountValue <= 0
+        ) {
+          throw new Error(
+            "Flat discount must be greater than 0."
+          );
+        }
+      }
+      
+        if (
+      payload.maximumDiscount != null &&
+      payload.maximumDiscount < 0
     ) {
       throw new Error(
-        "Flat discount must be greater than 0."
+        "Maximum discount cannot be negative."
       );
     }
-  }
 
   // ------------------------------------------
   // Create Coupon
@@ -299,10 +308,27 @@ async (
     );
   }
 
-  Object.assign(
-    coupon,
-    payload
-  );
+  const allowedFields = [
+    "code",
+    "discountType",
+    "discountValue",
+    "minimumOrderAmount",
+    "maximumDiscount",
+    "usageLimit",
+    "validFrom",
+    "validTill",
+    "isActive"
+   ];
+
+    for (const field of allowedFields) {
+
+        if (payload[field] !== undefined) {
+
+            coupon[field] = payload[field];
+
+        }
+
+    }
 
   await coupon.save();
 

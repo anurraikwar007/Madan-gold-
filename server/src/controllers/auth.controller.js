@@ -41,13 +41,17 @@ class AuthController {
     const admin = await findAdminByEmail(email);
 
     if (!admin) {
-      throw new Error("Invalid email or password");
+        throw new Error("Invalid email or password");
     }
+   
 
     const isMatch = await admin.comparePassword(password);
 
+    const isMatch =
+    await admin.comparePassword(password);
+
     if (!isMatch) {
-      throw new Error("Invalid email or password");
+        throw new Error("Invalid email or password");
     }
 
     await updateLastLogin(admin._id);

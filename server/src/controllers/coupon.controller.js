@@ -7,7 +7,7 @@ class CouponController {
 
   async create(req, res, next) {
     try {
-      const coupon = await CouponService.create(req.body);
+      const coupon = await CouponService.createCoupon(req.body);
 
       return res.status(201).json({
         success: true,
@@ -25,7 +25,7 @@ class CouponController {
 
   async update(req, res, next) {
     try {
-      const coupon = await CouponService.update(
+      const coupon = await CouponService.updateCoupon(
         req.params.id,
         req.body
       );
@@ -46,7 +46,7 @@ class CouponController {
 
   async delete(req, res, next) {
     try {
-      await CouponService.delete(req.params.id);
+      await CouponService.deleteCoupon(req.params.id);
 
       return res.status(200).json({
         success: true,
@@ -63,7 +63,7 @@ class CouponController {
 
   async getById(req, res, next) {
     try {
-      const coupon = await CouponService.getById(
+      const coupon = await CouponService.getByIdCoupon(
         req.params.id
       );
 
@@ -82,7 +82,7 @@ class CouponController {
 
   async getByCode(req, res, next) {
     try {
-      const coupon = await CouponService.getByCode(
+      const coupon = await CouponService.getByCodeCoupon(
         req.params.code
       );
 
@@ -109,7 +109,7 @@ class CouponController {
       } = req.query;
 
       const coupons =
-        await CouponService.getAll({
+        await CouponService.getAllCoupon({
           page: Number(page),
           limit: Number(limit),
           search,
@@ -130,19 +130,22 @@ class CouponController {
   // =====================================================
 
   async validate(req, res, next) {
-    try {
-      const result =
-        await CouponService.validateCoupon(
-          req.body
-        );
+  try {
+    const { code, cartTotal } = req.body;
 
-      return res.status(200).json({
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
+    const result =
+      await CouponService.validateCoupon(
+        code,
+        cartTotal
+      );
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+   } catch (error) {
+    next(error);
+   }
   }
 }
 

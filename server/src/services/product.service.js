@@ -11,7 +11,7 @@ import { getObjectDiff } from "../utils/diff.util.js";
 export const createProduct = async (
   payload,
   context
-) => {
+) => { 
 
   const dto =
     ProductDTO.create(payload);
@@ -69,8 +69,18 @@ export const createProduct = async (
   // =====================================
   // Inventory Sync
   // =====================================
+   
+     if (
+    dto.inventory.reservedStock >
+    dto.inventory.stock
+    ) {
+    throw new Error(
+       "Reserved stock cannot exceed total stock."
+    );
+      }
 
-  dto.inventory.availableStock =
+
+   dto.inventory.availableStock =
     Math.max(
 
       dto.inventory.stock -
@@ -447,19 +457,19 @@ async (
 
   if (dto.inventory) {
 
-    product.inventory.stock =
+      product.inventory.stock =
       dto.inventory.stock ??
       product.inventory.stock;
 
-    product.inventory.reservedStock =
+      product.inventory.reservedStock =
       dto.inventory.reservedStock ??
       product.inventory.reservedStock;
 
-    product.inventory.lowStockThreshold =
+      product.inventory.lowStockThreshold =
       dto.inventory.lowStockThreshold ??
       product.inventory.lowStockThreshold;
 
-    product.inventory.availableStock =
+      product.inventory.availableStock =
       Math.max(
 
         product.inventory.stock -
@@ -773,29 +783,24 @@ async (
   // =====================================
   // Inventory Update
   // =====================================
-
-  product.inventory.stock =
+     
+    const newStock =
     inventory.stock ??
     product.inventory.stock;
 
-  product.inventory.reservedStock =
+    const newReserved =
     inventory.reservedStock ??
     product.inventory.reservedStock;
 
-  product.inventory.lowStockThreshold =
-    inventory.lowStockThreshold ??
-    product.inventory.lowStockThreshold;
+   if (newReserved > newStock) {
+    throw new Error(
+        "Reserved stock cannot exceed total stock."
+       );
+     }
+      product.inventory.stock = newStock;
 
-  product.inventory.availableStock =
-    Math.max(
-
-      product.inventory.stock -
-
-      product.inventory.reservedStock,
-
-      0
-
-    );
+      product.inventory.reservedStock = newReserved;
+    
 
   await product.save();
 
@@ -835,7 +840,8 @@ async (
 
   return product.toObject();
 
-};
+};    
+   
 
 // ======================================================
 // Featured Products

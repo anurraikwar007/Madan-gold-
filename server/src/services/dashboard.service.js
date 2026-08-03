@@ -89,54 +89,89 @@ class DashboardService {
 
     }
 
-  async getDashboard() {
-    return DashboardRepository.summary();
+      async getDashboard() {
 
-    return {
-      overview: {
-        products:
-          productStats.totalProducts,
+      const [
 
-        activeProducts:
-          productStats.activeProducts,
+        productStats,
 
-        categories:
-          categoryStats.totalCategories,
+        categoryStats,
 
-        activeCategories:
-          categoryStats.activeCategories,
+        customerStats,
 
-        customers:
-          customerStats.totalCustomers,
+        orderStats,
 
-        orders:
-          orderStats.totalOrders,
+        revenueStats,
 
-        revenue:
-          revenueStats.totalRevenue,
-      },
+        pendingOrders,
 
-      orders: {
-        pending:
-          pendingOrders,
+        recentOrders,
 
-        completed:
-          orderStats.completedOrders,
+        lowStockProducts,
 
-        cancelled:
-          orderStats.cancelledOrders,
-      },
+      ] = await Promise.all([
 
-      inventory: {
-        lowStock:
-          lowStockProducts.length,
-      },
+        this.getProductStatistics(),
 
-      recentOrders,
+        this.getCategoryStatistics(),
 
-      lowStockProducts,
-    };
-  }
+        this.getCustomerStatistics(),
+
+        this.getOrderStatistics(),
+
+        this.getRevenueStatistics(),
+
+        this.getPendingOrders(),
+
+        this.getRecentOrders(),
+
+        DashboardRepository.lowStock(),
+
+      ]);
+
+      return {
+
+        overview: {
+
+          products: productStats.totalProducts,
+
+          activeProducts: productStats.activeProducts,
+
+          categories: categoryStats.totalCategories,
+
+          activeCategories: categoryStats.activeCategories,
+
+          customers: customerStats.totalCustomers,
+
+          orders: orderStats.totalOrders,
+
+          revenue: revenueStats.totalRevenue,
+
+        },
+
+        orders: {
+
+          pending: pendingOrders,
+
+          completed: orderStats.completedOrders,
+
+          cancelled: orderStats.cancelledOrders,
+
+        },
+
+        inventory: {
+
+          lowStock: lowStockProducts.length,
+
+        },
+
+        recentOrders,
+
+        lowStockProducts,
+
+      };
+
+    }
 
   // =====================================================
   // Product Statistics
@@ -236,9 +271,10 @@ class DashboardService {
       async getRevenueStatistics() {
         const stats = await Order.aggregate([
           {
-            $match: {
-              paymentStatus: "Paid",
-            },
+            $match:{
+ paymentStatus:"Paid",
+ orderStatus:"Delivered"
+           },
           },
 
           {
@@ -358,7 +394,7 @@ class DashboardService {
           },
 
           revenue: {
-            $sum: "$pricing.total",
+            $sum:"$totalAmount",
           },
 
           orders: {
@@ -379,21 +415,23 @@ class DashboardService {
   // Top Selling Products
   // =====================================================
 
-  async getTopSellingProducts(
-    limit = 10
-  ) {
+    async getTopSellingProducts(limit = 10) {
+
     return Order.aggregate([
+
       {
         $unwind: "$items",
       },
 
       {
         $group: {
+
           _id: "$items.product",
 
           totalSold: {
             $sum: "$items.quantity",
           },
+
         },
       },
 
@@ -406,8 +444,39 @@ class DashboardService {
       {
         $limit: limit,
       },
+
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product",
+        },
+      },
+
+      {
+        $unwind: "$product",
+      },
+
+      {
+        $project: {
+
+          _id: "$product._id",
+
+          name: "$product.name",
+
+          slug: "$product.slug",
+
+          thumbnail: "$product.thumbnail",
+
+          totalSold: 1,
+
+        },
+      },
+
     ]);
-  }
+
+    }
 
    
 
