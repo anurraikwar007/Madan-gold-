@@ -82,6 +82,10 @@ const applyCoupon = async (
     await CouponRepository.findOne({
       code: couponCode.trim().toUpperCase(),
       isActive: true,
+
+
+     isDeleted:false,
+
     });
 
   if (!coupon) {
@@ -179,10 +183,7 @@ const validateInventory =
         );
       }
 
-      if (
-        product.inventory
-          .availableStock <= 0
-      ) {
+       {
         throw new ApiError(
           400,
           `${item.name} is out of stock.`
@@ -202,34 +203,7 @@ const validateInventory =
     }
   };
 
-// ======================================================
-// Allowed Order Status Transitions
-// ======================================================
 
-const allowedTransitions = {
-  Pending: [
-    "Confirmed",
-    "Cancelled",
-  ],
-
-  Confirmed: [
-    "Processing",
-    "Cancelled",
-  ],
-
-  Processing: [
-    "Shipped",
-    "Cancelled",
-  ],
-
-  Shipped: [
-    "Delivered",
-  ],
-
-  Delivered: [],
-
-  Cancelled: [],
-};
 // ======================================================
 // Create Order
 // ======================================================
@@ -533,7 +507,7 @@ export const createOrder = async (
 export const getCustomerOrders =
 async (customerId) => {
 
-  return await OrderRepository.find(
+  return  OrderRepository.find(
 
     {
       customer: customerId,
@@ -766,20 +740,13 @@ async (
 
               _id: item.product,
 
-              "inventory.reservedStock": {
-                $gte: item.quantity,
-              },
+             $inc: {
 
-            },
+              "inventory.stock":
+              -item.quantity,
 
-            {
-
-              $inc: {
-
-                
-
-                "inventory.reservedStock":
-                  -item.quantity,
+              "inventory.reservedStock":
+              -item.quantity,
 
               },
 
@@ -959,106 +926,76 @@ async (
 // Tracking Update
 // ======================================================
 
-export const updateTracking =
-async (
-
+export const updateTracking = async (
   orderId,
-
   trackingNumber,
-
   courierPartner,
-
   estimatedDeliveryDate,
-
   context
-
 ) => {
 
-  const order =
-    await OrderRepository.findById(
-      orderId
-    );
+  const order = await OrderRepository.findById(orderId);
 
   if (!order) {
-
     throw new ApiError(
-
       404,
-
       "Order not found."
-
     );
-
   }
 
   // Tracking sirf Processing order me add hogi
 
-  if (
-    order.orderStatus !==
-    "Processing"
-  ) {
-
+  if (order.orderStatus !== "Processing") {
     throw new ApiError(
-
       400,
-
       "Tracking can only be updated for Processing orders."
-
     );
-
   }
 
-  const oldOrder =
-    order.toObject();
+  const oldOrder = order.toObject();
 
-  order.trackingNumber =
-    trackingNumber;
+  // =====================================
+  // Tracking Details
+  // =====================================
 
-  order.courierPartner =
-    courierPartner;
+  order.trackingNumber = trackingNumber;
+  order.courierPartner = courierPartner;
+  order.estimatedDeliveryDate = estimatedDeliveryDate;
 
-  order.estimatedDeliveryDate =
-    estimatedDeliveryDate;
-
+  // =====================================
   // Processing → Shipped
+  // =====================================
 
-  order.orderStatus =
-    "Shipped";
+  order.orderStatus = "Shipped";
 
   await order.save();
 
-  const changes =
-    getObjectDiff(
+  // =====================================
+  // Audit Log
+  // =====================================
 
-      oldOrder,
-
-      order.toObject()
-
-    );
+  const changes = getObjectDiff(
+    oldOrder,
+    order.toObject()
+  );
 
   await AuditService.log({
 
     entityType: "Order",
 
-    entityId:
-      order._id,
+    entityId: order._id,
 
-    action:
-      "TRACKING_UPDATE",
+    action: "TRACKING_UPDATE",
 
-    performedBy:
-      context.adminId,
+    performedBy: context.adminId,
 
     changes,
 
-    ipAddress:
-      context.ipAddress,
+    ipAddress: context.ipAddress,
 
-    userAgent:
-      context.userAgent,
+    userAgent: context.userAgent,
 
-    requestId:
-      context.requestId,
+    requestId: context.requestId,
 
   });
 
