@@ -63,7 +63,7 @@ class CouponController {
 
   async getById(req, res, next) {
     try {
-      const coupon = await CouponService.getByIdCoupon(
+      const coupon = await CouponService.getCouponById(
         req.params.id
       );
 
@@ -82,7 +82,7 @@ class CouponController {
 
   async getByCode(req, res, next) {
     try {
-      const coupon = await CouponService.getByCodeCoupon(
+      const coupon = await CouponService.getCouponByCode(
         req.params.code
       );
 
@@ -109,7 +109,7 @@ class CouponController {
       } = req.query;
 
       const coupons =
-        await CouponService.getAllCoupon({
+        await CouponService.getAllCoupons({
           page: Number(page),
           limit: Number(limit),
           search,

@@ -21,6 +21,13 @@ router.post(
 );
 
 router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  OrderController.myOrders
+);
+
+router.get(
   "/my-orders",
   authMiddleware,
   roleMiddleware("Customer"),

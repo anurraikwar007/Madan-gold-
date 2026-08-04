@@ -162,7 +162,7 @@ categorySchema.index({
 // Pre Save
 // ===============================================
 
-categorySchema.pre("save", function (next) {
+categorySchema.pre("save", function () {
   if (
     this.isModified("name") ||
     !this.slug
@@ -174,18 +174,13 @@ categorySchema.pre("save", function (next) {
     });
   }
 
-  if (
-    this.isDeleted &&
-    !this.deletedAt
-  ) {
+  if (this.isDeleted && !this.deletedAt) {
     this.deletedAt = new Date();
   }
 
   if (!this.isDeleted) {
     this.deletedAt = null;
   }
-
-  next();
 });
 
 // ===============================================
@@ -193,16 +188,25 @@ categorySchema.pre("save", function (next) {
 // Hide Soft Deleted Categories
 // ===============================================
 
-categorySchema.pre(/^find/, function (next) {
-  if (!this.getFilter().includeDeleted) {
-    this.where({
-      isDeleted: false,
-    });
+categorySchema.pre(/^find/, function () {
+
+  const filter = this.getFilter();
+
+  if (filter.includeDeleted) {
+
+    delete filter.includeDeleted;
+
+    this.setQuery(filter);
+
+    return;
+
   }
 
-  next();
-});
+  this.where({
+    isDeleted: false,
+  });
 
+});
 // ===============================================
 // Virtual
 // ===============================================

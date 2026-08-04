@@ -104,32 +104,22 @@ const couponSchema = new mongoose.Schema(
 // Validation
 // ======================================================
 
-couponSchema.pre("validate", function (next) {
+couponSchema.pre("validate", function () {
 
   if (this.validTill <= this.validFrom) {
-
-    return next(
-      new Error(
-        "validTill must be greater than validFrom."
-      )
+    throw new Error(
+      "validTill must be greater than validFrom."
     );
-
   }
 
   if (
     this.discountType === "Percentage" &&
     this.discountValue > 100
   ) {
-
-    return next(
-      new Error(
-        "Percentage discount cannot exceed 100."
-      )
+    throw new Error(
+      "Percentage discount cannot exceed 100."
     );
-
   }
-
-  next();
 
 });
 
@@ -137,13 +127,13 @@ couponSchema.pre("validate", function (next) {
 // Hide Deleted Coupons
 // ======================================================
 
-couponSchema.pre(/^find/, function (next) {
+couponSchema.pre(/^find/, function () {
 
   this.where({
     isDeleted: false,
   });
 
-  next();
+  
 
 });
 

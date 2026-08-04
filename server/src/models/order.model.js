@@ -337,7 +337,7 @@ invoiceUrl: {
   }
 );
 
-orderSchema.pre("save", function (next) {
+orderSchema.pre("save", function () {
   if (!this.orderNumber) {
     this.orderNumber =
       "MG" +
@@ -345,7 +345,7 @@ orderSchema.pre("save", function (next) {
       Math.floor(Math.random() * 1000);
   }
 
-  next();
+  
 });
 
 orderSchema.index({ customer: 1, createdAt: -1 });

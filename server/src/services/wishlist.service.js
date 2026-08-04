@@ -1,16 +1,13 @@
 import WishlistRepository from "../repositories/wishlist.repository.js";
 import ProductRepository from "../repositories/product.repository.js";
+import ApiError from "../utils/ApiError.js";
 
 // ======================================================
 // Get Wishlist
 // ======================================================
 
 export const getWishlist = async (customerId) => {
-
-    return WishlistRepository.getCustomerWishlist(
-        customerId
-    );
-
+  return WishlistRepository.getCustomerWishlist(customerId);
 };
 
 // ======================================================
@@ -18,11 +15,7 @@ export const getWishlist = async (customerId) => {
 // ======================================================
 
 export const getWishlistCount = async (customerId) => {
-
-    return WishlistRepository.countWishlist(
-        customerId
-    );
-
+  return WishlistRepository.countWishlist(customerId);
 };
 
 // ======================================================
@@ -30,53 +23,34 @@ export const getWishlistCount = async (customerId) => {
 // ======================================================
 
 export const addToWishlist = async (
-    customerId,
-    productId
+  customerId,
+  productId
 ) => {
 
-    // ==========================================
-    // Product Exists
-    // ==========================================
+  const product =
+    await ProductRepository.findById(productId);
 
-    const product =
-        await ProductRepository.findById(productId);
+  if (!product) {
+    throw new ApiError(404, "Product not found.");
+  }
 
-    if (!product) {
+  const exists =
+    await WishlistRepository.findWishlist(
+      customerId,
+      productId
+    );
 
-        throw new Error("Product not found.");
+  if (exists) {
+    throw new ApiError(
+      409,
+      "Product already exists in wishlist."
+    );
+  }
 
-    }
-
-    // ==========================================
-    // Already Exists
-    // ==========================================
-
-    const exists =
-        await WishlistRepository.findWishlist(
-            customerId,
-            productId
-        );
-
-    if (exists) {
-
-        throw new Error(
-            "Product already exists in wishlist."
-        );
-
-    }
-
-    // ==========================================
-    // Create Wishlist
-    // ==========================================
-
-    return WishlistRepository.create({
-
-        customer: customerId,
-
-        product: productId,
-
-    });
-
+  return WishlistRepository.create({
+    customer: customerId,
+    product: productId,
+  });
 };
 
 // ======================================================
@@ -84,24 +58,22 @@ export const addToWishlist = async (
 // ======================================================
 
 export const removeFromWishlist = async (
-    customerId,
-    productId
+  customerId,
+  productId
 ) => {
 
-    const item =
-        await WishlistRepository.removeWishlist(
-            customerId,
-            productId
-        );
+  const item =
+    await WishlistRepository.removeWishlist(
+      customerId,
+      productId
+    );
 
-    if (!item) {
+  if (!item) {
+    throw new ApiError(
+      404,
+      "Wishlist item not found."
+    );
+  }
 
-        throw new Error(
-            "Wishlist item not found."
-        );
-
-    }
-
-    return true;
-
+  return true;
 };

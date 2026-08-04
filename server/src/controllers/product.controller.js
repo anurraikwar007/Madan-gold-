@@ -11,43 +11,40 @@ import {
   toggleProductStatus,
   getCustomerProduct,
   getRelatedProducts,
-  searchSuggestions
-
+  searchSuggestions,
 } from "../services/product.service.js";
 
 class ProductController {
+  // Create Product
   create = asyncHandler(async (req, res) => {
-
-  const product = await createProduct(
-    req.body,
-    {
+    const product = await createProduct(req.body, {
       adminId: req.user.id,
       ipAddress: req.ip,
       userAgent: req.get("user-agent"),
       requestId: req.requestId,
-    }
-  );
+    });
 
-  return res.status(201).json(
-    apiResponse.success(
-      "Product created successfully.",
-      product
-    )
-  );
-
-});
-
-  getAll = asyncHandler(async (req, res) => {
-    const products = await getAllProducts(req.query);
-
-    return res.status(200).json(
+    return res.status(201).json(
       apiResponse.success(
-        "Products fetched successfully.",
-        products
+        "Product created successfully.",
+        product
       )
     );
   });
 
+  // Get All Products
+  getAll = asyncHandler(async (req, res) => {
+    const data = await getAllProducts(req.query);
+         console.log(data);
+    return res.status(200).json(
+      apiResponse.success(
+        "Products fetched successfully.",
+        data
+      )
+    );
+  });
+
+  // Get Product By ID
   getOne = asyncHandler(async (req, res) => {
     const product = await getProductById(req.params.id);
 
@@ -59,17 +56,18 @@ class ProductController {
     );
   });
 
+  // Update Product
   update = asyncHandler(async (req, res) => {
-   const product = await updateProduct(
-    req.params.id,
-    req.body,
-    {
-        adminId:req.user.id,
-        ipAddress:req.ip,
-        userAgent:req.get("user-agent"),
-        requestId:req.requestId,
-    }
-);
+    const product = await updateProduct(
+      req.params.id,
+      req.body,
+      {
+        adminId: req.user.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+        requestId: req.requestId,
+      }
+    );
 
     return res.status(200).json(
       apiResponse.success(
@@ -79,123 +77,97 @@ class ProductController {
     );
   });
 
+  // Delete Product
   remove = asyncHandler(async (req, res) => {
-
-  await deleteProduct(
-    req.params.id,
-    {
+    await deleteProduct(req.params.id, {
       adminId: req.user.id,
       ipAddress: req.ip,
       userAgent: req.get("user-agent"),
       requestId: req.requestId,
-    }
-  );
+    });
 
-  return res.status(200).json(
-    apiResponse.success(
-      "Product deleted successfully."
-    )
-  );
+    return res.status(200).json(
+      apiResponse.success(
+        "Product deleted successfully."
+      )
+    );
+  });
 
-});
+  // Toggle Product Active Status
+  toggleActive = asyncHandler(async (req, res) => {
+    const product = await toggleProductStatus(
+      req.params.id,
+      {
+        adminId: req.user.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+        requestId: req.requestId,
+      }
+    );
 
-toggleStatus = asyncHandler(async (req, res) => {
+    return res.status(200).json(
+      apiResponse.success(
+        "Product status updated successfully.",
+        product
+      )
+    );
+  });
 
-  const product = await toggleProductStatus(
-    req.params.id,
-    {
-      adminId: req.user.id,
-      ipAddress: req.ip,
-      userAgent: req.get("user-agent"),
-      requestId: req.requestId,
-    }
-  );
+  // Restore Product
+  restore = asyncHandler(async (req, res) => {
+    const product = await restoreProduct(
+      req.params.id,
+      {
+        adminId: req.user.id,
+        ipAddress: req.ip,
+        userAgent: req.get("user-agent"),
+        requestId: req.requestId,
+      }
+    );
 
-  return res.status(200).json(
-    apiResponse.success(
-      "Product status updated successfully.",
-      product
-    )
-  );
-});
+    return res.status(200).json(
+      apiResponse.success(
+        "Product restored successfully.",
+        product
+      )
+    );
+  });
 
-restore = asyncHandler(async (req, res) => {
-
-  const product = await restoreProduct(
-    req.params.id,
-    {
-      adminId: req.user.id,
-      ipAddress: req.ip,
-      userAgent: req.get("user-agent"),
-      requestId: req.requestId,
-    }
-  );
-
-  return res.status(200).json(
-    apiResponse.success(
-      "Product restored successfully.",
-      product
-    )
-  );
-});
-
+  // Customer Product
   customerProduct = asyncHandler(async (req, res) => {
+    const product = await getCustomerProduct(req.params.id);
 
-  const product =
-    await getCustomerProduct(req.params.id);
+    return res.status(200).json(
+      apiResponse.success(
+        "Product fetched successfully.",
+        product
+      )
+    );
+  });
 
-  return res.status(200).json(
+  // Related Products
+  relatedProducts = asyncHandler(async (req, res) => {
+    const products = await getRelatedProducts(req.params.id);
 
-    apiResponse.success(
+    return res.status(200).json(
+      apiResponse.success(
+        "Related products fetched successfully.",
+        products
+      )
+    );
+  });
 
-      "Product fetched successfully.",
+  // Search Suggestions
+  searchSuggestions = asyncHandler(async (req, res) => {
+    const data = await searchSuggestions(req.query.q);
 
-      product
-
-    )
-
-  );
-
-});
-
-relatedProducts = asyncHandler(async (req, res) => {
-
-  const products =
-    await getRelatedProducts(req.params.id);
-
-  return res.status(200).json(
-
-    apiResponse.success(
-
-      "Related products fetched successfully.",
-
-      products
-
-    )
-
-  );
-
-});
-
-searchSuggestions = asyncHandler(async (req, res) => {
-
-  const data =
-    await searchSuggestions(req.query.q);
-
-  return res.status(200).json(
-
-    apiResponse.success(
-
-      "Suggestions fetched successfully.",
-
-      data
-
-    )
-
-  );
-
-});
-
+    return res.status(200).json(
+      apiResponse.success(
+        "Suggestions fetched successfully.",
+        data
+      )
+    );
+  });
 }
 
 export default new ProductController();

@@ -56,10 +56,10 @@ router.put(
 );
 
 router.patch(
-  "/:id/status",
+  "/:id/toggle-active",
   authMiddleware,
   roleMiddleware("Admin", "SuperAdmin"),
-  ProductController.toggleStatus
+  ProductController.toggleActive
 );
 
 router.patch(

@@ -16,55 +16,9 @@ export const createProduct = async (
   const dto =
     ProductDTO.create(payload);
 
-  // =====================================
-  // Duplicate Validation
-  // =====================================
+  
 
-  const duplicate =
-    await ProductRepository.findOne({
-
-      name: dto.name,
-
-      metal: dto.metal,
-
-      purity: dto.purity,
-
-      weight: dto.weight,
-
-      isDeleted: false,
-
-    });
-
-  if (duplicate) {
-
-    throw new Error(
-      "A product with same specifications already exists."
-    );
-
-  }
-
-  // =====================================
-  // SKU Validation
-  // =====================================
-
-  if (dto.sku) {
-
-    const existingSKU =
-      await ProductRepository.findOne({
-
-        sku: dto.sku,
-
-      });
-
-    if (existingSKU) {
-
-      throw new Error(
-        "SKU already exists."
-      );
-
-    }
-
-  }
+  
 
   // =====================================
   // Inventory Sync
@@ -394,53 +348,21 @@ async (
 
   const oldProduct =
     product.toObject();
-      // =====================================
-  // Duplicate Validation
-  // =====================================
+      
 
-  if (
-    dto.name ||
-    dto.metal ||
-    dto.purity ||
-    dto.weight
-  ) {
+     if (dto.sku && dto.sku !== product.sku) {
 
-    const duplicate =
-      await ProductRepository.findOne({
+  const existingSKU =
+    await ProductRepository.findOne({
+      _id: { $ne: productId },
+      sku: dto.sku,
+    });
 
-        _id: {
-          $ne: productId,
-        },
-
-        name:
-          dto.name ??
-          product.name,
-
-        metal:
-          dto.metal ??
-          product.metal,
-
-        purity:
-          dto.purity ??
-          product.purity,
-
-        weight:
-          dto.weight ??
-          product.weight,
-
-        isDeleted: false,
-
-      });
-
-    if (duplicate) {
-
-      throw new Error(
-        "Another product with same specifications already exists."
-      );
-
-    }
-
+  if (existingSKU) {
+    throw new Error("SKU already exists.");
   }
+
+}
 
   // =====================================
   // Merge Payload

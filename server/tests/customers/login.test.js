@@ -1,42 +1,47 @@
 import request from "supertest";
-
 import app from "../../src/app.js";
 
 describe("Customer Login", () => {
 
-    it("Wrong Email", async () => {
+    test("Login Customer", async () => {
 
-        const response = await request(app)
+        const unique = Date.now();
 
-            .post("/api/v1/customers/login")
+        const email = `jest${unique}@gmail.com`;
 
+        const password = "Password@123";
+
+        await request(app)
+            .post("/api/v1/customers/register")
             .send({
 
-                email: "wrong@mail.com",
+                name: "Jest User",
 
-                password: "12345678"
+                email,
+
+                password,
+
+                phone: `98765${unique.toString().slice(-5)}`
 
             });
 
-        expect(response.statusCode).not.toBe(500);
-
-    });
-
-    it("Wrong Password", async () => {
-
         const response = await request(app)
-
             .post("/api/v1/customers/login")
-
             .send({
 
-                email: "customer@mail.com",
+                email,
 
-                password: "wrong"
+                password
 
             });
 
-        expect(response.statusCode).not.toBe(500);
+        console.log(response.body);
+
+        expect(response.statusCode).toBe(200);
+
+        expect(response.body.success).toBe(true);
+
+        expect(response.body.data).toHaveProperty("token");
 
     });
 

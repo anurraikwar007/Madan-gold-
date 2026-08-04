@@ -340,6 +340,65 @@ class BaseRepository {
 
   }
 
+     // =====================================================
+  // Paginate
+  // =====================================================
+
+  async paginate(
+    filter = {},
+    {
+      page = 1,
+      limit = 10,
+      sort = { createdAt: -1 },
+      populate,
+      select,
+      lean = true,
+    } = {}
+  ) {
+
+    const skip = (page - 1) * limit;
+
+    let query = this.model.find(filter);
+
+    if (select) {
+      query = query.select(select);
+    }
+
+    if (populate) {
+      if (Array.isArray(populate)) {
+        populate.forEach((item) => {
+          query = query.populate(item);
+        });
+      } else {
+        query = query.populate(populate);
+      }
+    }
+
+    query = query
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
+
+    if (lean) {
+      query = query.lean();
+    }
+
+    const [docs, total] = await Promise.all([
+      query,
+      this.model.countDocuments(filter),
+    ]);
+
+    return {
+      docs,
+      totalDocs: total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPrevPage: page > 1,
+    };
+  }
+
 }
 
 export default BaseRepository;

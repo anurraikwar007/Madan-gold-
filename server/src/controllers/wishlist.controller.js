@@ -2,10 +2,10 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { apiResponse } from "../utils/apiResponse.js";
 
 import {
-    getWishlist,
-    getWishlistCount,
-    addToWishlist,
-    removeFromWishlist,
+  getWishlist,
+  getWishlistCount,
+  addToWishlist,
+  removeFromWishlist,
 } from "../services/wishlist.service.js";
 
 // ======================================================
@@ -13,18 +13,14 @@ import {
 // ======================================================
 
 export const getCustomerWishlist = asyncHandler(async (req, res) => {
+  const wishlist = await getWishlist(req.user._id);
 
-    const wishlist = await getWishlist(
-        req.user.id
-    );
-
-    return res.status(200).json(
-        apiResponse.success(
-            "Wishlist fetched successfully.",
-            wishlist
-        )
-    );
-
+  return res.status(200).json(
+    apiResponse.success(
+      "Wishlist fetched successfully.",
+      wishlist
+    )
+  );
 });
 
 // ======================================================
@@ -32,20 +28,16 @@ export const getCustomerWishlist = asyncHandler(async (req, res) => {
 // ======================================================
 
 export const wishlistCount = asyncHandler(async (req, res) => {
+  const count = await getWishlistCount(req.user._id);
 
-    const count = await getWishlistCount(
-        req.user.id
-    );
-
-    return res.status(200).json(
-        apiResponse.success(
-            "Wishlist count fetched successfully.",
-            {
-                count,
-            }
-        )
-    );
-
+  return res.status(200).json(
+    apiResponse.success(
+      "Wishlist count fetched successfully.",
+      {
+        count,
+      }
+    )
+  );
 });
 
 // ======================================================
@@ -53,19 +45,17 @@ export const wishlistCount = asyncHandler(async (req, res) => {
 // ======================================================
 
 export const addWishlist = asyncHandler(async (req, res) => {
+  const wishlist = await addToWishlist(
+    req.user._id,
+    req.params.productId
+  );
 
-    const wishlist = await addToWishlist(
-        req.user.id,
-        req.params.productId
-    );
-
-    return res.status(201).json(
-        apiResponse.success(
-            "Product added to wishlist.",
-            wishlist
-        )
-    );
-
+  return res.status(201).json(
+    apiResponse.success(
+      "Product added to wishlist.",
+      wishlist
+    )
+  );
 });
 
 // ======================================================
@@ -73,16 +63,14 @@ export const addWishlist = asyncHandler(async (req, res) => {
 // ======================================================
 
 export const removeWishlist = asyncHandler(async (req, res) => {
+  await removeFromWishlist(
+    req.user._id,
+    req.params.productId
+  );
 
-    await removeFromWishlist(
-        req.user.id,
-        req.params.productId
-    );
-
-    return res.status(200).json(
-        apiResponse.success(
-            "Product removed from wishlist."
-        )
-    );
-
+  return res.status(200).json(
+    apiResponse.success(
+      "Product removed from wishlist."
+    )
+  );
 });

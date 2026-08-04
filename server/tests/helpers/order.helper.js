@@ -24,7 +24,7 @@ export async function createOrder(token, productId) {
 
             ],
 
-            paymentMethod: "COD"
+            paymentMethod: "UPI"
 
         });
 

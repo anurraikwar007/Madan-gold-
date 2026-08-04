@@ -57,26 +57,49 @@ const auditLogSchema = new mongoose.Schema(
       index: true,
     },
 
-    action: {
-      type: String,
+   action: {
+  type: String,
+  required: true,
+  enum: [
+    "CREATE",
+    "UPDATE",
+    "DELETE",
+    "RESTORE",
+
+    "LOGIN",
+    "LOGOUT",
+
+    "STATUS_CHANGE",
+
+    // Payment
+    "PAYMENT_SUBMITTED",
+    "PAYMENT_VERIFIED",
+    "PAYMENT_REJECTED",
+
+    // Order
+    "ORDER_CREATED",
+    "ORDER_CONFIRMED",
+    "ORDER_CANCELLED",
+    "ORDER_DELIVERED",
+
+    // Inventory
+    "STOCK_IN",
+    "STOCK_OUT",
+  ],
+  index: true,
+},
+
+        performedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "performedByModel",
       required: true,
-      enum: [
-        "CREATE",
-        "UPDATE",
-        "DELETE",
-        "RESTORE",
-        "LOGIN",
-        "LOGOUT",
-        "STATUS_CHANGE",
-      ],
       index: true,
     },
 
-    performedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
+    performedByModel: {
+      type: String,
+      enum: ["Admin", "Customer"],
       required: true,
-      index: true,
     },
 
     changes: {

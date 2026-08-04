@@ -78,6 +78,9 @@ if (
         
         req.admin = admin;
         req.user = admin;
+        
+        req.user.role = decoded.role;
+
 
         return next();
         }
@@ -93,6 +96,7 @@ if (
     }
 
     req.user = customer;
+    req.user.role = decoded.role;
 
     return next();
   }

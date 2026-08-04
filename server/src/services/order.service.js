@@ -161,47 +161,33 @@ const applyCoupon = async (
 // Inventory Validation
 // ======================================================
 
-const validateInventory =
-  async (cart) => {
-    for (const item of cart.items) {
-      const product =
-        await ProductRepository.findById(
-          item.product._id
-        );
+ const validateInventory = async (cart) => {
+  for (const item of cart.items) {
 
-      if (!product) {
-        throw new ApiError(
-          404,
-          `${item.name} does not exist.`
-        );
-      }
+    const product = await ProductRepository.findById(item.product._id);
 
-      if (!product.isActive) {
-        throw new ApiError(
-          400,
-          `${item.name} is unavailable.`
-        );
-      }
-
-       {
-        throw new ApiError(
-          400,
-          `${item.name} is out of stock.`
-        );
-      }
-
-      if (
-        product.inventory
-          .availableStock <
-        item.quantity
-      ) {
-        throw new ApiError(
-          400,
-          `${item.name} has only ${product.inventory.availableStock} item(s) available.`
-        );
-      }
+    if (!product) {
+      throw new ApiError(
+        404,
+        `${item.product.name} does not exist.`
+      );
     }
-  };
+
+    if (product.inventory.availableStock <= 0) {
+      throw new ApiError(
+        400,
+        `${product.name} is unavailable.`
+      );
+    }
+
+    if (product.inventory.availableStock < item.quantity) {
+      throw new ApiError(
+        400,
+        `${product.name} has only ${product.inventory.availableStock} item(s) available.`
+      );
+    }
+  }
+};
 
 
 // ======================================================
@@ -229,19 +215,19 @@ export const createOrder = async (
     // =====================================
 
     const cart =
-      await CartRepository.findOne(
+   await CartRepository.findOne(
 
-        {
-          customer: customerId,
-        },
+    {
+      customer: customerId,
+    },
 
-        {
-          populate: "items.product",
-          session,
-        }
+    {
+      populate: "items.product",
+      session,
+      lean: false,   // <-- YE LINE ADD KARO
+    }
 
-      );
-
+  );
     validateCart(cart);
 
     validateShippingAddress(
@@ -249,6 +235,27 @@ export const createOrder = async (
     );
 
     await validateInventory(cart);
+
+    const orderItems = cart.items.map((item) => ({
+  product: item.product._id,
+
+  name: item.product.name,
+
+  image:
+    item.product.images?.find((img) => img.isPrimary)?.url ||
+    item.product.images?.[0]?.url ||
+    "",
+
+  quantity: item.quantity,
+
+  price: item.price,
+
+  metal: item.product.metal,
+
+  purity: item.product.purity,
+
+  weight: item.product.weight,
+   }));
 
     // =====================================
     // Coupon Validation
@@ -324,7 +331,7 @@ export const createOrder = async (
 
           {
 
-            new: true,
+             
 
             session,
 
@@ -359,7 +366,7 @@ export const createOrder = async (
 
           customer: customerId,
 
-          items: cart.items,
+          items: orderItems,
 
           shippingAddress:
             dto.shippingAddress,
@@ -400,8 +407,8 @@ export const createOrder = async (
           session,
 
         }
-
-      );
+           
+      );      console.log(JSON.stringify(orderItems, null, 2));
           // =====================================
     // Coupon Usage
     // =====================================
@@ -734,33 +741,25 @@ async (
       for (const item of order.items) {
 
         const updated =
-          await ProductRepository.findOneAndUpdate(
+       await ProductRepository.findOneAndUpdate(
 
-            {
+        {
+            _id: item.product,
+        },
 
-              _id: item.product,
-
-             $inc: {
-
-              "inventory.stock":
-              -item.quantity,
-
-              "inventory.reservedStock":
-              -item.quantity,
-
-              },
-
+        {
+            $inc: {
+                "inventory.stock": -item.quantity,
+                "inventory.reservedStock": -item.quantity,
             },
+        },
 
-            {
+        {
+            new: true,
+            session,
+        }
 
-              new: true,
-
-              session,
-
-            }
-
-          );
+    );
 
         if (!updated) {
 

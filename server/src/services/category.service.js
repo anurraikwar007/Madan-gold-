@@ -131,19 +131,23 @@ class CategoryService {
   // =====================================================
 
   async restoreCategory(categoryId) {
-    const category =
-      await CategoryRepository.findById(categoryId);
 
-    if (!category) {
-      throw new apiError(
-        404,
-        "Category not found."
-      );
-    }
-
-    return CategoryRepository.restore(
+  const category =
+    await CategoryRepository.findDeletedById(
       categoryId
     );
+
+  if (!category) {
+    throw new apiError(
+      404,
+      "Category not found."
+    );
+  }
+
+  return await CategoryRepository.restore(
+    categoryId
+  );
+
   }
 
   // =====================================================

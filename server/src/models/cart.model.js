@@ -52,7 +52,7 @@ const cartSchema = new mongoose.Schema(
 );
 
 // Auto Calculate Totals
-cartSchema.pre("save", function (next) {
+cartSchema.pre("save", function () {
   this.totalItems = this.items.reduce(
     (total, item) => total + item.quantity,
     0
@@ -63,7 +63,7 @@ cartSchema.pre("save", function (next) {
     0
   );
 
-  next();
+  
 });
 
 const Cart = mongoose.model("Cart", cartSchema);

@@ -1,36 +1,41 @@
 import request from "supertest";
 import app from "../../src/app.js";
 
-export async function createCustomer(data = {}) {
+// ======================================
+// Customer Login Helper
+// ======================================
 
-    const payload = {
+export async function customerLogin() {
+  const unique = Date.now();
 
-        firstName: "Test",
+  const email = `jest${unique}@gmail.com`;
+  const password = "Password@123";
 
-        lastName: "Customer",
+  // Register Customer
+  await request(app)
+    .post("/api/v1/customers/register")
+    .send({
+      name: "Jest Customer",
+      email,
+      password,
+      phone: `98765${unique.toString().slice(-5)}`,
+    });
 
-        email: `customer${Date.now()}@mail.com`,
+  // Login Customer
+  const response = await request(app)
+    .post("/api/v1/customers/login")
+    .send({
+      email,
+      password,
+    });
 
-        password: "12345678",
+  return response.body.data.token;
+}
 
-        phone: "9876543210",
+// ======================================
+// Backward Compatibility
+// ======================================
 
-        ...data
-
-    };
-
-    const response = await request(app)
-
-        .post("/api/v1/customers/register")
-
-        .send(payload);
-
-    return {
-
-        response,
-
-        payload
-
-    };
-
+export async function createCustomerAndLogin() {
+  return await customerLogin();
 }

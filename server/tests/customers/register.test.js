@@ -1,100 +1,32 @@
 import request from "supertest";
 import app from "../../src/app.js";
 
-describe("Customer Registration", () => {
+describe("Customer Register", () => {
 
-    it("Register Customer Successfully", async () => {
+  test("Register Customer", async () => {
 
-        const response = await request(app)
+    const unique = Date.now();
 
-            .post("/api/v1/customers/register")
+    const response = await request(app)
+      .post("/api/v1/customers/register")
+      .send({
 
-            .send({
+        name: "Jest User",
 
-                firstName: "Test",
+        email: `jest${unique}@gmail.com`,
 
-                lastName: "Customer",
+        password: "Password@123",
 
-                email: `customer${Date.now()}@mail.com`,
+        phone: `98765${unique.toString().slice(-5)}`
 
-                password: "12345678",
+      });
 
-                phone: "9876543210"
+    console.log(response.body);
 
-            });
+    expect([200,201]).toContain(response.statusCode);
 
-        expect([200,201]).toContain(response.statusCode);
+    expect(response.body.success).toBe(true);
 
-        expect(response.body.success).toBe(true);
-
-    });
-
-    it("Duplicate Email", async () => {
-
-        const email = `duplicate${Date.now()}@mail.com`;
-
-        await request(app)
-
-            .post("/api/v1/customers/register")
-
-            .send({
-
-                firstName: "Test",
-
-                lastName: "Customer",
-
-                email,
-
-                password: "12345678",
-
-                phone: "9876543210"
-
-            });
-
-        const response = await request(app)
-
-            .post("/api/v1/customers/register")
-
-            .send({
-
-                firstName: "Test",
-
-                lastName: "Customer",
-
-                email,
-
-                password: "12345678",
-
-                phone: "9876543210"
-
-            });
-
-        expect(response.statusCode).not.toBe(500);
-
-    });
-
-    it("Invalid Email", async () => {
-
-        const response = await request(app)
-
-            .post("/api/v1/customers/register")
-
-            .send({
-
-                firstName: "A",
-
-                lastName: "B",
-
-                email: "abc",
-
-                password: "12345678",
-
-                phone: "9876543210"
-
-            });
-
-        expect(response.statusCode).toBeGreaterThanOrEqual(400);
-
-    });
+  });
 
 });

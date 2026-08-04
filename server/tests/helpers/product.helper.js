@@ -1,35 +1,50 @@
 import request from "supertest";
-
 import app from "../../src/app.js";
 
-export async function createProduct(token, categoryId) {
+import { adminLogin } from "./auth.helper.js";
 
-    const response = await request(app)
+export async function createProduct(token = null) {
 
-        .post("/api/v1/products")
+  // Agar token pass nahi hua to automatically admin login kar lo
+  if (!token) {
+    token = await adminLogin();
+  }
 
-        .set("Authorization", `Bearer ${token}`)
+  const unique = Date.now();
 
-        .send({
+  const response = await request(app)
+    .post("/api/v1/products")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      name: `Test Product ${unique}`,
+      shortDescription: "Premium",
+      description: "22K Gold Ring",
+      category: "Ring",
+      metal: "Gold",
+      purity: "22K",
+      gender: "Men",
+      weight: unique % 1000,
+      price: 50000,
+      discountPrice: 45000,
+      makingCharges: 1500,
+      gst: 3,
+      inventory: {
+        stock: 20,
+        availableStock: 20,
+        reservedStock: 0,
+        lowStockThreshold: 5,
+      },
+      images: [
+        {
+          public_id: "abc",
+          url: "https://dummyimage.com/600x600",
+          alt: "Gold Ring",
+          isPrimary: true,
+        },
+      ],
+    });
 
-            name: `Product ${Date.now()}`,
+  expect(response.statusCode).toBe(201);
 
-            category: categoryId,
-
-            metal: "Gold",
-
-            purity: "22K",
-
-            weight: 10,
-
-            makingCharge: 100,
-
-            price: 50000
-
-        });
-
-    expect(response.statusCode).toBe(201);
-
-    return response.body.data;
-
+  return response.body.data;
 }

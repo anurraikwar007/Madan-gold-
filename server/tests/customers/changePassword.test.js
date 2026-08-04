@@ -1,24 +1,30 @@
 import request from "supertest";
-
 import app from "../../src/app.js";
 
-describe("Change Password", () => {
+import { customerLogin } from "../helpers/customer.helper.js";
 
-    it("Without Token", async () => {
+describe("Customer Change Password", () => {
+
+    test("Change Password", async () => {
+
+        const token = await customerLogin();
 
         const response = await request(app)
-
-            .patch("/api/v1/customers/change-password")
-
+            .put("/api/v1/customers/change-password")
+            .set("Authorization", `Bearer ${token}`)
             .send({
 
-                oldPassword: "12345678",
+                oldPassword: "Password@123",
 
-                newPassword: "87654321"
+                newPassword: "Password@456"
 
             });
 
-        expect([401,403]).toContain(response.statusCode);
+        console.log(response.body);
+
+        expect(response.statusCode).toBe(200);
+
+        expect(response.body.success).toBe(true);
 
     });
 

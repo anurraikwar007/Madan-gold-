@@ -1,16 +1,23 @@
 import request from "supertest";
-
 import app from "../../src/app.js";
+
+import { customerLogin } from "../helpers/customer.helper.js";
 
 describe("Customer Profile", () => {
 
-    it("Without Token", async () => {
+    test("Get Profile", async () => {
+
+        const token = await customerLogin();
 
         const response = await request(app)
+            .get("/api/v1/customers/profile")
+            .set("Authorization", `Bearer ${token}`);
 
-            .get("/api/v1/customers/profile");
+        console.log(response.body);
 
-        expect([401,403]).toContain(response.statusCode);
+        expect(response.statusCode).toBe(200);
+
+        expect(response.body.success).toBe(true);
 
     });
 

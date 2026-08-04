@@ -1,18 +1,42 @@
 import request from "supertest";
 import app from "../../src/app.js";
 
-describe("Get Categories", () => {
+import { adminLogin } from "../helpers/auth.helper.js";
+import { createCategory } from "../helpers/category.helper.js";
 
-    test("Get All Categories", async () => {
+describe("Get Category", () => {
 
-        const response = await request(app)
+  test("Get Category By Id", async () => {
 
-            .get("/api/v1/categories");
+    const token = await adminLogin();
 
-        expect(response.statusCode).toBe(200);
+    const category =
+      await createCategory(token);
 
-        expect(response.body.success).toBe(true);
+    const response = await request(app)
+      .get(`/api/v1/categories/${category._id}`);
 
-    });
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(response.body.data._id)
+      .toBe(category._id);
+
+  });
+
+  test("Get Active Categories", async () => {
+
+    const response = await request(app)
+      .get("/api/v1/categories");
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.success).toBe(true);
+
+    expect(Array.isArray(response.body.data))
+      .toBe(true);
+
+  });
 
 });

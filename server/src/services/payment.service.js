@@ -12,12 +12,18 @@ import Order from "../models/order.model.js";
 // ======================================================
 // Submit Payment
 // ======================================================
+ 
+
 
 export const submitPayment = async (
   customerId,
   orderId,
   transactionId
 ) => {
+   
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(400, "Invalid order id.");
+   }
 
   const session =
     await mongoose.startSession();
@@ -34,6 +40,7 @@ export const submitPayment = async (
         },
         {
           session,
+          lean: false,
         }
       );
 
@@ -100,6 +107,7 @@ export const submitPayment = async (
       entityId: order._id,
       action: "PAYMENT_SUBMITTED",
       performedBy: customerId,
+       performedByModel: "Customer",
       changes: [
         {
           field: "transactionId",
@@ -181,6 +189,7 @@ export const verifyPayment = async (
         orderId,
         {
           session,
+          lean: false,
         }
       );
 
@@ -246,6 +255,8 @@ export const verifyPayment = async (
       entityId: order._id,
       action: "PAYMENT_VERIFIED",
       performedBy: adminId,
+      performedByModel: "Admin",
+
       changes: [
         {
           field: "paymentStatus",
@@ -296,6 +307,7 @@ export const rejectPayment = async (
         orderId,
         {
           session,
+          lean: false,
         }
       );
 
@@ -384,6 +396,8 @@ export const rejectPayment = async (
       entityId: order._id,
       action: "PAYMENT_REJECTED",
       performedBy: adminId,
+      performedByModel: "Admin",
+
       changes: [
         {
           field: "paymentStatus",

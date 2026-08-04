@@ -2,7 +2,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 
 const roleMiddleware = (...roles) => {
   return (req, res, next) => {
-    // Auth middleware se req.user set hona chahiye
+
     if (!req.user) {
       return res
         .status(401)
@@ -10,8 +10,6 @@ const roleMiddleware = (...roles) => {
     }
 
     const userRole = req.user.role;
-
-    
 
     if (!roles.includes(userRole)) {
       return res

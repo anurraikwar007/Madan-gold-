@@ -23,27 +23,29 @@ class OrderController {
   // =====================================================
   // Create Order
   // =====================================================
+    create = asyncHandler(async (req, res) => {
+      try {
+        const order = await createOrder(
+          req.user._id,
+          req.body,
+          {
+            ipAddress: req.ip,
+            userAgent: req.headers["user-agent"],
+            requestId: req.requestId,
+          }
+        );
 
-  create = asyncHandler(async (req, res) => {
-
-    const order = await createOrder(
-      req.user._id,
-      req.body,
-      {
-        ipAddress: req.ip,
-        userAgent: req.headers["user-agent"],
-        requestId: req.requestId,
+        return res.status(201).json(
+          apiResponse.success(
+            "Order placed successfully.",
+            order
+          )
+        );
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
-    );
-
-    return res.status(201).json(
-      apiResponse.success(
-        "Order placed successfully.",
-        order
-      )
-    );
-
-  });
+    });
 
   // =====================================================
   // Customer Orders

@@ -1,75 +1,66 @@
 import request from "supertest";
 import app from "../../src/app.js";
+
 import { adminLogin } from "../helpers/auth.helper.js";
 
 describe("Create Product", () => {
 
-    test("Create Product", async () => {
+  test("Create Product", async () => {
 
-        const token = await adminLogin();
+    const token = await adminLogin();
 
-        const response = await request(app)
+    const unique = Date.now();
 
-            .post("/api/v1/products")
+    const response = await request(app)
+      .post("/api/v1/products")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
 
-            .set("Authorization", `Bearer ${token}`)
+        name: `Jest Gold Ring ${unique}`,
 
-            .send({
+        shortDescription: "Premium",
 
-                name: "Jest Gold Ring",
+        description: "22K Gold Ring",
 
-                shortDescription: "Premium",
+        category: "Ring",
 
-                description: "22K Gold Ring",
+        metal: "Gold",
 
-                category: "Ring",
+        purity: "22K",
 
-                metal: "Gold",
+        gender: "Men",
 
-                purity: "22K",
+        weight: unique % 1000,
 
-                gender: "Men",
+        price: 50000,
 
-                weight: 12,
+        discountPrice: 45000,
 
-                price: 50000,
+        makingCharges: 1500,
 
-                discountPrice: 45000,
+        gst: 3,
 
-                makingCharges: 1500,
+        inventory: {
+          stock: 20,
+          reservedStock: 0,
+          lowStockThreshold: 5
+        },
 
-                gst: 3,
+        images: [
+          {
+            public_id: "abc",
+            url: "https://dummyimage.com/600x600",
+            alt: "Gold Ring",
+            isPrimary: true
+          }
+        ]
 
-                inventory: {
+      });
 
-                    stock: 20,
+    expect(response.statusCode).toBe(201);
 
-                    reservedStock: 0,
+    expect(response.body.success).toBe(true);
 
-                    lowStockThreshold: 5
-
-                },
-
-                images: [
-
-                    {
-
-                        public_id: "abc",
-
-                        url: "https://dummyimage.com/600x600",
-
-                        alt: "Gold Ring",
-
-                        isPrimary: true
-
-                    }
-
-                ]
-
-            });
-
-        expect(response.statusCode).toBe(201);
-
-    });
+  });
 
 });

@@ -351,22 +351,21 @@ productSchema.pre("save", async function () {
   const prefix =
     metalPrefix[this.metal] || "PRD";
 
-  const counter =
-    await Counter.findOneAndUpdate(
-      {
-        name: "PRODUCT",
-        date: "GLOBAL",
-      },
-      {
-        $inc: {
-          sequence: 1,
-        },
-      },
-      {
-        new: true,
-        upsert: true,
-      }
-    );
+  const counter = await Counter.findOneAndUpdate(
+  {
+    name: "PRODUCT",
+    date: "GLOBAL",
+  },
+  {
+    $inc: {
+      sequence: 1,
+    },
+  },
+  {
+    returnDocument: "after",
+    upsert: true,
+  }
+);
 
   this.sku =
     `MG-${prefix}-${String(counter.sequence).padStart(6, "0")}`;

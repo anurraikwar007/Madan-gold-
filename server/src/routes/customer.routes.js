@@ -122,7 +122,7 @@ router.put(
  * @desc    Change customer password
  * @access  Private
  */
-router.patch(
+router.put(
   "/change-password",
   authMiddleware,
  // validate(changePasswordSchema),
