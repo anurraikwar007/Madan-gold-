@@ -1,63 +1,42 @@
-import { Link } from "react-router-dom";
-
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 import Hero from "../components/home/Hero";
+import MobileSearchBar from "../components/common/MobileSearchBar";
+import GenderCategories from "../components/home/GenderCategories";
+import BestSellerSlider from "../components/home/BestSellerSlider";
 
 import ProductCard from "../components/product/ProductCard";
-
 import Loader from "../components/common/Loader";
-
 import EmptyState from "../components/common/EmptyState";
 
 import { useProducts } from "../context/ProductContext";
 
-import GenderCategories from "../components/home/GenderCategories";
-
-import CategorySlider from "../components/home/CategorySlider";
-
-import CategoryGrid from "../components/home/CategoryGrid";
-
-import BestSellerSlider from "../components/home/BestSellerSlider";
-
-import MobileSearchBar from "../components/common/MobileSearchBar";
-
-import {
-  ShieldCheck,
-  Truck,
-  Gem,
-  ArrowRight,
-} from "lucide-react";
-
 const categories = [
   {
     title: "Rings",
-
     image:
       "https://images.unsplash.com/photo-1603561596112-db7f3f9b4f79?q=80&w=1200&auto=format&fit=crop",
   },
-
   {
     title: "Necklaces",
-
     image:
       "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1200&auto=format&fit=crop",
   },
-
   {
     title: "Bracelets",
-
     image:
       "https://images.unsplash.com/photo-1617038220319-276d3cfab638?q=80&w=1200&auto=format&fit=crop",
   },
 ];
 
 const Home = () => {
-
   const { products = [], loading } = useProducts();
 
-  const featuredProducts =
-    products.filter((p) => p.featured);
+  const featuredProducts = products.filter(
+    (p) => p.featured
+  );
 
   const displayProducts =
     featuredProducts.length > 0
@@ -65,151 +44,145 @@ const Home = () => {
       : products.slice(0, 8);
 
   return (
-    <div className="overflow-hidden bg-[#FAF9F6]">
-
+    <div
+      className="
+      min-h-screen
+      bg-gradient-to-b
+      from-[#FFF5F8]
+      via-[#FFF9FC]
+      to-white
+      "
+    >
       <Helmet>
-  <title>
-    Madan Gold | Gold & Silver Jewellery
-  </title>
+        <title>Madan Gold | Luxury Jewellery</title>
 
-  <meta
-    name="description"
-    content="Buy premium gold and silver jewellery online. Rings, Chains, Earrings, Bangles, Pendants and more."
-  />
-  </Helmet>
+        <meta
+          name="description"
+          content="Premium Gold & Silver Jewellery"
+        />
+      </Helmet>
 
-      {/* HERO */}
+      {/* Hero */}
+
       <Hero />
-       
-       <MobileSearchBar />
 
-       {/* SHOP BY GENDER */}
-        
-       <GenderCategories />
+      {/* Mobile Search */}
 
-        <CategorySlider />
+      <div className="relative z-20">
+        <MobileSearchBar />
+      </div>
 
-        
-       
-       <BestSellerSlider />
+      {/* Gender */}
 
+      <GenderCategories />
+
+      {/* Featured Products Slider */}
+
+      <BestSellerSlider />
+            {/* ========================= */}
+      {/* PREMIUM COLLECTIONS */}
       {/* ========================= */}
-      {/* FEATURES */}
-      {/* ========================= */}
 
-      <section className="px-4 sm:px-6 py-10">
+      <section className="py-16 lg:py-20">
 
-        <div
-          className="
-            max-w-7xl
-            mx-auto
-            grid
-            grid-cols-2
-            lg:grid-cols-4
-            gap-4
-          "
-        >
+        <div className="max-w-7xl mx-auto px-5">
 
-          <div className="bg-white rounded-3xl p-5 luxury-shadow">
-            <ShieldCheck className="text-[#D4AF37]" size={28} />
-            <h3 className="font-semibold mt-4">
-              Hallmarked Gold
-            </h3>
-            <p className="text-sm text-gray-500 mt-2">
-              Certified premium jewelry.
-            </p>
-          </div>
+          {/* Heading */}
 
-          <div className="bg-white rounded-3xl p-5 luxury-shadow">
-            <Truck className="text-[#D4AF37]" size={28} />
-            <h3 className="font-semibold mt-4">
-              Free Shipping
-            </h3>
-            <p className="text-sm text-gray-500 mt-2">
-              Fast delivery across India.
-            </p>
-          </div>
+          <div className="flex items-end justify-between flex-wrap gap-5 mb-10">
 
-          <div className="bg-white rounded-3xl p-5 luxury-shadow">
-            <Gem className="text-[#D4AF37]" size={28} />
-            <h3 className="font-semibold mt-4">
-              Luxury Design
-            </h3>
-            <p className="text-sm text-gray-500 mt-2">
-              Handcrafted elegant pieces.
-            </p>
-          </div>
+            <div>
 
-          <div className="bg-[#111111] text-white rounded-3xl p-5">
-            <h3 className="font-semibold">
-              New Wedding Collection
-            </h3>
+              <span
+                className="
+                inline-flex
+                items-center
 
-            <p className="text-sm text-white/70 mt-2">
-              Discover latest bridal jewelry.
-            </p>
+                rounded-full
+
+                bg-[#FFEAF3]
+
+                px-5
+                py-2
+
+                text-xs
+                font-semibold
+
+                uppercase
+
+                tracking-[0.25em]
+
+                text-[#2E5BBA]
+                "
+              >
+                Featured Collections
+              </span>
+
+              <h2
+                className="
+                heading
+
+                mt-5
+
+                text-4xl
+                lg:text-5xl
+
+                font-bold
+                "
+              >
+                Curated Jewellery
+              </h2>
+
+              <p
+                className="
+                mt-4
+
+                max-w-xl
+
+                text-gray-500
+                "
+              >
+                Elegant jewellery collections crafted
+                for everyday luxury and timeless beauty.
+              </p>
+
+            </div>
 
             <Link
               to="/shop"
               className="
-                inline-flex
-                items-center
-                gap-2
-                mt-4
-                text-[#D4AF37]
-                text-sm
+              inline-flex
+
+              items-center
+
+              gap-2
+
+              font-semibold
+
+              text-[#2E5BBA]
+
+              hover:gap-3
+
+              transition-all
               "
             >
-              Explore
-              <ArrowRight size={16} />
+              View All
+
+              <ArrowRight size={18} />
+
             </Link>
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* ========================= */}
-      {/* CATEGORY */}
-      {/* ========================= */}
-
-      <section className="py-14 sm:py-20 px-4 sm:px-6">
-
-        <div className="max-w-7xl mx-auto">
-
-          <div className="mb-10">
-
-            <p
-              className="
-                text-[#D4AF37]
-                uppercase
-                tracking-[0.3em]
-                text-xs
-                font-medium
-              "
-            >
-              Collections
-            </p>
-
-            <h2
-              className="
-                heading
-                text-4xl
-                sm:text-5xl
-                mt-3
-              "
-            >
-              Shop By Category
-            </h2>
 
           </div>
+
+          {/* Cards */}
 
           <div
             className="
-              grid
-              grid-cols-1
-              md:grid-cols-3
-              gap-6
+            grid
+
+            gap-7
+
+            md:grid-cols-3
             "
           >
 
@@ -219,62 +192,137 @@ const Home = () => {
                 key={index}
                 to="/shop"
                 className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-[2rem]
-                  h-[320px]
-                  sm:h-[420px]
+                group
+
+                relative
+
+                overflow-hidden
+
+                rounded-[36px]
+
+                h-[430px]
+
+                shadow-lg
+
+                transition-all
+                duration-500
+
+                hover:-translate-y-2
+
+                hover:shadow-[0_20px_50px_rgba(0,0,0,.12)]
                 "
               >
 
                 <img
                   src={item.image}
                   alt={item.title}
-                  loading="lazy"
                   className="
-                    w-full
-                    h-full
-                    object-cover
-                    transition-all
-                    duration-700
-                    group-hover:scale-110
+                  h-full
+                  w-full
+
+                  object-cover
+
+                  duration-700
+
+                  group-hover:scale-110
                   "
                 />
 
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-t
-                    from-black/70
-                    via-black/10
-                    to-transparent
-                  "
-                />
+                {/* Overlay */}
 
                 <div
                   className="
-                    absolute
-                    bottom-8
-                    left-8
-                    text-white
+                  absolute
+
+                  inset-0
+
+                  bg-gradient-to-t
+
+                  from-black/70
+
+                  via-black/10
+
+                  to-transparent
+                  "
+                />
+
+                {/* Bottom Card */}
+
+                <div
+                  className="
+                  absolute
+
+                  left-5
+                  right-5
+                  bottom-5
+
+                  rounded-[24px]
+
+                  bg-white/15
+
+                  backdrop-blur-xl
+
+                  border
+
+                  border-white/20
+
+                  p-5
                   "
                 >
 
+                  <p
+                    className="
+                    text-xs
+
+                    uppercase
+
+                    tracking-[0.2em]
+
+                    text-white/80
+                    "
+                  >
+                    Premium Collection
+                  </p>
+
                   <h3
                     className="
-                      heading
-                      text-3xl
-                      sm:text-4xl
+                    heading
+
+                    mt-2
+
+                    text-3xl
+
+                    text-white
                     "
                   >
                     {item.title}
                   </h3>
 
-                  <p className="text-white/80 mt-2 text-sm">
-                    Explore Collection
-                  </p>
+                  <div
+                    className="
+                    mt-5
+
+                    inline-flex
+
+                    items-center
+
+                    gap-2
+
+                    font-semibold
+
+                    text-white
+
+                    group-hover:gap-3
+
+                    transition-all
+                    "
+                  >
+
+                    Shop Now
+
+                    <ArrowRight size={18} />
+
+                  </div>
 
                 </div>
 
@@ -287,57 +335,103 @@ const Home = () => {
         </div>
 
       </section>
-
+            {/* ========================= */}
+      {/* TRENDING PRODUCTS */}
       {/* ========================= */}
-      {/* PRODUCTS */}
-      {/* ========================= */}
 
-      <section className="py-14 sm:py-20 px-4 sm:px-6">
+      <section className="py-20 bg-gradient-to-b from-white to-[#FFF7FA]">
 
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto px-5">
 
-          <div className="text-center mb-14">
+          {/* Heading */}
 
-            <p
-              className="
-                text-[#D4AF37]
-                uppercase
-                tracking-[0.3em]
+          <div className="flex items-end justify-between flex-wrap gap-5 mb-12">
+
+            <div>
+
+              <span
+                className="
+                inline-flex
+                items-center
+
+                rounded-full
+
+                bg-[#FFEAF3]
+
+                px-5
+                py-2
+
                 text-xs
-                font-medium
-              "
-            >
-              Best Sellers
-            </p>
+                font-semibold
 
-            <h2
-              className="
+                tracking-[0.25em]
+
+                uppercase
+
+                text-[#2E5BBA]
+                "
+              >
+                Best Sellers
+              </span>
+
+              <h2
+                className="
                 heading
-                text-4xl
-                sm:text-6xl
-                mt-4
-              "
-            >
-              Featured Jewelry
-            </h2>
 
-            <p
-              className="
-                text-gray-500
                 mt-5
-                max-w-2xl
-                mx-auto
-                text-sm
-                sm:text-base
+
+                text-4xl
+                lg:text-5xl
+
+                font-bold
+                "
+              >
+                Trending Jewellery
+              </h2>
+
+              <p
+                className="
+                mt-4
+
+                max-w-xl
+
+                text-gray-500
+                "
+              >
+                Handpicked jewellery loved by thousands of customers.
+              </p>
+
+            </div>
+
+            <Link
+              to="/shop"
+              className="
+              inline-flex
+
+              items-center
+
+              gap-2
+
+              font-semibold
+
+              text-[#2E5BBA]
+
+              hover:gap-3
+
+              transition-all
               "
             >
-              Timeless handcrafted jewelry designed
-              for modern luxury lovers.
-            </p>
+
+              View All
+
+              <ArrowRight size={18} />
+
+            </Link>
 
           </div>
 
-          {/* LOADING */}
+          {/* Products */}
+
           {loading ? (
 
             <Loader />
@@ -346,134 +440,175 @@ const Home = () => {
 
             <EmptyState
               title="No Products Found"
-              subtitle="Products are loading from server."/>
+              subtitle="Products will appear here."
+            />
 
           ) : (
 
             <div
-            className="
+              className="
               grid
+
               grid-cols-2
-              lg:grid-cols-4
-              gap-4
-              sm:gap-6
-            "
-          >
-            {displayProducts.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-              />
-            ))}
-        </div>
+              md:grid-cols-3
+              xl:grid-cols-4
+
+              gap-6
+              "
+            >
+
+              {displayProducts.map((product) => (
+
+                <div
+                  key={product._id}
+                  className="
+                  transition-all
+                  duration-300
+
+                  hover:-translate-y-2
+                  "
+                >
+
+                  <ProductCard
+                    product={product}
+                  />
+
+                </div>
+
+              ))}
+
+            </div>
 
           )}
+
+          {/* Bottom Button */}
+
+          <div className="flex justify-center mt-14">
+
+            <Link
+              to="/shop"
+              className="
+              px-8
+              py-4
+
+              rounded-full
+
+              bg-[#2E5BBA]
+
+              text-white
+
+              font-semibold
+
+              shadow-lg
+
+              transition-all
+
+              hover:bg-[#20489D]
+              hover:scale-105
+              "
+            >
+
+              Explore Complete Collection
+
+            </Link>
+
+          </div>
 
         </div>
 
       </section>
-
+            {/* ========================= */}
+      {/* MORE TO EXPLORE */}
       {/* ========================= */}
-      {/* TRUST */}
-      {/* ========================= */}
 
-      <section className="px-4 sm:px-6 pb-20">
+      <section className="py-20 bg-white">
 
-        <div
-          className="
-            max-w-7xl
-            mx-auto
-            bg-[#111111]
-            rounded-[2.5rem]
-            overflow-hidden
-            relative
-          "
-        >
+        <div className="max-w-7xl mx-auto px-5">
 
-          <div
-            className="
-              absolute
-              top-0
-              left-1/2
-              -translate-x-1/2
-              w-[500px]
-              h-[500px]
-              bg-[#D4AF37]/20
-              blur-[120px]
+          <div className="text-center mb-12">
+
+            <span
+              className="
+              inline-flex
+              items-center
+
               rounded-full
-            "
-          />
 
-          <div
-            className="
-              relative
-              z-10
-              grid
-              grid-cols-1
-              md:grid-cols-3
-              gap-10
-              px-8
-              sm:px-12
-              py-16
-              text-center
-            "
-          >
+              bg-[#FFEAF3]
 
-            <div>
+              px-5
+              py-2
 
-              <h3
-                className="
-                  heading
-                  text-5xl
-                  text-[#D4AF37]
-                "
-              >
-                100%
-              </h3>
+              text-xs
+              font-semibold
 
-              <p className="text-white/70 mt-4">
-                Certified Gold Jewelry
-              </p>
+              tracking-[0.25em]
 
-            </div>
+              uppercase
 
-            <div>
+              text-[#2E5BBA]
+              "
+            >
+              Explore More
+            </span>
 
-              <h3
-                className="
-                  heading
-                  text-5xl
-                  text-[#D4AF37]
-                "
-              >
-                50K+
-              </h3>
+            <h2
+              className="
+              heading
 
-              <p className="text-white/70 mt-4">
-                Happy Customers
-              </p>
+              mt-5
 
-            </div>
+              text-4xl
+              lg:text-5xl
+              "
+            >
+              More Jewellery
+            </h2>
 
-            <div>
-
-              <h3
-                className="
-                  heading
-                  text-5xl
-                  text-[#D4AF37]
-                "
-              >
-                25+
-              </h3>
-
-              <p className="text-white/70 mt-4">
-                Years Of Craftsmanship
-              </p>
-
-            </div>
+            <p className="mt-4 text-gray-500 max-w-2xl mx-auto">
+              Continue discovering our latest collections and timeless
+              handcrafted jewellery.
+            </p>
 
           </div>
+
+          {loading ? (
+
+            <Loader />
+
+          ) : (
+
+            <div
+              className="
+              grid
+
+              grid-cols-2
+              md:grid-cols-3
+              lg:grid-cols-4
+
+              gap-6
+              "
+            >
+
+              {products.map((product) => (
+
+                <div
+                  key={product._id}
+                  className="
+                  transition-all
+                  duration-300
+
+                  hover:-translate-y-2
+                  "
+                >
+                  <ProductCard product={product} />
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
 
         </div>
 

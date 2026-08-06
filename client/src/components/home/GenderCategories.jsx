@@ -1,165 +1,418 @@
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
-import men from "../../assets/images/gender/men.webp";
-import women from "../../assets/images/gender/women.webp";
-import girls from "../../assets/images/gender/girls.webp";
-import boys from "../../assets/images/gender/boys.webp";
-import kids from "../../assets/images/gender/kids.webp";
-import unisex from "../../assets/images/gender/unisex.webp";
+import mother from "../../assets/category/mother.png";
+import father from "../../assets/category/father.png";
+import brother from "../../assets/category/brother.png";
+import sister from "../../assets/category/sister.png";
+import kid from "../../assets/category/kid.png";
+import unisex from "../../assets/category/unisex.png";
 
-const genders = [
+const categories = [
   {
-    name: "Men",
-    slug: "men",
-    image: men,
+    id: 1,
+    title: "Mother",
+    image: mother,
+    slug: "/shop?gender=mother",
   },
   {
-    name: "Women",
-    slug: "women",
-    image: women,
+    id: 2,
+    title: "Father",
+    image: father,
+    slug: "/shop?gender=father",
   },
   {
-    name: "Girls",
-    slug: "girls",
-    image: girls,
+    id: 3,
+    title: "Brother",
+    image: brother,
+    slug: "/shop?gender=brother",
   },
   {
-    name: "Boys",
-    slug: "boys",
-    image: boys,
+    id: 4,
+    title: "Sister",
+    image: sister,
+    slug: "/shop?gender=sister",
   },
   {
-    name: "Kids",
-    slug: "kids",
-    image: kids,
+    id: 5,
+    title: "Kids",
+    image: kid,
+    slug: "/shop?gender=kids",
   },
   {
-    name: "Unisex",
-    slug: "unisex",
+    id: 6,
+    title: "Unisex",
     image: unisex,
+    slug: "/shop?gender=unisex",
   },
 ];
 
 const GenderCategories = () => {
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto">
+    <section
+      className="
+      relative
+      py-20
+      overflow-hidden
+      bg-gradient-to-b
+      from-[#FFF5F8]
+      via-[#FFF9FB]
+      to-white
+      "
+    >
 
-        {/* HEADER */}
+      {/* Background Glow */}
 
-        <div className="text-center mb-10">
+      <div
+        className="
+        absolute
+        -top-40
+        -left-32
+        w-[450px]
+        h-[450px]
+        rounded-full
+        bg-[#F8D7E6]/70
+        blur-[130px]
+        "
+      />
 
-          <p className="text-[#C9A227] uppercase tracking-[0.35em] text-xs font-semibold">
-            Collections
-          </p>
+      <div
+        className="
+        absolute
+        -bottom-44
+        right-0
+        w-[420px]
+        h-[420px]
+        rounded-full
+        bg-[#E9F0FF]
+        blur-[130px]
+        "
+      />
 
-          <h2 className="heading text-3xl sm:text-5xl mt-3">
-            Shop By Gender
-          </h2>
+      <div className="relative max-w-7xl mx-auto px-5">
 
-          <p className="text-gray-500 mt-3 max-w-xl mx-auto text-sm">
-            Discover handcrafted 925 sterling silver jewellery
-            designed for everyone.
-          </p>
+        {/* Badge */}
+
+        <div className="flex justify-center">
+
+          <span
+            className="
+            px-5
+            py-2
+
+            rounded-full
+
+            bg-gradient-to-r
+            from-[#F8D7E6]
+            to-[#FFEAF3]
+
+            border
+            border-pink-200
+
+            text-[#2E5BBA]
+
+            text-xs
+            font-bold
+            uppercase
+            tracking-[0.25em]
+
+            shadow-sm
+            "
+          >
+            Shop By Relation
+          </span>
 
         </div>
 
-        {/* GRID */}
+        {/* Heading */}
+
+        <h2
+          className="
+          mt-6
+          text-center
+
+          heading
+
+          text-3xl
+          md:text-5xl
+
+          font-bold
+
+          text-[#1B1B1B]
+          "
+        >
+          Jewellery For Every
+          <span className="text-[#2E5BBA]"> Relationship</span>
+        </h2>
+
+        <p
+          className="
+          mt-4
+
+          max-w-2xl
+
+          mx-auto
+
+          text-center
+
+          text-gray-500
+
+          leading-7
+          "
+        >
+          Celebrate every special bond with handcrafted jewellery
+          designed for every member of your family.
+        </p>
+
+        {/* Premium Cards */}
 
         <div
           className="
-            flex
-            overflow-x-auto
-            gap-5
-            pb-3
-            scrollbar-hide
+          mt-14
 
-            md:grid
-            md:grid-cols-6
-            md:gap-7
+          grid
+          grid-cols-2
+          md:grid-cols-3
+          xl:grid-cols-6
+
+          gap-6
           "
         >
-          {genders.map((item) => (
+                    {categories.map((item) => (
             <Link
-              key={item.slug}
-              to={`/shop?gender=${item.slug}`}
+              key={item.id}
+              to={item.slug}
               className="
-                group
-                flex
-                flex-col
-                items-center
-                min-w-[110px]
-                md:min-w-0
+              group
+              relative
+
+              overflow-hidden
+
+              rounded-[28px]
+
+              bg-white/90
+              backdrop-blur-xl
+
+              border
+              border-pink-100
+
+              p-6
+
+              transition-all
+              duration-500
+
+              hover:-translate-y-3
+              hover:border-[#2E5BBA]
+              hover:shadow-[0_25px_60px_rgba(46,91,186,.14)]
               "
             >
-              {/* GOLD RING */}
+
+              {/* Premium Glow */}
 
               <div
                 className="
-                  p-[3px]
-                  rounded-full
+                absolute
+                -top-24
+                left-1/2
+                -translate-x-1/2
 
-                  bg-gradient-to-br
-                  from-[#FFF7D6]
-                  via-[#D4AF37]
-                  to-[#8B6B15]
+                w-40
+                h-40
 
-                  shadow-lg
+                rounded-full
 
-                  transition-all
-                  duration-500
+                bg-gradient-to-br
+                from-[#F8D7E6]
+                via-[#FFEAF3]
+                to-[#EAF1FF]
 
-                  group-hover:scale-105
+                blur-3xl
+
+                opacity-0
+
+                transition-all
+                duration-500
+
+                group-hover:opacity-100
+                "
+              />
+
+              {/* Icon Circle */}
+
+              <div
+                className="
+                relative
+                z-20
+
+                mx-auto
+
+                w-32
+                h-32
+
+                rounded-full
+
+                bg-gradient-to-br
+                from-[#FFEAF3]
+                via-[#FFF5F8]
+                to-[#F8D7E6]
+
+                p-[6px]
+
+                shadow-[0_15px_40px_rgba(248,215,230,.55)]
+
+                transition-all
+                duration-500
+
+                group-hover:scale-110
+                group-hover:rotate-3
                 "
               >
-                {/* IMAGE */}
+
+                {/* White Circle */}
 
                 <div
                   className="
-                    w-[88px]
-                    h-[88px]
+                  w-full
+                  h-full
 
-                    sm:w-[96px]
-                    sm:h-[96px]
+                  rounded-full
 
-                    md:w-[120px]
-                    md:h-[120px]
+                  bg-white
 
-                    rounded-full
-                    overflow-hidden
+                  flex
+                  items-center
+                  justify-center
 
-                    bg-white
+                  overflow-hidden
                   "
                 >
+
                   <img
                     src={item.image}
-                    alt={item.name}
+                    alt={item.title}
                     className="
-                      w-full
-                      h-full
-                      object-cover
+                    w-full
+                    h-full
 
-                      transition-all
-                      duration-500
+                    object-cover
 
-                      group-hover:scale-110
+                    transition-all
+                    duration-500
+
+                    group-hover:scale-110
                     "
                   />
+
                 </div>
+
               </div>
 
-              <h3 className="mt-4 text-[15px] font-semibold text-[#111]">
-                {item.name}
+              {/* Title */}
+
+              <h3
+                className="
+                relative
+                z-20
+
+                mt-6
+
+                text-center
+
+                text-lg
+
+                font-bold
+
+                text-gray-900
+
+                transition-colors
+                duration-300
+
+                group-hover:text-[#2E5BBA]
+                "
+              >
+                {item.title}
               </h3>
 
-              <span className="text-xs text-gray-500 mt-1">
-                Explore →
-              </span>
+              {/* Count */}
+
+              <p
+                className="
+                relative
+                z-20
+
+                mt-2
+
+                text-center
+
+                text-sm
+
+                text-gray-500
+                "
+              >
+                {item.count}
+              </p>
+
+              {/* Explore */}
+
+              <div
+                className="
+                relative
+                z-20
+
+                mt-5
+
+                flex
+                items-center
+                justify-center
+                gap-2
+
+                text-[#2E5BBA]
+
+                font-semibold
+                text-sm
+
+                transition-all
+                duration-300
+
+                group-hover:gap-3
+                "
+              >
+                Explore
+
+                <ArrowRight
+                  size={16}
+                  className="
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-1
+                  "
+                />
+              </div>
             </Link>
           ))}
-        </div>
+                  </div>
 
       </div>
+
+      {/* Bottom Decoration */}
+
+      <div
+        className="
+        absolute
+        bottom-0
+        left-0
+
+        w-full
+        h-24
+
+        bg-gradient-to-t
+        from-[#FFF5F8]
+        to-transparent
+
+        pointer-events-none
+        "
+      />
+
     </section>
   );
 };
