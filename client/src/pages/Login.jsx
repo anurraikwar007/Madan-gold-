@@ -45,25 +45,32 @@ const Login = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
+   try {
 
-      const result = login(
-        formData.email,
-        formData.password
-      );
+    const result = await login(
+      formData.email,
+      formData.password
+    );
 
-      if (!result.success) {
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
 
-        setError(result.message);
+    navigate("/");
 
-        setLoading(false);
+      } catch (err) {
 
-        return;
-      }
+  setError(
+    err.response?.data?.message ||
+    "Login failed"
+  );
 
-      navigate("/");
+} finally {
 
-    }, 800);
+  setLoading(false);
+
+}
   };
 
   return (

@@ -1,116 +1,76 @@
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 import { useProducts } from "../context/ProductContext";
 
-import ProductImageGallery from "../components/product/ProductImageGallery";
+import Loader from "../components/common/Loader";
+import EmptyState from "../components/common/EmptyState";
 
+import ProductImageGallery from "../components/product/ProductImageGallery";
 import ProductInfo from "../components/product/ProductInfo";
 
-
-
 const ProductDetail = () => {
-
-
   const { id } = useParams();
 
+  const {
+    products,
+    loading,
+    refreshProducts,
+  } = useProducts();
 
-  const { products } = useProducts();
+  useEffect(() => {
+    if (products.length === 0) {
+      refreshProducts?.();
+    }
+  }, []);
 
-
-
-  const product =
-    products.find(
-      (item) => item.id === Number(id)
-    );
-
-
-
-  if (!product) {
-
-    return (
-
-      <div
-        className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        text-xl
-        font-semibold
-        "
-      >
-
-        Product Not Found
-
-      </div>
-
-    );
-
+  if (loading) {
+    return <Loader />;
   }
 
-
-
-
-
-  return (
-
-    <div
-      className="
-      min-h-screen
-      bg-[#FAF9F6]
-      py-10
-      sm:py-16
-      px-4
-      sm:px-6
-      "
-    >
-
-
-      <div
-        className="
-        max-w-7xl
-        mx-auto
-        grid
-        grid-cols-1
-        lg:grid-cols-2
-        gap-10
-        lg:gap-16
-        "
-      >
-
-
-
-        {/* IMAGE SECTION */}
-
-        <ProductImageGallery
-
-          product={product}
-
-        />
-
-
-
-
-        {/* INFO SECTION */}
-
-        <ProductInfo
-
-          product={product}
-
-        />
-
-
-
-      </div>
-
-
-    </div>
-
+  const product = products.find(
+    (item) => item._id === id
   );
 
+  if (!product) {
+    return (
+      <EmptyState
+        title="Product Not Found"
+        subtitle="The requested product does not exist."
+      />
+    );
+  }
 
+  return (
+    <div
+      className="
+        min-h-screen
+        bg-[#FAF9F6]
+        py-10
+        px-4
+        sm:px-6
+      "
+    >
+      <div
+        className="
+          max-w-7xl
+          mx-auto
+          grid
+          lg:grid-cols-2
+          gap-10
+          lg:gap-16
+        "
+      >
+        <ProductImageGallery
+          product={product}
+        />
+
+        <ProductInfo
+          product={product}
+        />
+      </div>
+    </div>
+  );
 };
-
-
 
 export default ProductDetail;

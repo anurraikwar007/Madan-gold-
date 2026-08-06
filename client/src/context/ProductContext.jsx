@@ -1,50 +1,54 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
-import { products as initialProducts } from "../data/products";
+import * as ProductAPI from "../api/product.api";
 
-
-const ProductContext = createContext(null);
-
-
+const ProductContext = createContext();
 
 export const ProductProvider = ({ children }) => {
+  const [products, setProducts] = useState([]);
 
+  const [loading, setLoading] = useState(true);
 
-  const [products] = useState(initialProducts);
+  const loadProducts = async () => {
+    try {
+      const { data } = await ProductAPI.getProducts();
 
+      const list =
+        data.data.products ||
+        data.data ||
+        [];
 
-  const [loading] = useState(false);
+      setProducts(list);
+    } catch (err) {
+      console.error(err);
 
+      setProducts([]);
+    }
 
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   return (
-
     <ProductContext.Provider
-
       value={{
         products,
         loading,
+        refreshProducts: loadProducts,
       }}
-
     >
-
       {children}
-
     </ProductContext.Provider>
-
   );
-
 };
 
-
-
-
-export const useProducts = () => {
-
-  return useContext(ProductContext);
-
-};
+export const useProducts = () =>
+  useContext(ProductContext);

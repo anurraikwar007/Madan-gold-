@@ -15,11 +15,21 @@ import {
 } from "lucide-react";
 
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
 
 const Navbar = () => {
 
-  const { cart = [], wishlist = [] } = useCart();
+      const {
+      cart = [],
+      cartCount = 0,
+      wishlist = [],
+    } = useCart();
+
+    const {
+      user,
+      logout,
+    } = useAuth();
 
   const { setQuery } = useSearch();
 
@@ -212,7 +222,7 @@ const Navbar = () => {
                     justify-center
                   "
                 >
-                  {wishlist.length}
+                  {wishlist?.length || 0}
                 </span>
 
               </Link>
@@ -250,26 +260,42 @@ const Navbar = () => {
                     justify-center
                   "
                 >
-                  {cart.length}
+                  {cartCount}
                 </span>
 
               </Link>
 
               {/* ACCOUNT */}
-              <Link
-                to="/login"
-                className="
-                  w-11
-                  h-11
-                  rounded-full
-                  bg-white/80
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-                <User size={18} />
-              </Link>
+              {user ? (
+  <button
+    onClick={logout}
+    className="
+      px-4
+      h-11
+      rounded-full
+      bg-[#111]
+      text-white
+      text-sm
+    "
+  >
+    Logout
+  </button>
+          ) : (
+            <Link
+              to="/login"
+              className="
+                w-11
+                h-11
+                rounded-full
+                bg-white/80
+                flex
+                items-center
+                justify-center
+              "
+            >
+              <User size={18} />
+            </Link>
+          )}
 
             </div>
 
@@ -382,24 +408,39 @@ const Navbar = () => {
             Cart
           </Link>
 
-          <Link
-            to="/login"
-            className={`
-              flex
-              flex-col
-              items-center
-              text-[11px]
-              ${
-                navActive("/login")
-                  ? "text-[#D4AF37]"
-                  : "text-black"
-              }
-            `}
-          >
-            <User size={18} />
-            Account
-          </Link>
-
+          {user ? (
+              <button
+                onClick={logout}
+                className="
+                  flex
+                  flex-col
+                  items-center
+                  text-[11px]
+                "
+              >
+                <User size={18} />
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className={`
+                  flex
+                  flex-col
+                  items-center
+                  text-[11px]
+                  ${
+                    navActive("/login")
+                      ? "text-[#D4AF37]"
+                      : "text-black"
+                  }
+                `}
+              >
+                <User size={18} />
+                Account
+              </Link>
+            )}
+            
         </div>
 
       </div>

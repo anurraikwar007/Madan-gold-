@@ -1,32 +1,40 @@
 import { useState } from "react";
-
 import { Heart, ShoppingBag, Eye } from "lucide-react";
-
 import { Link } from "react-router-dom";
-
 import { useCart } from "../../context/CartContext";
 
 const ProductCard = ({ product }) => {
-
   const [hovered, setHovered] = useState(false);
 
-  const { addToCart, addToWishlist, wishlist } = useCart();
+  const {
+    addToCart,
+    wishlist = [],
+    toggleWishlist,
+  } = useCart();
 
-  const isWishlisted = wishlist?.some(
-    (item) => item.id === product.id
+  const productId = product._id || product.id;
+
+  const image =
+    product.images?.[0]?.url ||
+    product.image ||
+    "/placeholder.png";
+
+  const hoverImage =
+    product.images?.[1]?.url ||
+    product.hoverImage ||
+    image;
+
+  const isWishlisted = wishlist.some(
+    (item) =>
+      (item._id || item.id) === productId
   );
 
   return (
     <div
-      className="
-        group
-        relative
-      "
+      className="group relative"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-
-      {/* CARD */}
       <div
         className="
           relative
@@ -41,8 +49,6 @@ const ProductCard = ({ product }) => {
           hover:-translate-y-1
         "
       >
-
-        {/* IMAGE AREA */}
         <div
           className="
             relative
@@ -51,15 +57,10 @@ const ProductCard = ({ product }) => {
             bg-[#F4F1EA]
           "
         >
-
-          {/* PRODUCT IMAGE */}
           <img
-            src={
-              hovered && product.hoverImage
-                ? product.hoverImage
-                : product.image
-            }
+            src={hovered ? hoverImage : image}
             alt={product.name}
+            loading="lazy"
             className="
               w-full
               h-full
@@ -68,10 +69,8 @@ const ProductCard = ({ product }) => {
               duration-700
               group-hover:scale-105
             "
-            loading="lazy"
           />
 
-          {/* TOP BADGES */}
           <div
             className="
               absolute
@@ -82,48 +81,19 @@ const ProductCard = ({ product }) => {
               gap-2
             "
           >
-
             {product.newLaunch && (
-
-              <span
-                className="
-                  bg-[#D4AF37]
-                  text-black
-                  text-[10px]
-                  px-3
-                  py-1
-                  rounded-full
-                  font-semibold
-                  tracking-wide
-                "
-              >
+              <span className="bg-[#D4AF37] text-black text-[10px] px-3 py-1 rounded-full font-semibold">
                 NEW
               </span>
-
             )}
 
             {product.bestseller && (
-
-              <span
-                className="
-                  bg-black
-                  text-white
-                  text-[10px]
-                  px-3
-                  py-1
-                  rounded-full
-                  font-semibold
-                  tracking-wide
-                "
-              >
+              <span className="bg-black text-white text-[10px] px-3 py-1 rounded-full font-semibold">
                 BESTSELLER
               </span>
-
             )}
-
           </div>
 
-          {/* RIGHT ACTIONS */}
           <div
             className="
               absolute
@@ -137,52 +107,48 @@ const ProductCard = ({ product }) => {
               group-hover:opacity-100
               group-hover:translate-x-0
               transition-all
-              duration-500
             "
           >
-
-            {/* WISHLIST */}
             <button
-              onClick={() => addToWishlist(product)}
+              onClick={() =>
+                toggleWishlist(product)
+              }
               className="
                 w-10
                 h-10
                 rounded-full
-                bg-white/90
-                backdrop-blur-xl
+                bg-white
                 flex
                 items-center
                 justify-center
-                shadow-md
               "
             >
               <Heart
                 size={18}
-                fill={isWishlisted ? "black" : "transparent"}
+                fill={
+                  isWishlisted
+                    ? "black"
+                    : "transparent"
+                }
               />
             </button>
 
-            {/* QUICK VIEW */}
             <Link
-              to={`/product/${product.id}`}
+              to={`/product/${productId}`}
               className="
                 w-10
                 h-10
                 rounded-full
-                bg-white/90
-                backdrop-blur-xl
+                bg-white
                 flex
                 items-center
                 justify-center
-                shadow-md
               "
             >
               <Eye size={18} />
             </Link>
-
           </div>
 
-          {/* ADD TO CART */}
           <div
             className="
               absolute
@@ -193,117 +159,56 @@ const ProductCard = ({ product }) => {
               translate-y-full
               group-hover:translate-y-0
               transition-all
-              duration-500
             "
           >
-
             <button
-              onClick={() => addToCart(product)}
+              onClick={() =>
+                addToCart(product)
+              }
               className="
                 w-full
-                h-[52px]
+                h-12
                 rounded-full
-                bg-[#111111]
+                bg-black
                 text-white
                 flex
                 items-center
                 justify-center
                 gap-2
-                font-medium
-                hover:bg-[#D4AF37]
-                hover:text-black
-                transition-all
               "
             >
-
               <ShoppingBag size={18} />
-
               Add To Cart
-
             </button>
-
           </div>
-
         </div>
 
-        {/* CONTENT */}
-        <div className="p-4 sm:p-5">
-
-          {/* CATEGORY */}
-          <p
-            className="
-              text-[11px]
-              uppercase
-              tracking-[0.2em]
-              text-[#D4AF37]
-              font-semibold
-              mb-2
-            "
-          >
-            {product.metal} • {product.category}
+        <div className="p-5">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+            {product.category?.name ||
+              product.category}
           </p>
 
-          {/* TITLE */}
-          <Link
-            to={`/product/${product.id}`}
-          >
-            <h3
-              className="
-                text-[15px]
-                sm:text-base
-                font-semibold
-                text-[#111111]
-                leading-snug
-                line-clamp-2
-                hover:text-[#D4AF37]
-                transition-all
-              "
-            >
+          <Link to={`/product/${productId}`}>
+            <h3 className="font-semibold mt-2 line-clamp-2 hover:text-[#D4AF37]">
               {product.name}
             </h3>
           </Link>
 
-          {/* PRICE */}
-          <div
-            className="
-              flex
-              items-center
-              justify-between
-              mt-4
-            "
-          >
+          <div className="mt-4">
+            <p className="text-xl font-bold">
+              ₹
+              {Number(
+                product.price || 0
+              ).toLocaleString()}
+            </p>
 
-            <div>
-
-              <p
-                className="
-                  text-lg
-                  sm:text-xl
-                  font-bold
-                  text-[#111111]
-                "
-              >
-                ₹ {product.price.toLocaleString()}
-              </p>
-
-              <p
-                className="
-                  text-xs
-                  text-gray-500
-                  mt-1
-                "
-              >
-                Inclusive of all taxes
-              </p>
-
-            </div>
-
+            <p className="text-xs text-gray-500">
+              Inclusive of all taxes
+            </p>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 };

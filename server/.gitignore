@@ -1,3 +1,7 @@
-node_modules
+node_modules/
+coverage/
 .env
-uploads
+.env.test
+tests/.env.test
+output.txt
+*.zip

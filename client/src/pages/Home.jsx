@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 
+import { Helmet } from "react-helmet-async";
+
 import Hero from "../components/home/Hero";
 
 import ProductCard from "../components/product/ProductCard";
@@ -54,8 +56,27 @@ const Home = () => {
 
   const { products = [], loading } = useProducts();
 
+  const featuredProducts =
+    products.filter((p) => p.featured);
+
+  const displayProducts =
+    featuredProducts.length > 0
+      ? featuredProducts.slice(0, 8)
+      : products.slice(0, 8);
+
   return (
     <div className="overflow-hidden bg-[#FAF9F6]">
+
+      <Helmet>
+  <title>
+    Madan Gold | Gold & Silver Jewellery
+  </title>
+
+  <meta
+    name="description"
+    content="Buy premium gold and silver jewellery online. Rings, Chains, Earrings, Bangles, Pendants and more."
+  />
+  </Helmet>
 
       {/* HERO */}
       <Hero />
@@ -325,31 +346,26 @@ const Home = () => {
 
             <EmptyState
               title="No Products Found"
-              subtitle="Please add products in ProductContext."
-            />
+              subtitle="Products are loading from server."/>
 
           ) : (
 
             <div
-              className="
-                grid
-                grid-cols-2
-                lg:grid-cols-4
-                gap-4
-                sm:gap-6
-              "
-            >
-
-              {products.map((product) => (
-
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                />
-
-              ))}
-
-            </div>
+            className="
+              grid
+              grid-cols-2
+              lg:grid-cols-4
+              gap-4
+              sm:gap-6
+            "
+          >
+            {displayProducts.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+              />
+            ))}
+        </div>
 
           )}
 

@@ -1,122 +1,152 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import toast from "react-hot-toast";
+
+import * as CartAPI from "../api/cart.api";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  /* ========================= */
-  /* LOCAL STORAGE LOAD */
-  /* ========================= */
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem("cart");
+  /* ===========================
+      LOAD CART
+  =========================== */
 
-    return saved ? JSON.parse(saved) : [];
-  });
+  const loadCart = async () => {
+    try {
+      const { data } = await CartAPI.getCart();
 
-  const [wishlist, setWishlist] = useState(() => {
-    const saved = localStorage.getItem("wishlist");
+      const items =
+        data.data.items ||
+        data.data.cart?.items ||
+        [];
 
-    return saved ? JSON.parse(saved) : [];
-  });
+      setCart(items);
+    } catch (err) {
+      setCart([]);
+    }
 
-  /* ========================= */
-  /* SAVE TO STORAGE */
-  /* ========================= */
+    setLoading(false);
+  };
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      loadCart();
+    } else {
+      setLoading(false);
+    }
+
+    const savedWishlist =
+      JSON.parse(localStorage.getItem("wishlist")) || [];
+
+    setWishlist(savedWishlist);
+  }, []);
+
+  /* ===========================
+      SAVE WISHLIST
+  =========================== */
 
   useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+    localStorage.setItem(
+      "wishlist",
+      JSON.stringify(wishlist)
+    );
   }, [wishlist]);
 
-  /* ========================= */
-  /* ADD TO CART */
-  /* ========================= */
+  /* ===========================
+      CART
+  =========================== */
 
-  const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+  const addToCart = async (
+    product,
+    qty = 1
+  ) => {
+    try {
+      await CartAPI.addToCart(
+        product._id,
+        qty
+      );
 
-      if (existing) {
-        toast.success("Quantity Updated");
-
-        return prev.map((item) =>
-          item.id === product.id
-            ? {
-                ...item,
-                qty: (item.qty || 1) + (product.qty || 1),
-              }
-            : item
-        );
-      }
+      await loadCart();
 
       toast.success("Added To Cart");
-
-      return [
-        ...prev,
-        {
-          ...product,
-          qty: product.qty || 1,
-        },
-      ];
-    });
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message ||
+          "Failed To Add Cart"
+      );
+    }
   };
 
-  /* ========================= */
-  /* REMOVE FROM CART */
-  /* ========================= */
+  const removeFromCart = async (
+    productId
+  ) => {
+    try {
+      await CartAPI.removeFromCart(
+        productId
+      );
 
-  const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+      await loadCart();
 
-    toast.success("Removed From Cart");
+      toast.success("Removed From Cart");
+    } catch (err) {
+      toast.error("Failed");
+    }
   };
 
-  /* ========================= */
-  /* UPDATE QUANTITY */
-  /* ========================= */
+  const updateQty = async (
+    productId,
+    quantity
+  ) => {
+    try {
+      await CartAPI.updateCart(
+        productId,
+        quantity
+      );
 
-  const updateQty = (id, type) => {
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.id !== id) return item;
-
-        const currentQty = item.qty || 1;
-
-        const updatedQty =
-          type === "inc"
-            ? currentQty + 1
-            : currentQty - 1;
-
-        return {
-          ...item,
-          qty: updatedQty < 1 ? 1 : updatedQty,
-        };
-      })
-    );
+      await loadCart();
+    } catch (err) {
+      toast.error("Failed");
+    }
   };
 
-  /* ========================= */
-  /* CLEAR CART */
-  /* ========================= */
+  const clearCart = async () => {
+    try {
+      await CartAPI.clearCart();
 
-  const clearCart = () => {
-    setCart([]);
+      setCart([]);
+
+      toast.success("Cart Cleared");
+    } catch (err) {
+      toast.error("Failed");
+    }
   };
 
-  /* ========================= */
-  /* WISHLIST */
-  /* ========================= */
+  /* ===========================
+      WISHLIST
+  =========================== */
 
   const toggleWishlist = (product) => {
-    const exists = wishlist.find((item) => item.id === product.id);
+    const exists = wishlist.find(
+      (item) => item._id === product._id
+    );
 
     if (exists) {
       setWishlist((prev) =>
-        prev.filter((item) => item.id !== product.id)
+        prev.filter(
+          (item) => item._id !== product._id
+        )
       );
 
       toast.success("Removed From Wishlist");
@@ -124,50 +154,65 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    setWishlist((prev) => [...prev, product]);
+    setWishlist((prev) => [
+      ...prev,
+      product,
+    ]);
 
     toast.success("Added To Wishlist");
   };
 
-  /* ========================= */
-  /* TOTALS */
-  /* ========================= */
+  // Compatibility with ProductCard
+  const addToWishlist = toggleWishlist;
+
+  /* ===========================
+      TOTALS
+  =========================== */
 
   const cartCount = useMemo(() => {
-    return cart.reduce((acc, item) => {
-      return acc + (item.qty || 1);
-    }, 0);
+    return cart.reduce(
+      (sum, item) =>
+        sum + (item.quantity || 1),
+      0
+    );
   }, [cart]);
 
   const subtotal = useMemo(() => {
-    return cart.reduce((acc, item) => {
-      return acc + Number(item.price) * (item.qty || 1);
-    }, 0);
+    return cart.reduce(
+      (sum, item) =>
+        sum +
+        Number(item.price || 0) *
+          (item.quantity || 1),
+      0
+    );
   }, [cart]);
 
-  /* ========================= */
-  /* CONTEXT VALUE */
-  /* ========================= */
-
-  const value = {
-    cart,
-    wishlist,
-
-    addToCart,
-    removeFromCart,
-    updateQty,
-    clearCart,
-    toggleWishlist,
-
-    cartCount,
-    subtotal,
-  };
-
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider
+      value={{
+        loading,
+
+        cart,
+        wishlist,
+
+        addToCart,
+        removeFromCart,
+        updateQty,
+        clearCart,
+
+        toggleWishlist,
+        addToWishlist,
+
+        refreshCart: loadCart,
+
+        cartCount,
+        subtotal,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () =>
+  useContext(CartContext);

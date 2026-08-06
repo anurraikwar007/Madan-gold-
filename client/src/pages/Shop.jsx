@@ -1,431 +1,191 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import ProductCard from "../components/product/ProductCard";
+import Loader from "../components/common/Loader";
+import EmptyState from "../components/common/EmptyState";
 
 import { useProducts } from "../context/ProductContext";
 
-
-const genderFilters = [
-  "all",
-  "men",
-  "women",
-  "girls",
-  "boys",
-  "child",
-  "unisex",
-];
-
-
-const categoryFilters = [
-  "all",
-  "rings",
-  "chains",
-  "earrings",
-  "bracelets",
-  "pendants",
-  "anklets",
-  "bangles",
-  "toe rings",
-  "nose pins",
-];
-
-
 const Shop = () => {
-
-
-  const { products } = useProducts();
-
+  const { products, loading } = useProducts();
 
   const [searchParams] = useSearchParams();
-
 
   const [selectedGender, setSelectedGender] =
     useState("all");
 
-
   const [selectedCategory, setSelectedCategory] =
     useState("all");
 
-
-
-  /*
-    URL FILTER LOAD
-
-    Example:
-
-    /shop?gender=women
-
-    /shop?category=rings
-
-  */
-
-
   useEffect(() => {
-
-
     const gender =
       searchParams.get("gender");
-
 
     const category =
       searchParams.get("category");
 
+    if (gender)
+      setSelectedGender(
+        gender.toLowerCase()
+      );
 
-
-    if (gender) {
-
-      setSelectedGender(gender);
-
-    }
-
-
-    if (category) {
-
+    if (category)
       setSelectedCategory(
         category.toLowerCase()
       );
-
-    }
-
-
   }, [searchParams]);
 
+  const genders = [
+    "all",
+    ...new Set(
+      products
+        .map((p) => p.gender)
+        .filter(Boolean)
+        .map((g) => g.toLowerCase())
+    ),
+  ];
 
-
+  const categories = [
+    "all",
+    ...new Set(
+      products
+        .map((p) =>
+          typeof p.category === "object"
+            ? p.category?.name
+            : p.category
+        )
+        .filter(Boolean)
+        .map((c) => c.toLowerCase())
+    ),
+  ];
 
   const filteredProducts =
-    products.filter((item)=>{
+    products.filter((product) => {
+      const gender =
+        product.gender?.toLowerCase();
 
+      const category =
+        (
+          typeof product.category ===
+          "object"
+            ? product.category?.name
+            : product.category
+        )?.toLowerCase();
 
       const genderMatch =
-        selectedGender === "all"
-          ? true
-          : item.gender === selectedGender;
-
-
+        selectedGender === "all" ||
+        gender === selectedGender;
 
       const categoryMatch =
-        selectedCategory === "all"
-          ? true
-          : item.category === selectedCategory;
-
-
+        selectedCategory === "all" ||
+        category === selectedCategory;
 
       return (
         genderMatch &&
         categoryMatch
       );
-
-
     });
 
-
+  if (loading) return <Loader />;
 
   return (
-
-    <div
-      className="
-      min-h-screen
-      bg-[#FAF9F6]
-      px-4
-      sm:px-6
-      py-10
-      sm:py-14
-      "
-    >
-
+    <div className="min-h-screen bg-[#FAF9F6] px-4 py-10">
 
       <div className="max-w-7xl mx-auto">
 
-
-
-        {/* HEADER */}
-
         <div className="mb-10">
 
-
-          <p
-            className="
-            text-[#D4AF37]
-            uppercase
-            tracking-[0.3em]
-            text-xs
-            font-semibold
-            "
-          >
-            92.5 Silver Collection
-          </p>
-
-
-          <h1
-            className="
-            text-4xl
-            sm:text-6xl
-            font-bold
-            mt-4
-            "
-          >
-            Shop Jewelry
+          <h1 className="text-5xl font-bold">
+            Shop Jewellery
           </h1>
 
+          <p className="text-gray-500 mt-3">
+            Explore our latest collection.
+          </p>
 
         </div>
 
+        {/* Gender */}
 
+        <div className="flex gap-3 overflow-x-auto mb-5">
 
-
-
-        {/* GENDER FILTER */}
-
-
-        <div
-          className="
-          flex
-          gap-3
-          overflow-x-auto
-          pb-2
-          mb-6
-          "
-        >
-
-
-          {genderFilters.map((gender)=>(
-
+          {genders.map((gender) => (
 
             <button
-
               key={gender}
-
               onClick={() =>
                 setSelectedGender(gender)
               }
-
-
-              className={`
-
-              px-5
-              h-[46px]
-              rounded-full
-              whitespace-nowrap
-              border
-              text-sm
-              font-medium
-              transition
-
-
-              ${
+              className={`px-5 h-11 rounded-full border ${
                 selectedGender === gender
-
-                ?
-
-                "bg-[#111111] text-white"
-
-                :
-
-                "bg-white border-black/10"
-
-              }
-
-              `}
-
+                  ? "bg-black text-white"
+                  : "bg-white"
+              }`}
             >
-
-
               {gender}
-
-
-
             </button>
-
 
           ))}
 
-
         </div>
 
+        {/* Category */}
 
+        <div className="flex gap-3 overflow-x-auto mb-10">
 
-
-
-
-        {/* PRODUCT CATEGORY FILTER */}
-
-
-
-        <div
-          className="
-          flex
-          gap-3
-          overflow-x-auto
-          pb-2
-          mb-10
-          "
-        >
-
-
-          {categoryFilters.map((category)=>(
-
+          {categories.map((category) => (
 
             <button
-
-
               key={category}
-
-
               onClick={() =>
-                setSelectedCategory(category)
+                setSelectedCategory(
+                  category
+                )
               }
-
-
-              className={`
-
-
-              px-5
-
-              h-[46px]
-
-              rounded-full
-
-              whitespace-nowrap
-
-              border
-
-              text-sm
-
-              font-medium
-
-              transition
-
-
-
-              ${
-                selectedCategory === category
-
-                ?
-
-                "bg-[#D4AF37] text-black border-[#D4AF37]"
-
-                :
-
-                "bg-white border-black/10"
-
-              }
-
-
-              `}
-
-
+              className={`px-5 h-11 rounded-full border ${
+                selectedCategory ===
+                category
+                  ? "bg-[#D4AF37]"
+                  : "bg-white"
+              }`}
             >
-
-
               {category}
-
-
-
             </button>
-
 
           ))}
 
-
         </div>
 
+        {filteredProducts.length ===
+        0 ? (
+          <EmptyState
+            title="No Products Found"
+            subtitle="Try changing filters."
+          />
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
 
-
-
-
-
-
-        {/* PRODUCTS */}
-
-
-
-        {
-          filteredProducts.length > 0
-
-          ?
-
-
-          <div
-            className="
-            grid
-            grid-cols-2
-            lg:grid-cols-4
-            gap-4
-            sm:gap-6
-            "
-          >
-
-
-            {
-              filteredProducts.map((product)=>(
-
-
+            {filteredProducts.map(
+              (product) => (
                 <ProductCard
-
-                  key={product.id}
-
-                  product={product}
-
+                  key={
+                    product._id
+                  }
+                  product={
+                    product
+                  }
                 />
-
-
-              ))
-            }
-
-
+              )
+            )}
 
           </div>
-
-
-          :
-
-
-          <div
-            className="
-            py-24
-            text-center
-            "
-          >
-
-
-            <h3
-              className="
-              text-2xl
-              font-bold
-              "
-            >
-              No Products Found
-            </h3>
-
-
-            <p
-              className="
-              text-gray-500
-              mt-3
-              "
-            >
-              Try changing filters.
-            </p>
-
-
-
-          </div>
-
-
-        }
-
-
+        )}
 
       </div>
 
-
     </div>
-
   );
-
 };
-
 
 export default Shop;

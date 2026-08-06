@@ -15,12 +15,13 @@ const Signup = () => {
   const [showPassword, setShowPassword] =
     useState(false);
 
-  const [formData, setFormData] =
-    useState({
-      name: "",
-      email: "",
-      password: "",
-    });
+ const [formData, setFormData] =
+  useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+  });
 
   const [error, setError] =
     useState("");
@@ -46,22 +47,30 @@ const Signup = () => {
 
     setLoading(true);
 
-    setTimeout(() => {
+        try {
 
-      const result = signup(formData);
+      const result =
+        await signup(formData);
 
       if (!result.success) {
-
         setError(result.message);
-
-        setLoading(false);
-
         return;
       }
 
       navigate("/");
 
-    }, 800);
+    } catch (err) {
+
+  setError(
+    err.response?.data?.message ||
+    "Signup failed"
+  );
+
+} finally {
+
+  setLoading(false);
+
+}
   };
 
   return (
@@ -160,6 +169,33 @@ const Signup = () => {
               required
               placeholder="Enter email"
               value={formData.email}
+              onChange={handleChange}
+              className="
+                w-full
+                h-14
+                px-5
+                rounded-2xl
+                border
+                border-black/10
+                bg-[#FAF9F6]
+              "
+            />
+
+          </div>
+
+          {/* PHONE */}
+<div>
+
+  <label className="text-sm mb-2 block">
+    Phone Number
+  </label>
+
+            <input
+              type="tel"
+              name="phone"
+              required
+              placeholder="Enter phone number"
+              value={formData.phone}
               onChange={handleChange}
               className="
                 w-full
