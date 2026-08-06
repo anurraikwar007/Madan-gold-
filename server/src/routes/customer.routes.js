@@ -67,11 +67,11 @@ router.post(
  * @desc    Logout customer
  * @access  Private
  */
-router.post(
+/*router.post(
   "/logout",
   authMiddleware,
   logout
-);
+);*/
 
 
 
