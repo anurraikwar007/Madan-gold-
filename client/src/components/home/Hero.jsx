@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import coupon1 from "../../assets/coupon/coupon1.webp";
 import coupon2 from "../../assets/coupon/coupon2.webp";
 import coupon3 from "../../assets/coupon/coupon3.webp";
+import coupon3 from "../../assets/coupon/coupon4.webp";
+
 
 const slides = [
   {
@@ -21,6 +23,11 @@ const slides = [
     image: coupon3,
     alt: "Coupon 3",
   },
+  {
+    id: 4,
+    image: coupon4,
+    alt: "Coupon 4",
+  }
 ];
 
 const Hero = () => {
