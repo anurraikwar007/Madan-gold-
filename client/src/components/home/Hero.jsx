@@ -4,34 +4,37 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import coupon1 from "../../assets/coupon/coupon1.webp";
 import coupon2 from "../../assets/coupon/coupon2.webp";
 import coupon3 from "../../assets/coupon/coupon3.webp";
-import coupon3 from "../../assets/coupon/coupon4.webp";
-
+import coupon4 from "../../assets/coupon/coupon4.webp";
 
 const slides = [
   {
     id: 1,
     image: coupon1,
-    alt: "Coupon 1",
+    alt: "Luxury Coupon 1",
   },
   {
     id: 2,
     image: coupon2,
-    alt: "Coupon 2",
+    alt: "Luxury Coupon 2",
   },
   {
     id: 3,
     image: coupon3,
-    alt: "Coupon 3",
+    alt: "Luxury Coupon 3",
   },
   {
     id: 4,
     image: coupon4,
-    alt: "Coupon 4",
-  }
+    alt: "Luxury Coupon 4",
+  },
 ];
 
 const Hero = () => {
   const [active, setActive] = useState(0);
+
+  /* ==========================
+        AUTO SLIDER
+  ========================== */
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -43,11 +46,19 @@ const Hero = () => {
     return () => clearInterval(timer);
   }, []);
 
+  /* ==========================
+        NEXT
+  ========================== */
+
   const nextSlide = () => {
     setActive((prev) =>
       prev === slides.length - 1 ? 0 : prev + 1
     );
   };
+
+  /* ==========================
+        PREVIOUS
+  ========================== */
 
   const prevSlide = () => {
     setActive((prev) =>
@@ -56,33 +67,150 @@ const Hero = () => {
   };
 
   return (
-    <section className="w-full bg-[#FFF5F8]">
+    <section
+      className="
+      relative
+      w-full
+      overflow-hidden
+      bg-gradient-to-b
+      from-[#FFF5F8]
+      via-[#FFF9FB]
+      to-white
+      "
+    >
 
-      {/* Announcement Bar */}
+      {/* Pink Glow */}
 
-      
+      <div
+        className="
+        absolute
+        -top-32
+        -left-24
+        w-[420px]
+        h-[420px]
+        rounded-full
+        bg-pink-200/40
+        blur-[120px]
+        pointer-events-none
+        "
+      />
 
-      <div className="w-120px px-0 py-0">
-      <div className="relative overflow-hidden shadow-lg">
-<div className="relative h-[170px] sm:h-[250px] lg:h-[380px] xl:h-[420px]">
+      {/* Blue Glow */}
+
+      <div
+        className="
+        absolute
+        top-10
+        right-0
+        w-[320px]
+        h-[320px]
+        rounded-full
+        bg-blue-200/20
+        blur-[120px]
+        pointer-events-none
+        "
+      />
+
+      <div className="relative w-full">
+
+        {/* Slider */}
+
+        <div
+          className="
+          relative
+          overflow-hidden
+          rounded-b-[26px]
+          shadow-[0_25px_60px_rgba(46,91,186,.10)]
+          border-b
+          border-pink-100
+          "
+        >
+
+          {/* Height */}
+
+          <div
+            className="
+            relative
+            h-[180px]
+            sm:h-[250px]
+            md:h-[300px]
+            lg:h-[360px]
+            xl:h-[410px]
+            "
+          >
+
             {slides.map((slide, index) => (
               <img
                 key={slide.id}
                 src={slide.image}
                 alt={slide.alt}
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                className={`
+                absolute
+                inset-0
+                w-full
+                h-full
+                object-cover
+                transition-all
+                duration-[1200ms]
+                ${
                   active === index
-                    ? "opacity-100"
-                    : "opacity-0"
-                }`}
+                    ? "opacity-100 scale-100"
+                    : "opacity-0 scale-105"
+                }
+                `}
               />
             ))}
 
-            {/* Left Arrow */}
+            {/* Premium Overlay */}
+
+            <div
+              className="
+              absolute
+              inset-0
+              bg-gradient-to-r
+              from-black/5
+              via-transparent
+              to-black/10
+              "
+            />
+
+                        {/* Left Arrow */}
 
             <button
               onClick={prevSlide}
-              className="absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-lg hover:bg-[#2E5BBA] hover:text-white transition-all"
+              className="
+              absolute
+              left-4
+              sm:left-6
+              top-1/2
+              -translate-y-1/2
+              z-30
+
+              w-11
+              h-11
+              lg:w-12
+              lg:h-12
+
+              rounded-full
+              bg-white/85
+              backdrop-blur-xl
+
+              border
+              border-white/70
+
+              flex
+              items-center
+              justify-center
+
+              shadow-xl
+
+              hover:bg-[#2E5BBA]
+              hover:text-white
+              hover:scale-110
+
+              transition-all
+              duration-300
+              "
             >
               <ChevronLeft size={22} />
             </button>
@@ -91,22 +219,100 @@ const Hero = () => {
 
             <button
               onClick={nextSlide}
-              className="absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-lg hover:bg-[#2E5BBA] hover:text-white transition-all"
+              className="
+              absolute
+              right-4
+              sm:right-6
+              top-1/2
+              -translate-y-1/2
+              z-30
+
+              w-11
+              h-11
+              lg:w-12
+              lg:h-12
+
+              rounded-full
+              bg-white/85
+              backdrop-blur-xl
+
+              border
+              border-white/70
+
+              flex
+              items-center
+              justify-center
+
+              shadow-xl
+
+              hover:bg-[#2E5BBA]
+              hover:text-white
+              hover:scale-110
+
+              transition-all
+              duration-300
+              "
             >
               <ChevronRight size={22} />
             </button>
-                        {/* Dots */}
 
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+            {/* Bottom Blur */}
+
+            <div
+              className="
+              absolute
+              bottom-0
+              left-0
+              w-full
+              h-20
+              bg-gradient-to-t
+              from-black/20
+              to-transparent
+              "
+            />
+
+            {/* Dots */}
+
+            <div
+              className="
+              absolute
+              bottom-6
+              left-1/2
+              -translate-x-1/2
+              z-30
+
+              flex
+              items-center
+              gap-3
+
+              px-4
+              py-2
+
+              rounded-full
+
+              bg-white/60
+              backdrop-blur-xl
+
+              border
+              border-white/60
+
+              shadow-lg
+              "
+            >
               {slides.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActive(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`
+                  transition-all
+                  duration-300
+                  rounded-full
+                  ${
                     active === index
-                      ? "w-8 bg-[#2E5BBA]"
-                      : "w-2 bg-white/70"
-                  }`}
+                      ? "w-8 h-2 bg-[#2E5BBA]"
+                      : "w-2 h-2 bg-white"
+                  }
+                  `}
                 />
               ))}
             </div>
