@@ -12,7 +12,7 @@ import { createOrderDTO } from "../dto/order.dto.js";
 import { generateOrderNumber } from "../utils/orderNumber.js";
 import { getObjectDiff } from "../utils/diff.util.js";
 
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 import { ORDER_STATUS } from "../constants/order.constant.js";
 import { orderQueryDTO }
 from "../dto/orderQuery.dto.js";
@@ -95,15 +95,19 @@ const applyCoupon = async (
     );
   }
 
-  if (
-    coupon.expiryDate &&
-    coupon.expiryDate < new Date()
-  ) {
-    throw new ApiError(
-      400,
-      "Coupon expired."
-    );
-  }
+   const now = new Date();
+
+    if (
+      (coupon.validFrom &&
+        now < coupon.validFrom) ||
+      (coupon.validTill &&
+        now > coupon.validTill)
+    ) {
+      throw new ApiError(
+        400,
+        "Coupon is expired or not active yet."
+      );
+    }
 
   if (
     coupon.minimumOrderAmount &&
@@ -161,10 +165,20 @@ const applyCoupon = async (
 // Inventory Validation
 // ======================================================
 
- const validateInventory = async (cart) => {
+const validateInventory = async (
+  cart,
+  session
+) => {
   for (const item of cart.items) {
 
-    const product = await ProductRepository.findById(item.product._id);
+    const product =
+      await ProductRepository.findById(
+        item.product._id,
+        {
+          session,
+          lean: false,
+        }
+      );
 
     if (!product) {
       throw new ApiError(
@@ -173,17 +187,34 @@ const applyCoupon = async (
       );
     }
 
-    if (product.inventory.availableStock <= 0) {
+    if (
+      !product.isActive ||
+      product.isDeleted
+    ) {
+      throw new ApiError(
+        400,
+        `${product.name} is no longer available.`
+      );
+    }
+
+    const availableStock =
+      Number(
+        product.inventory?.availableStock || 0
+      );
+
+    if (availableStock <= 0) {
       throw new ApiError(
         400,
         `${product.name} is unavailable.`
       );
     }
 
-    if (product.inventory.availableStock < item.quantity) {
+    if (
+      availableStock < item.quantity
+    ) {
       throw new ApiError(
         400,
-        `${product.name} has only ${product.inventory.availableStock} item(s) available.`
+        `${product.name} has only ${availableStock} item(s) available.`
       );
     }
   }
@@ -234,7 +265,10 @@ export const createOrder = async (
       dto.shippingAddress
     );
 
-    await validateInventory(cart);
+    await validateInventory(
+      cart,
+      session
+    );
 
     const orderItems = cart.items.map((item) => ({
   product: item.product._id,
@@ -248,7 +282,12 @@ export const createOrder = async (
 
   quantity: item.quantity,
 
-  price: item.price,
+    price:
+    item.product.discountPrice > 0 &&
+    item.product.discountPrice <
+    item.product.price
+    ? item.product.discountPrice
+    : item.product.price,
 
   metal: item.product.metal,
 
@@ -273,11 +312,51 @@ export const createOrder = async (
     // Pricing
     // =====================================
 
-    const shippingCharge =
-      Number(dto.shippingCharge || 0);
+    const cartTotal =
+    cart.totalAmount;
 
-    const gst =
-      Number(dto.gst || 0);
+   const shippingCharge =
+    cartTotal < 1000
+    ? 100
+    : 0;
+
+  const gst =
+    cart.items.reduce(
+      (total, item) => {
+
+        const itemProduct =
+          item.product;
+
+        const itemPrice =
+        item.product.discountPrice > 0 &&
+        item.product.discountPrice <
+          item.product.price
+          ? item.product.discountPrice
+          : item.product.price;
+
+          const itemMakingCharges =
+          (itemProduct.makingCharges || 0) *
+          item.quantity;
+
+        const itemTaxableAmount =
+          (
+            itemPrice *
+            item.quantity
+          ) +
+          itemMakingCharges;
+
+      const itemGST =
+        itemTaxableAmount *
+        (
+          (itemProduct.gst ?? 0) /
+          100
+        );
+
+      return total + itemGST;
+
+    },
+    0
+  );
 
     const finalAmount = Math.max(
        0,
@@ -345,7 +424,8 @@ export const createOrder = async (
 
           400,
 
-          `${item.name} is out of stock.`
+          `${item.product.name} is out of stock.`
+
 
         );
 
@@ -415,13 +495,20 @@ export const createOrder = async (
 
     if (coupon) {
 
-      coupon.usedCount += 1;
+    const updatedCoupon =
+      await CouponRepository.increaseUsage(
+        coupon._id,
+        session
+      );
 
-      await coupon.save({
-        session,
-      });
-
+    if (!updatedCoupon) {
+      throw new ApiError(
+        409,
+        "Coupon usage limit exceeded."
+      );
     }
+
+  }
 
     // =====================================
     // Clear Cart
@@ -483,6 +570,12 @@ export const createOrder = async (
 
       requestId:
         context.requestId,
+
+
+        performedByModel:
+          "Customer",
+
+        session,
 
     });
 
@@ -587,6 +680,34 @@ async (
 
 };
 
+ //
+
+  export const getAdminOrderById =
+    async (orderId) => {
+
+      const order =
+        await OrderRepository.findOne(
+          {
+            _id: orderId,
+          },
+          {
+            populate: [
+              "customer",
+              "items.product",
+            ],
+          }
+        );
+
+      if (!order) {
+        throw new ApiError(
+          404,
+          "Order not found."
+        );
+      }
+
+      return order;
+    };
+
 // ======================================================
 // Admin Orders
 // ======================================================
@@ -669,6 +790,8 @@ async (
 
         {
           session,
+          lean: false,
+
         }
 
       );
@@ -855,7 +978,26 @@ async (
       order.cancelledAt =
         new Date();
 
-    }
+    }  
+      
+      
+
+    // =====================================
+   // Payment Validation
+   // =====================================
+
+      if (
+        status === "Delivered" &&
+        order.paymentMethod !== "COD" &&
+        order.paymentStatus !== "Paid"
+      ) {
+        throw new ApiError(
+          400,
+          "Order cannot be delivered before payment is verified."
+        );
+      }
+
+
 
     // =====================================
     // Update Status
@@ -902,6 +1044,8 @@ async (
       requestId:
         context.requestId,
 
+        session,
+
     });
 
     await session.commitTransaction();
@@ -933,73 +1077,93 @@ export const updateTracking = async (
   context
 ) => {
 
-  const order = await OrderRepository.findById(orderId);
+  const session =
+    await mongoose.startSession();
 
-  if (!order) {
-    throw new ApiError(
-      404,
-      "Order not found."
-    );
+  session.startTransaction();
+
+  try {
+
+    const order =
+      await OrderRepository.findById(
+        orderId,
+        {
+          session,
+          lean: false,
+        }
+      );
+
+    if (!order) {
+      throw new ApiError(
+        404,
+        "Order not found."
+      );
+    }
+
+    if (
+      order.orderStatus !==
+      "Processing"
+    ) {
+      throw new ApiError(
+        400,
+        "Tracking can only be updated for Processing orders."
+      );
+    }
+
+    const oldOrder =
+      order.toObject();
+
+    order.trackingNumber =
+      trackingNumber;
+
+    order.courierPartner =
+      courierPartner;
+
+    order.estimatedDeliveryDate =
+      estimatedDeliveryDate;
+
+    order.orderStatus =
+      "Shipped";
+
+    await order.save({
+      session,
+    });
+
+    const changes =
+      getObjectDiff(
+        oldOrder,
+        order.toObject()
+      );
+
+    await AuditService.log({
+      entityType: "Order",
+      entityId: order._id,
+      action: "TRACKING_UPDATE",
+      performedBy: context.adminId,
+      changes,
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+      requestId: context.requestId,
+      session,
+    });
+
+    await session.commitTransaction();
+
+    return order;
+
+  } catch (error) {
+
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+
+    throw error;
+
+  } finally {
+
+    await session.endSession();
+
   }
-
-  // Tracking sirf Processing order me add hogi
-
-  if (order.orderStatus !== "Processing") {
-    throw new ApiError(
-      400,
-      "Tracking can only be updated for Processing orders."
-    );
-  }
-
-  const oldOrder = order.toObject();
-
-  // =====================================
-  // Tracking Details
-  // =====================================
-
-  order.trackingNumber = trackingNumber;
-  order.courierPartner = courierPartner;
-  order.estimatedDeliveryDate = estimatedDeliveryDate;
-
-  // =====================================
-  // Processing → Shipped
-  // =====================================
-
-  order.orderStatus = "Shipped";
-
-  await order.save();
-
-  // =====================================
-  // Audit Log
-  // =====================================
-
-  const changes = getObjectDiff(
-    oldOrder,
-    order.toObject()
-  );
-
-  await AuditService.log({
-
-    entityType: "Order",
-
-    entityId: order._id,
-
-    action: "TRACKING_UPDATE",
-
-    performedBy: context.adminId,
-
-    changes,
-
-    ipAddress: context.ipAddress,
-
-    userAgent: context.userAgent,
-
-    requestId: context.requestId,
-
-  });
-
-  return order;
-
 };
 
 // ======================================================
@@ -1218,6 +1382,8 @@ async (
 
       requestId:
         context.requestId,
+
+        session,
 
     });
 

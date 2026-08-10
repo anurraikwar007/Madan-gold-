@@ -5,12 +5,6 @@ import {
   me,
 } from "../controllers/adminAuth.controller.js";
 
-import {
-  register,
-  login as customerLogin,
-  profile,
-  changePassword,
-} from "../controllers/customer.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
@@ -22,41 +16,10 @@ import {
   adminLoginSchema,
 } from "../validators/auth.validator.js";
 
+import AuthController from "../controllers/auth.controller.js";
+
 const router = express.Router();
 
-/*
-==================================
-Customer Routes
-==================================
-*/
-
-// Register
-router.post(
-  "/register",
-  validate(registerSchema),
-  register
-);
-
-// Login
-router.post(
-  "/login",
-  validate(loginSchema),
-  customerLogin
-);
-
-// Customer Profile
-router.get(
-  "/profile",
-  authMiddleware,
-  profile
-);
-
-router.put(
-  "/change-password",
-  authMiddleware,
-  roleMiddleware("Customer"),
-  changePassword
-);
 
 /*
 ==================================
@@ -77,6 +40,11 @@ router.get(
   authMiddleware,
  roleMiddleware("Admin", "SuperAdmin"),
   me
+);
+
+router.post(
+  "/refresh-token",
+  AuthController.refreshAccessToken
 );
 
 export default router;

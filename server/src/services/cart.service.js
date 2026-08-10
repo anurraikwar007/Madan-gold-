@@ -2,6 +2,7 @@ import CartRepository from "../repositories/cart.repository.js";
 import ProductRepository from "../repositories/product.repository.js";
 import AuditService from "./audit.service.js";
 import { CartDTO } from "../dto/cart.dto.js";
+import ApiError from "../utils/apiError.js";
 
 // ======================================
 // Get Cart
@@ -45,23 +46,36 @@ export const addToCart = async (
     throw new Error("Product not found.");
   }
 
-  if (
-    product.inventory.availableStock <
-    dto.quantity
-  ) {
-    throw new Error("Insufficient stock.");
-  }
+  
 
   let cart =
-    await CartRepository.findByCustomer(customerId);
+  await CartRepository.findByCustomer(customerId);
 
-  if (!cart) {
+if (!cart) {
+  cart =
+    await CartRepository.createCart(
+      customerId
+    );
+}
 
-    cart =
-      await CartRepository.createCart(customerId);
+const existingItem =
+  cart.items.find(
+    (i) =>
+      i.product._id.toString() === productId
+  );
 
-  }
+    const requestedQuantity =
+      (existingItem?.quantity || 0) +
+      dto.quantity;
 
+    if (
+      product.inventory.availableStock <
+      requestedQuantity
+    ) {
+      throw new Error(
+        "Insufficient stock."
+      );
+    }
   const item =
     cart.items.find(
 
@@ -84,7 +98,11 @@ export const addToCart = async (
 
       quantity: dto.quantity,
 
-      price: product.price,
+      price:
+      product.discountPrice > 0 &&
+      product.discountPrice < product.price
+        ? product.discountPrice
+        : product.price,
 
     });
 

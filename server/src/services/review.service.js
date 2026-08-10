@@ -1,7 +1,7 @@
 import ReviewRepository from "../repositories/review.repository.js";
 import Product from "../models/product.model.js";
 import Order from "../models/order.model.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 class ReviewService {
   async createReview(customerId, payload) {

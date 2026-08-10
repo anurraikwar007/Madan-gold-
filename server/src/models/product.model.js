@@ -438,11 +438,16 @@ productSchema.query.bestseller =
 // ======================================================
 
 productSchema.pre(/^find/, function () {
+  const filter = this.getFilter();
+
+  // Admin restore query must be allowed
+  if (filter.isDeleted === true) {
+    return;
+  }
+
   this.where({
     isDeleted: false,
   });
-
-  
 });
 
 // ======================================================

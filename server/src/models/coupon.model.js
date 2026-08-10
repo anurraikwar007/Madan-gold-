@@ -128,13 +128,16 @@ couponSchema.pre("validate", function () {
 // ======================================================
 
 couponSchema.pre(/^find/, function () {
+  const filter = this.getFilter();
+
+  // Allow admin restore queries
+  if (filter.isDeleted === true) {
+    return;
+  }
 
   this.where({
     isDeleted: false,
   });
-
-  
-
 });
 
 // ======================================================

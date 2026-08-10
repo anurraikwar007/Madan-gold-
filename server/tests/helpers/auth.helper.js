@@ -11,7 +11,7 @@ export async function adminLogin() {
 
   expect(response.statusCode).toBe(200);
 
-  return response.body.data.token;
+  return response.body.data.accessToken;
 }
 
 export async function customerLogin() {
@@ -41,5 +41,5 @@ export async function customerLogin() {
 
   expect(response.statusCode).toBe(200);
 
-  return response.body.data.token;
+  return response.body.data.accessToken;
 }

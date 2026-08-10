@@ -5,6 +5,10 @@ import CheckoutController from "../controllers/checkout.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
 
+import validate from "../middleware/validate.js";
+import CheckoutValidator
+  from "../validators/checkout.validator.js";
+
 const router = express.Router();
 
 /*
@@ -18,6 +22,9 @@ router.post(
   "/",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate({
+    body: CheckoutValidator.create(),
+  }),
   CheckoutController.create
 );
 
@@ -26,7 +33,7 @@ router.get(
   "/",
   authMiddleware,
   roleMiddleware("Customer"),
-  CheckoutController.getCurrent
+  CheckoutController.get
 );
 
 // Get Checkout By Id
@@ -42,7 +49,13 @@ router.put(
   "/:id/address",
   authMiddleware,
   roleMiddleware("Customer"),
-  CheckoutController.updateAddress
+  validate({
+    params:
+      CheckoutValidator.checkoutId(),
+    body:
+      CheckoutValidator.shippingAddress(),
+  }),
+  CheckoutController.updateShippingAddress
 );
 
 // Apply Coupon
@@ -50,6 +63,12 @@ router.put(
   "/:id/coupon",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate({
+    params:
+      CheckoutValidator.checkoutId(),
+    body:
+      CheckoutValidator.applyCoupon(),
+  }),
   CheckoutController.applyCoupon
 );
 
@@ -66,6 +85,10 @@ router.post(
   "/:id/complete",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate({
+    params:
+      CheckoutValidator.checkoutId(),
+  }),
   CheckoutController.complete
 );
 
@@ -74,7 +97,7 @@ router.delete(
   "/:id",
   authMiddleware,
   roleMiddleware("Customer"),
-  CheckoutController.cancel
+  CheckoutController.remove
 );
 
 export default router;

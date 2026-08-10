@@ -25,12 +25,14 @@ Customer Routes (FIRST)
 router.get(
   "/my",
   authMiddleware,
+  roleMiddleware("Customer"),
   ReviewController.getMyReviews
 );
 
 router.post(
   "/",
   authMiddleware,
+  roleMiddleware("Customer"),
   validate(createReviewValidator),
   ReviewController.createReview
 );
@@ -38,6 +40,7 @@ router.post(
 router.put(
   "/:reviewId",
   authMiddleware,
+  roleMiddleware("Customer"),
   validate(updateReviewValidator),
   ReviewController.updateReview
 );
@@ -45,6 +48,7 @@ router.put(
 router.delete(
   "/:reviewId",
   authMiddleware,
+  roleMiddleware("Customer"),
   ReviewController.deleteReview
 );
 

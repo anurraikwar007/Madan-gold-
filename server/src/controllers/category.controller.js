@@ -121,9 +121,17 @@ class CategoryController {
   // =====================================================
 
   async getCategoryById(req, res, next) {
-    try {
-      const category =
-        await CategoryService.getCategoryById(
+        try {
+          const isAdmin =
+      ["Admin", "SuperAdmin"].includes(
+        req.user?.role
+      );
+
+    const category = isAdmin
+      ? await CategoryService.getCategoryById(
+          req.params.id
+        )
+      : await CategoryService.getCustomerCategoryById(
           req.params.id
         );
 

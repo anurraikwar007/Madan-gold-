@@ -96,9 +96,16 @@ class CategoryService {
       );
     }
 
-    return CategoryRepository.updateById(
-      categoryId,
-      payload
+    return CategoryRepository.findOneAndUpdate(
+      {
+        _id: categoryId,
+      },
+      {
+        $set: payload,
+      },
+      {
+        returnDocument: "after",
+      }
     );
   }
     // =====================================================
@@ -275,12 +282,15 @@ class CategoryService {
         featured === "true";
     }
 
-    return CategoryRepository.paginate({
-      filter,
-      page,
-      limit,
-      sort,
-    });
+    return this.paginate(
+  filter,
+  {
+    page,
+    limit,
+    sort,
+    lean: true,
+   }
+  );
   }
 
   // =====================================================
@@ -311,10 +321,17 @@ class CategoryService {
       );
     }
 
-    return CategoryRepository.updateById(
-      categoryId,
+    return CategoryRepository.findOneAndUpdate(
       {
-        displayOrder,
+        _id: categoryId,
+      },
+      {
+        $set: {
+          displayOrder,
+        },
+      },
+      {
+        returnDocument: "after",
       }
     );
   }
@@ -326,14 +343,21 @@ class CategoryService {
   async reorderCategories(items = []) {
     await Promise.all(
       items.map((item) =>
-        CategoryRepository.updateById(
-          item.id,
-          {
-            displayOrder:
-              item.displayOrder,
-          }
-        )
-      )
+  CategoryRepository.findOneAndUpdate(
+    {
+      _id: item.id,
+    },
+    {
+      $set: {
+        displayOrder:
+          item.displayOrder,
+      },
+    },
+    {
+      returnDocument: "after",
+    }
+  )
+)
     );
 
     return {
@@ -350,6 +374,28 @@ class CategoryService {
   async getStatistics() {
     return CategoryRepository.getStatistics();
   }
+   
+  //
+    
+
+  async getCustomerCategoryById(categoryId) {
+  const category =
+    await CategoryRepository.findOne({
+      _id: categoryId,
+      isDeleted: false,
+      isActive: true,
+    });
+
+  if (!category) {
+    throw new apiError(
+      404,
+      "Category not found."
+    );
+  }
+
+  return category;
+}
+
 }
 
 export default new CategoryService();

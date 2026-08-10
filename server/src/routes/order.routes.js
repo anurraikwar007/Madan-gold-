@@ -4,6 +4,14 @@ import OrderController from "../controllers/order.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
+import {
+  createOrder,
+  getCustomerOrders,
+  getOrderById,
+  getAdminOrders,
+  updateOrderStatus,
+  cancelOrder,
+} from "../services/order.service.js";
 
 const router = express.Router();
 
@@ -32,6 +40,33 @@ router.get(
   authMiddleware,
   roleMiddleware("Customer"),
   OrderController.myOrders
+);   
+
+router.get(
+  "/admin",
+  authMiddleware,
+  roleMiddleware(
+    "Admin",
+    "SuperAdmin"
+  ),
+  OrderController.getAll
+);
+
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  roleMiddleware(
+    "Admin",
+    "SuperAdmin"
+  ),
+  OrderController.updateStatus
+);
+
+router.patch(
+  "/:id/cancel",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  OrderController.cancel
 );
 
 router.get(

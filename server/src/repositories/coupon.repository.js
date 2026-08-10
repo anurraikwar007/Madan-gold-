@@ -38,18 +38,40 @@ class CouponRepository extends BaseRepository {
     couponId,
     session = null
   ) {
-    return Coupon.findByIdAndUpdate(
-      couponId,
+   return Coupon.findOneAndUpdate(
+  {
+    _id: couponId,
+    isActive: true,
+    isDeleted: false,
+    $or: [
       {
-        $inc: {
-          usedCount: 1,
+        usageLimit: {
+          $exists: false,
         },
       },
       {
-         returnDocument: "after",
-        session,
-      }
-    );
+        usageLimit: 0,
+      },
+      {
+        $expr: {
+          $lt: [
+            "$usedCount",
+            "$usageLimit",
+          ],
+        },
+      },
+    ],
+  },
+  {
+    $inc: {
+      usedCount: 1,
+    },
+  },
+  {
+    returnDocument: "after",
+    session,
+  }
+);
   }
 
   // =====================================================
@@ -57,51 +79,71 @@ class CouponRepository extends BaseRepository {
   // =====================================================
 
   async decreaseUsage(
-    couponId,
-    session = null
+  couponId,
+  session = null
   ) {
-    return Coupon.findByIdAndUpdate(
-      couponId,
-      {
-        $inc: {
-          usedCount: -1,
-        },
+  return Coupon.findOneAndUpdate(
+    {
+      _id: couponId,
+      usedCount: {
+        $gt: 0,
       },
-      {
-         returnDocument: "after",
-        session,
-      }
-    );
-  }
-
+    },
+    {
+      $inc: {
+        usedCount: -1,
+      },
+    },
+    {
+      returnDocument: "after",
+      session,
+    }
+  );
+}
   // =====================================================
   // Get Active Coupons
   // =====================================================
 
   async getActiveCoupons() {
-    return Coupon.find({
-      isActive: true,
-      isDeleted: false,
+  const now = new Date();
+
+  return Coupon.find({
+    isActive: true,
+    isDeleted: false,
+
+    validFrom: {
+      $lte: now,
+    },
+
+    validTill: {
+      $gte: now,
+    },
+
+    $expr: {
+      $lt: [
+        "$usedCount",
+        "$usageLimit",
+      ],
+    },
+  })
+    .sort({
+      createdAt: -1,
     })
-      .sort({
-        createdAt: -1,
-      })
-      .lean();
-  }
+    .lean();
+ }
 
   // =====================================================
   // Get Expired Coupons
   // =====================================================
 
-  async getExpiredCoupons() {
-    return Coupon.find({
-      expiryDate: {
-        $lt: new Date(),
-      },
-      isDeleted: false,
-    }).lean();
-  }
-
+    async getExpiredCoupons() {
+      return Coupon.find({
+        validTill: {
+          $lt: new Date(),
+        },
+        isDeleted: false,
+      }).lean();
+    }
   // =====================================================
   // Bulk Activate
   // =====================================================
@@ -204,7 +246,7 @@ class CouponRepository extends BaseRepository {
       }),
 
       Coupon.countDocuments({
-        expiryDate: {
+        validTill: {
           $lt: new Date(),
         },
         isDeleted: false,

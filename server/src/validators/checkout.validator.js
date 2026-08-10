@@ -8,21 +8,22 @@ class CheckoutValidator {
 
   create() {
 
-    return Joi.object({
+  return Joi.object({
 
-      customer: Joi.string()
-        .hex()
-        .length(24)
+    shippingAddress:
+      this.shippingAddress()
         .required(),
 
-      cart: Joi.string()
-        .hex()
-        .length(24)
-        .required(),
+    couponCode:
+      Joi.string()
+        .trim()
+        .uppercase()
+        .allow("")
+        .optional(),
 
-    });
+  });
 
-  }
+}
 
   // =====================================================
   // Shipping Address

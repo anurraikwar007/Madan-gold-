@@ -59,6 +59,33 @@ export const updateProfileSchema = {
 
 };
 
+// ======================================================
+// Change Password
+// ======================================================
+
+export const changePasswordSchema = {
+  body: Joi.object({
+    oldPassword: Joi.string()
+      .required(),
+
+    newPassword: Joi.string()
+      .min(6)
+      .max(20)
+      .required()
+      .disallow(
+        Joi.ref("oldPassword")
+      )
+      .messages({
+        "any.invalid":
+          "New password must be different from old password.",
+      }),
+  }),
+};
+
+// ======================================================
+// Admin Login
+// ====================================================== 
+
 export const adminLoginSchema = {
   body: Joi.object({
     email: Joi.string().email().required(),

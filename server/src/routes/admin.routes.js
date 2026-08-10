@@ -3,6 +3,8 @@ import { Router } from "express";
 import {
   login,
   me,
+  logout,
+  logoutAll,
 } from "../controllers/adminAuth.controller.js";
 
 
@@ -44,7 +46,25 @@ router.post(
   validate(adminLoginSchema),
   login
 );
+  
+/**
+ * @route   POST /api/v1/admin/logout
+ * @desc    Admin logout
+ * @access  Private (Admin)
+ */
+router.post(
+  "/logout",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  logout
+);
 
+router.post(
+  "/logout-all",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  logoutAll
+);
 
 
 /**

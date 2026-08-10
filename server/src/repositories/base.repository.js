@@ -289,14 +289,14 @@ class BaseRepository {
   // =====================================================
 
   async deleteOne(
-    filter
-  ) {
-
-    return await this.model.deleteOne(
-      filter
-    );
-
-  }
+      filter,
+      options = {}
+    ) {
+      return await this.model.deleteOne(
+        filter,
+        options
+      );
+    }
 
   // =====================================================
   // Count

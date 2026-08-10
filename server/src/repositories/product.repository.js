@@ -83,14 +83,17 @@ class ProductRepository extends BaseRepository {
       createdAt: -1,
     },
   }) {
-    return this.paginate({
-      filter,
-      page,
-      limit,
-      sort,
-      lean: true,
-    });
+    
+    return this.paginate(
+  filter,
+  {
+    page,
+    limit,
+    sort,
+    lean: true,
   }
+  );
+   }
 
   // =====================================================
   // Featured Products

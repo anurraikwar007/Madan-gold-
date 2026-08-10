@@ -18,13 +18,6 @@ Customer Wishlist Routes
 =====================================
 */
 
-// Get Wishlist
-router.get(
-  "/",
-  authMiddleware,
-  roleMiddleware("Customer"),
-  getCustomerWishlist
-);
 
 // Wishlist Count
 router.get(
@@ -32,6 +25,15 @@ router.get(
   authMiddleware,
   roleMiddleware("Customer"),
   wishlistCount
+);
+
+// Get Wishlist
+
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  getCustomerWishlist
 );
 
 // Add Product To Wishlist

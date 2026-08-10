@@ -1,7 +1,16 @@
+import RefreshTokenRepository from "../repositories/refreshToken.repository.js";
+import CustomerRepository from "../repositories/customer.repository.js";
 import Admin from "../models/admin.model.js";
 import Customer from "../models/customer.model.js";
 import cloudinary from "../config/cloudinary.js";
 import { generateToken } from "../utils/jwt.js";
+import {
+  createRefreshToken,
+  rotateRefreshToken,
+  revokeRefreshToken,
+  revokeAllRefreshTokens,
+} from "./token.service.js";
+
 import bcrypt from "bcrypt";
 
 // =========================
@@ -36,38 +45,71 @@ export const registerCustomer = async (data) => {
 // Customer Login
 // =========================
 
-export const loginCustomer = async (email, password) => {
+export const loginCustomer = async (
+  email,
+  password,
+  options = {}
+) => {
+  const customer =
+    await Customer.findOne({ email })
+      .select("+password");
 
-  const customer = await Customer.findOne({ email }).select("+password");
-
-  
   if (!customer) {
-    throw new Error("Invalid email or password");
+    throw new Error(
+      "Invalid email or password"
+    );
   }
-  
 
-  const isMatch = await customer.comparePassword(password);
+ if (
+    !customer.isActive ||
+    customer.isDeleted
+    ) {
+    throw new Error(
+        "Your account is inactive or deleted."
+    );
+    }
 
-  
-
-  
+  const isMatch =
+    await customer.comparePassword(password);
 
   if (!isMatch) {
-    throw new Error("Invalid email or password");
+    throw new Error(
+      "Invalid email or password"
+    );
   }
 
   customer.lastLogin = new Date();
 
   await customer.save();
 
-  const token = generateToken({
-    id: customer._id,
-    role: "Customer",
-  });
+  const accessToken =
+    generateToken({
+      id: customer._id,
+      role: "Customer",
+    });
+
+  const refreshToken =
+    await createRefreshToken({
+      userId: customer._id,
+      userType: "Customer",
+      device:
+        options.device || "Unknown",
+      ipAddress:
+        options.ipAddress || null,
+    });
+
+  customer.password = undefined;
 
   return {
     customer,
-    token,
+
+    accessToken,
+
+    refreshToken:
+      refreshToken.token,
+
+    refreshTokenExpiresAt:
+      refreshToken.expiresAt,
   };
 };
 
@@ -121,7 +163,7 @@ export const updateProfile = async (
     "name",
     "phone",
     "gender",
-    "dateOfBirth"
+    "dob"
     ];
 
     for (const field of allowedFields) {

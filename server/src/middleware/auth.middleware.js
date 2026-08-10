@@ -75,6 +75,16 @@ if (
           .json(apiResponse.error("Admin not found."));
         }
 
+        if (!admin.isActive) {
+          return res
+            .status(401)
+            .json(
+              apiResponse.error(
+                "Admin account is inactive."
+              )
+            );
+        }
+
         
         req.admin = admin;
         req.user = admin;
@@ -94,6 +104,18 @@ if (
         .status(401)
         .json(apiResponse.error("Customer not found."));
     }
+    
+    if (customer.isDeleted) {
+  return res
+    .status(401)
+    .json(apiResponse.error("Customer account is deleted."));
+   }
+
+  if (!customer.isActive) {
+  return res
+    .status(401)
+    .json(apiResponse.error("Customer account is inactive."));
+  }
 
     req.user = customer;
     req.user.role = decoded.role;

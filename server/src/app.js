@@ -14,8 +14,6 @@ import cors from "./config/cors.js";
 
 import routes from "./routes/index.js";
 
-import reviewRoutes from "./routes/review.routes.js";
-
 import requestContext from "./middleware/requestContext.middleware.js";
 
 import loggerMiddleware from "./middleware/logger.middleware.js";
@@ -115,9 +113,17 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/v1", routes);
+/*
+===========================================
+API Routes
+===========================================
+*/
 
-app.use("/api/v1/reviews", reviewRoutes);
+app.use(
+  "/api/v1",
+  routes
+);
+
 
 /*
 ===========================================

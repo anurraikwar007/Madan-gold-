@@ -1,6 +1,6 @@
 import WishlistRepository from "../repositories/wishlist.repository.js";
 import ProductRepository from "../repositories/product.repository.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 // ======================================================
 // Get Wishlist
@@ -28,7 +28,7 @@ export const addToWishlist = async (
 ) => {
 
   const product =
-    await ProductRepository.findById(productId);
+    await ProductRepository.findActiveById(productId);
 
   if (!product) {
     throw new ApiError(404, "Product not found.");

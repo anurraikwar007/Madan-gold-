@@ -46,5 +46,7 @@ export async function createProduct(token = null) {
 
   expect(response.statusCode).toBe(201);
 
+  console.log("PRODUCT RESPONSE:", response.statusCode, response.body);
+
   return response.body.data;
 }

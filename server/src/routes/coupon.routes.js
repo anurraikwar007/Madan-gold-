@@ -4,6 +4,8 @@ import CouponController from "../controllers/coupon.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
 
+import roleMiddleware from "../middleware/role.middleware.js";
+
 const router = express.Router();
 
 // ======================================
@@ -13,6 +15,7 @@ const router = express.Router();
 router.post(
   "/",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.create
 );
 
@@ -23,6 +26,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.getAll
 );
 
@@ -33,6 +37,7 @@ router.get(
 router.get(
   "/code/:code",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.getByCode
 );
 
@@ -43,6 +48,7 @@ router.get(
 router.get(
   "/:id",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.getById
 );
 
@@ -53,6 +59,7 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.update
 );
 
@@ -63,6 +70,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   CouponController.delete
 );
 
@@ -72,6 +80,8 @@ router.delete(
 
 router.post(
   "/validate",
+  authMiddleware,
+  roleMiddleware("Customer"),
   CouponController.validate
 );
 

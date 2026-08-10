@@ -49,8 +49,14 @@ const checkoutSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
-      unique: true,
+      index: true,
     },
+
+    coupon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Coupon",
+      default: null,
+   },
 
     cart: {
       type: mongoose.Schema.Types.ObjectId,
@@ -115,7 +121,18 @@ const checkoutSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+  },
+  
+  ccheckoutSchema.index(
+  { customer: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      status: "PENDING",
+    },
   }
+  )
+
 );
 
 const Checkout = mongoose.model(

@@ -2,16 +2,14 @@ export const createOrderDTO = (body = {}) => {
   return {
     shippingAddress: body.shippingAddress,
 
-    paymentMethod:
-      body.paymentMethod || "ONLINE",
+     paymentMethod:
+     body.paymentMethod || "UPI",
 
-    couponCode:
+     couponCode:
       body.couponCode?.trim() || null,
 
-    shippingCharge:
-      Number(body.shippingCharge || 0),
+     shippingCharge: 0,
 
-    gst:
-      Number(body.gst || 0),
+     gst: 0,
   };
 };

@@ -1,8 +1,10 @@
+
 import mongoose from "mongoose";
 
 import CheckoutRepository from "../repositories/checkout.repository.js";
 import CartRepository from "../repositories/cart.repository.js";
 import ProductRepository from "../repositories/product.repository.js";
+import CouponRepository from "../repositories/coupon.repository.js";
 
 import AuditService from "./audit.service.js";
 
@@ -136,15 +138,24 @@ class CheckoutService {
 
         }
 
-        const itemSubtotal =
-          cartItem.quantity *
-          product.price;
+        const sellingPrice =
+        product.discountPrice > 0 &&
+        product.discountPrice < product.price
+          ? product.discountPrice
+          : product.price;
 
+      const itemSubtotal =
+        cartItem.quantity *
+        sellingPrice;
         const itemMaking =
-          product.makingCharge || 0;
+          product.makingCharges || 0;
 
         const itemGST =
-          product.gst || 0;
+           (
+            itemSubtotal +
+            itemMaking
+          ) *
+          ((product.gst || 0) / 100);
 
         checkoutItems.push({
 
@@ -154,7 +165,7 @@ class CheckoutService {
 
           quantity: cartItem.quantity,
 
-          price: product.price,
+          price: sellingPrice,
 
           makingCharge: itemMaking,
 
@@ -172,7 +183,7 @@ class CheckoutService {
 
       }
 
-            // ==========================================
+      // ==========================================
       // Shipping Charge
       // ==========================================
 
@@ -190,7 +201,110 @@ class CheckoutService {
 
       let discount = 0;
 
-      // Coupon Logic Phase-7 me add hoga
+      const couponCode =
+        dto.couponCode;
+
+      let coupon = null;
+
+      if (couponCode) {
+
+        coupon =
+          await CouponRepository.findOne(
+            {
+              code:
+                couponCode
+                  .trim()
+                  .toUpperCase(),
+
+              isActive: true,
+
+              isDeleted: false,
+            },
+            {
+              session,
+            }
+          );
+
+        if (!coupon) {
+
+          throw new Error(
+            "Invalid coupon."
+          );
+
+        }
+
+        const now = new Date();
+
+          if (
+            (coupon.validFrom &&
+              now < coupon.validFrom) ||
+            (coupon.validTill &&
+              now > coupon.validTill)
+          ) {
+            throw new Error(
+              "Coupon is expired or not active yet."
+            );
+          }
+
+        if (
+          coupon.minimumOrderAmount &&
+          subtotal <
+            coupon.minimumOrderAmount
+        ) {
+
+          throw new Error(
+            `Minimum order amount should be ₹${coupon.minimumOrderAmount}.`
+          );
+
+        }
+
+        if (
+          coupon.usageLimit &&
+          coupon.usedCount >=
+            coupon.usageLimit
+        ) {
+
+          throw new Error(
+            "Coupon usage limit exceeded."
+          );
+
+        }
+
+        if (
+          coupon.discountType ===
+          "Percentage"
+        ) {
+
+          discount =
+            (subtotal *
+              coupon.discountValue) /
+            100;
+
+          if (
+            coupon.maximumDiscount &&
+            discount >
+              coupon.maximumDiscount
+          ) {
+
+            discount =
+              coupon.maximumDiscount;
+
+          }
+
+        } else {
+
+          discount =
+            coupon.discountValue;
+
+        }
+
+        discount =
+          Math.min(
+            discount,
+            subtotal
+          );
+
+      }
 
       // ==========================================
       // Grand Total
@@ -264,6 +378,9 @@ class CheckoutService {
 
         performedBy: customerId,
 
+        performedByModel:
+          "Customer",
+
         changes: [
 
           {
@@ -287,6 +404,8 @@ class CheckoutService {
         requestId:
           context.requestId,
 
+        session,
+
       });
 
       // ==========================================
@@ -297,24 +416,27 @@ class CheckoutService {
 
       return checkout.toObject();
 
-    }
+    } catch (error) {
 
-    catch (error) {
+      if (
+        session.inTransaction()
+      ) {
 
-      await session.abortTransaction();
+        await session.abortTransaction();
+
+      }
 
       throw error;
 
-    }
+    } finally {
 
-    finally {
-
-      session.endSession();
+      await session.endSession();
 
     }
 
   }
-    // =====================================================
+
+  // =====================================================
   // Get Customer Checkout
   // =====================================================
 
@@ -364,24 +486,24 @@ class CheckoutService {
   // =====================================================
 
   async getCheckoutById(
+    customerId,
     checkoutId
   ) {
 
     const checkout =
-      await CheckoutRepository.findById(
-
-        checkoutId,
+      await CheckoutRepository.findOne(
 
         {
+          _id: checkoutId,
 
+          customer: customerId,
+        },
+
+        {
           populate: [
 
             {
               path: "items.product",
-            },
-
-            {
-              path: "customer",
             },
 
             {
@@ -424,84 +546,121 @@ class CheckoutService {
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findOne(
+    const session =
+      await mongoose.startSession();
 
-        {
+    session.startTransaction();
 
-          _id: checkoutId,
+    try {
 
-          customer: customerId,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-          status: "PENDING",
+          {
 
-        },
+            _id: checkoutId,
 
-        {
+            customer: customerId,
 
-          lean: false,
+            status: "PENDING",
 
-        }
+          },
 
-      );
+          {
 
-    if (!checkout) {
+            lean: false,
 
-      throw new Error(
-        "Checkout not found."
-      );
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      const oldAddress = {
+        ...checkout.shippingAddress,
+      };
+
+      checkout.shippingAddress =
+        shippingAddress;
+
+      await checkout.save({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "UPDATE",
+
+        performedBy: customerId,
+
+        performedByModel:
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "shippingAddress",
+
+            oldValue: oldAddress,
+
+            newValue:
+              checkout.shippingAddress,
+
+          },
+
+        ],
+
+        ipAddress:
+          context.ipAddress,
+
+        userAgent:
+          context.userAgent,
+
+        requestId:
+          context.requestId,
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
 
-    const oldAddress = {
-      ...checkout.shippingAddress,
-    };
-
-    checkout.shippingAddress =
-      shippingAddress;
-
-    await checkout.save();
-
-    await AuditService.log({
-
-      entityType: "Checkout",
-
-      entityId: checkout._id,
-
-      action: "UPDATE",
-
-      performedBy: customerId,
-
-      changes: [
-
-        {
-
-          field: "shippingAddress",
-
-          oldValue: oldAddress,
-
-          newValue:
-            checkout.shippingAddress,
-
-        },
-
-      ],
-
-      ipAddress:
-        context.ipAddress,
-
-      userAgent:
-        context.userAgent,
-
-      requestId:
-        context.requestId,
-
-    });
-
-    return checkout.toObject();
-
   }
-    // =====================================================
+
+  // =====================================================
   // Apply Coupon
   // =====================================================
 
@@ -517,103 +676,255 @@ class CheckoutService {
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findOne(
+    const session =
+      await mongoose.startSession();
 
-        {
+    session.startTransaction();
 
-          _id: checkoutId,
+    try {
 
-          customer: customerId,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-          status: "PENDING",
+          {
 
-        },
+            _id: checkoutId,
 
-        {
+            customer: customerId,
 
-          lean: false,
+            status: "PENDING",
+
+          },
+
+          {
+
+            lean: false,
+
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      // =====================================================
+      // Coupon Module
+      // =====================================================
+
+      const couponCode =
+        typeof coupon === "string"
+          ? coupon
+          : coupon?.code;
+
+      if (!couponCode) {
+
+        throw new Error(
+          "Coupon code is required."
+        );
+
+      }
+
+      const couponData =
+        await CouponRepository.findByCode(
+          couponCode,
+          {
+            session,
+          }
+        );
+
+      if (!couponData) {
+
+        throw new Error(
+          "Invalid coupon."
+        );
+
+      }
+
+      const now = new Date();
+
+      if (!couponData.isActive) {
+
+        throw new Error(
+          "Coupon is inactive."
+        );
+
+      }
+
+      if (
+        couponData.isDeleted
+      ) {
+
+        throw new Error(
+          "Coupon is deleted."
+        );
+
+      }
+
+      if (
+        now < couponData.validFrom ||
+        now > couponData.validTill
+      ) {
+
+        throw new Error(
+          "Coupon is expired or not active yet."
+        );
+
+      }
+
+      if (
+        couponData.usageLimit &&
+        couponData.usedCount >=
+          couponData.usageLimit
+      ) {
+
+        throw new Error(
+          "Coupon usage limit exceeded."
+        );
+
+      }
+
+      if (
+        checkout.subtotal <
+        couponData.minimumOrderAmount
+      ) {
+
+        throw new Error(
+          `Minimum order amount should be ₹${couponData.minimumOrderAmount}.`
+        );
+
+      }
+
+      let discount = 0;
+
+      if (
+        couponData.discountType ===
+        "Percentage"
+      ) {
+
+        discount =
+          (
+            checkout.subtotal *
+            couponData.discountValue
+          ) / 100;
+
+        if (
+          couponData.maximumDiscount > 0
+        ) {
+
+          discount = Math.min(
+            discount,
+            couponData.maximumDiscount
+          );
 
         }
 
+      } else {
+
+        discount =
+          couponData.discountValue;
+
+      }
+
+      discount = Math.min(
+        discount,
+        checkout.subtotal
       );
 
-    if (!checkout) {
+      checkout.coupon =
+        couponData._id;
 
-      throw new Error(
-        "Checkout not found."
-      );
+      checkout.discount =
+        discount;
+
+      checkout.grandTotal =
+        checkout.subtotal +
+        checkout.makingCharge +
+        checkout.gst +
+        checkout.shippingCharge -
+        discount;
+
+      await checkout.save({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "COUPON_APPLY",
+
+        performedBy: customerId,
+
+        performedByModel:
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "coupon",
+
+            oldValue: null,
+
+            newValue: couponData._id,
+
+          },
+
+          {
+
+            field: "discount",
+
+            oldValue: 0,
+
+            newValue: discount,
+
+          },
+
+        ],
+
+        ipAddress:
+          context.ipAddress,
+
+        userAgent:
+          context.userAgent,
+
+        requestId:
+          context.requestId,
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
-
-    /*
-    =====================================================
-    Coupon Module
-    =====================================================
-
-    Phase-7 me yaha CouponRepository
-    integrate hoga.
-
-    Example:
-
-    const coupon =
-      await CouponRepository.validate(...)
-
-    checkout.discount = coupon.discount;
-    */
-
-    checkout.discount = 0;
-
-    checkout.grandTotal =
-
-      checkout.subtotal +
-
-      checkout.makingCharge +
-
-      checkout.gst +
-
-      checkout.shippingCharge -
-
-      checkout.discount;
-
-    await checkout.save();
-
-    await AuditService.log({
-
-      entityType: "Checkout",
-
-      entityId: checkout._id,
-
-      action: "COUPON_APPLY",
-
-      performedBy: customerId,
-
-      changes: [
-
-        {
-
-          field: "coupon",
-
-          oldValue: null,
-
-          newValue: coupon,
-
-        },
-
-      ],
-
-      ipAddress:
-        context.ipAddress,
-
-      userAgent:
-        context.userAgent,
-
-      requestId:
-        context.requestId,
-
-    });
-
-    return checkout.toObject();
 
   }
 
@@ -631,73 +942,139 @@ class CheckoutService {
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findOne(
+    const session =
+      await mongoose.startSession();
 
-        {
+    session.startTransaction();
 
-          _id: checkoutId,
+    try {
 
-          customer: customerId,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-          status: "PENDING",
+          {
 
-        },
+            _id: checkoutId,
 
-        {
+            customer: customerId,
 
-          lean: false,
+            status: "PENDING",
 
-        }
+          },
 
-      );
+          {
 
-    if (!checkout) {
+            lean: false,
 
-      throw new Error(
-        "Checkout not found."
-      );
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      const oldCoupon =
+        checkout.coupon;
+
+      const oldDiscount =
+        checkout.discount;
+
+      checkout.coupon = null;
+
+      checkout.discount = 0;
+
+      checkout.grandTotal =
+
+        checkout.subtotal +
+
+        checkout.makingCharge +
+
+        checkout.gst +
+
+        checkout.shippingCharge;
+
+      await checkout.save({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "COUPON_REMOVE",
+
+        performedBy: customerId,
+
+        performedByModel:
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "coupon",
+
+            oldValue: oldCoupon,
+
+            newValue: null,
+
+          },
+
+          {
+
+            field: "discount",
+
+            oldValue: oldDiscount,
+
+            newValue: 0,
+
+          },
+
+        ],
+
+        ipAddress:
+          context.ipAddress,
+
+        userAgent:
+          context.userAgent,
+
+        requestId:
+          context.requestId,
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
-
-    checkout.discount = 0;
-
-    checkout.grandTotal =
-
-      checkout.subtotal +
-
-      checkout.makingCharge +
-
-      checkout.gst +
-
-      checkout.shippingCharge;
-
-    await checkout.save();
-
-    await AuditService.log({
-
-      entityType: "Checkout",
-
-      entityId: checkout._id,
-
-      action: "COUPON_REMOVE",
-
-      performedBy: customerId,
-
-      changes: [],
-
-      ipAddress:
-        context.ipAddress,
-
-      userAgent:
-        context.userAgent,
-
-      requestId:
-        context.requestId,
-
-    });
-
-    return checkout.toObject();
 
   }
 
@@ -707,49 +1084,92 @@ class CheckoutService {
 
   async recalculateCheckout(
 
-    checkoutId
+    checkoutId,
+
+    context
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findById(
+    const session =
+      await mongoose.startSession();
 
-        checkoutId,
+    session.startTransaction();
 
-        {
+    try {
 
-          lean: false,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-        }
+          {
 
-      );
+            _id: checkoutId,
 
-    if (!checkout) {
+            customer:
+              context.customerId,
 
-      throw new Error(
-        "Checkout not found."
-      );
+            status: "PENDING",
+
+          },
+
+          {
+
+            lean: false,
+
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      checkout.grandTotal =
+
+        checkout.subtotal +
+
+        checkout.makingCharge +
+
+        checkout.gst +
+
+        checkout.shippingCharge -
+
+        checkout.discount;
+
+      await checkout.save({
+        session,
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
 
-    checkout.grandTotal =
-
-      checkout.subtotal +
-
-      checkout.makingCharge +
-
-      checkout.gst +
-
-      checkout.shippingCharge -
-
-      checkout.discount;
-
-    await checkout.save();
-
-    return checkout.toObject();
-
   }
-    // =====================================================
+
+  // =====================================================
   // Complete Checkout
   // =====================================================
 
@@ -761,55 +1181,126 @@ class CheckoutService {
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findById(
+    const session =
+      await mongoose.startSession();
 
-        checkoutId,
+    session.startTransaction();
 
-        {
+    try {
 
-          lean: false,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-        }
+          {
 
-      );
+            _id: checkoutId,
 
-    if (!checkout) {
+            customer:
+              context.customerId,
 
-      throw new Error(
-        "Checkout not found."
-      );
+            status: "PENDING",
+
+          },
+
+          {
+
+            lean: false,
+
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      if (
+        !checkout.customer ||
+        checkout.customer.toString() !==
+          context.customerId.toString()
+      ) {
+
+        throw new Error(
+          "You are not authorized to complete this checkout."
+        );
+
+      }
+
+      checkout.status =
+        "COMPLETED";
+
+      await checkout.save({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "COMPLETE",
+
+        performedBy:
+          context.customerId,
+
+        performedByModel:
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "status",
+
+            oldValue: "PENDING",
+
+            newValue: "COMPLETED",
+
+          },
+
+        ],
+
+        ipAddress:
+          context.ipAddress,
+
+        userAgent:
+          context.userAgent,
+
+        requestId:
+          context.requestId,
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
-
-    checkout.status = "COMPLETED";
-
-    await checkout.save();
-
-    await AuditService.log({
-
-      entityType: "Checkout",
-
-      entityId: checkout._id,
-
-      action: "COMPLETE",
-
-      performedBy: context.customerId,
-
-      changes: [],
-
-      ipAddress:
-        context.ipAddress,
-
-      userAgent:
-        context.userAgent,
-
-      requestId:
-        context.requestId,
-
-    });
-
-    return checkout.toObject();
 
   }
 
@@ -825,56 +1316,114 @@ class CheckoutService {
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findById(
+    const session =
+      await mongoose.startSession();
 
-        checkoutId,
+    session.startTransaction();
 
-        {
+    try {
 
-          lean: false,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-        }
+          {
 
-      );
+            _id: checkoutId,
 
-    if (!checkout) {
+            customer:
+              context.customerId,
 
-      throw new Error(
-        "Checkout not found."
-      );
+            status: "PENDING",
+
+          },
+
+          {
+
+            lean: false,
+
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      checkout.status =
+        "EXPIRED";
+
+      await checkout.save({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "EXPIRE",
+
+        performedBy:
+          context.customerId,
+
+        performedByModel:
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "status",
+
+            oldValue: "PENDING",
+
+            newValue: "EXPIRED",
+
+          },
+
+        ],
+
+        ipAddress:
+          context.ipAddress,
+
+        userAgent:
+          context.userAgent,
+
+        requestId:
+          context.requestId,
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return checkout.toObject();
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
-
-    checkout.status = "EXPIRED";
-
-    await checkout.save();
-
-    await AuditService.log({
-
-      entityType: "Checkout",
-
-      entityId: checkout._id,
-
-      action: "EXPIRE",
-
-      performedBy:
-        context.customerId,
-
-      changes: [],
-
-      ipAddress:
-        context.ipAddress,
-
-      userAgent:
-        context.userAgent,
-
-      requestId:
-        context.requestId,
-
-    });
-
-    return checkout.toObject();
 
   }
 
@@ -884,34 +1433,105 @@ class CheckoutService {
 
   async deleteCheckout(
 
-    checkoutId
+    checkoutId,
+
+    customerId
 
   ) {
 
-    const checkout =
-      await CheckoutRepository.findById(
+    const session =
+      await mongoose.startSession();
 
-        checkoutId,
+    session.startTransaction();
 
-        {
+    try {
 
-          lean: false,
+      const checkout =
+        await CheckoutRepository.findOne(
 
-        }
+          {
 
-      );
+            _id: checkoutId,
 
-    if (!checkout) {
+            customer: customerId,
 
-      throw new Error(
-        "Checkout not found."
-      );
+          },
+
+          {
+
+            lean: false,
+
+            session,
+
+          }
+
+        );
+
+      if (!checkout) {
+
+        throw new Error(
+          "Checkout not found."
+        );
+
+      }
+
+      await checkout.deleteOne({
+        session,
+      });
+
+      await AuditService.log({
+
+        entityType: "Checkout",
+
+        entityId: checkout._id,
+
+        action: "DELETE",
+
+        performedBy:
+          customerId,
+
+        performedByModel: 
+          "Customer",
+
+        changes: [
+
+          {
+
+            field: "DELETE",
+
+            oldValue: checkout,
+
+            newValue: null,
+
+          },
+
+        ],
+
+        session,
+
+      });
+
+      await session.commitTransaction();
+
+      return true;
+
+    } catch (error) {
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+
+      }
+
+      throw error;
+
+    } finally {
+
+      await session.endSession();
 
     }
-
-    await checkout.deleteOne();
-
-    return true;
 
   }
 

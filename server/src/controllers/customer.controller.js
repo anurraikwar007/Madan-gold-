@@ -12,6 +12,17 @@ import {
   deleteAddress,
 } from "../services/auth.service.js";
 
+import {
+  revokeRefreshToken,
+  revokeAllRefreshTokens,
+} from "../services/token.service.js";
+
+import {
+  setRefreshTokenCookie,
+  getRefreshTokenFromRequest,
+  clearRefreshTokenCookie,
+} from "../utils/authCookie.js";
+
 import Customer from "../models/customer.model.js";
 
 // =========================
@@ -39,20 +50,88 @@ export const register = asyncHandler(async (req, res) => {
 // Customer Login
 // =========================
 
-export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+export const login = asyncHandler(
+  async (req, res) => {
+    const {
+      email,
+      password,
+    } = req.body;
 
-  const { customer, token } = await loginCustomer(email, password);
+    const result =
+      await loginCustomer(
+        email,
+        password,
+        {
+          device:
+            req.headers["user-agent"] ||
+            "Unknown",
 
-  customer.password = undefined;
+          ipAddress:
+            req.ip || null,
+        }
+      );
 
-  return res.status(200).json(
-    apiResponse.success("Login successful.", {
-      customer,
-      token,
-    })
-  );
-});
+    setRefreshTokenCookie(
+      res,
+      result.refreshToken
+    );
+
+    delete result.refreshToken;
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Login successful.",
+        result
+      )
+    );
+  }
+);
+
+ // =========================
+// Logout Current Session
+// =========================
+
+export const logout = asyncHandler(
+  async (req, res) => {
+    const refreshToken =
+      getRefreshTokenFromRequest(req);
+
+    if (refreshToken) {
+      await revokeRefreshToken(
+        refreshToken
+      );
+    }
+
+    clearRefreshTokenCookie(res);
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Logout successful."
+      )
+    );
+  }
+);
+ 
+// =========================
+// Logout All Devices
+// =========================
+
+export const logoutAll = asyncHandler(
+  async (req, res) => {
+    await revokeAllRefreshTokens({
+      userId: req.user._id,
+      userType: "Customer",
+    });
+
+    clearRefreshTokenCookie(res);
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Logged out from all devices successfully."
+      )
+    );
+  }
+);
 
 // =========================
 // Customer Profile
@@ -122,45 +201,74 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
 // Change Password
 // =========================
 
-export const changePassword = asyncHandler(async (req, res) => {
-
+export const changePassword = asyncHandler(
+  async (req, res) => {
     const {
-        oldPassword,
-        newPassword,
+      oldPassword,
+      newPassword,
     } = req.body;
 
     const customer = await Customer
-        .findById(req.user.id)
-        .select("+password");
+      .findById(req.user.id)
+      .select("+password");
 
     if (!customer) {
-        return res
-            .status(404)
-            .json(apiResponse.error("Customer not found"));
+      return res.status(404).json(
+        apiResponse.error(
+          "Customer not found."
+        )
+      );
     }
 
     const isMatch =
-        await customer.comparePassword(oldPassword);
+      await customer.comparePassword(
+        oldPassword
+      );
 
     if (!isMatch) {
-        return res
-            .status(401)
-            .json(apiResponse.error("Old password is incorrect"));
+      return res.status(401).json(
+        apiResponse.error(
+          "Old password is incorrect."
+        )
+      );
     }
 
+    /*
+     * Update password
+     */
     customer.password = newPassword;
 
     await customer.save();
 
+    /*
+     * Revoke all refresh-token sessions.
+     *
+     * This logs the customer out from
+     * all devices/sessions.
+     */
+    await revokeAllRefreshTokens({
+      userId: customer._id,
+      userType: "Customer",
+    });
+
+    /*
+     * Clear current browser's refresh-token
+     * cookie as well.
+     */
+    clearRefreshTokenCookie(res);
+
+    /*
+     * Never expose password.
+     */
     customer.password = undefined;
 
     return res.status(200).json(
-        apiResponse.success(
-            "Password changed successfully."
-        )
+      apiResponse.success(
+        "Password changed successfully. Please login again."
+      )
     );
-
-});
+  }
+);
 
 // =========================
 // Get Addresses

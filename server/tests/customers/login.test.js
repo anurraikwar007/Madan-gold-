@@ -41,7 +41,7 @@ describe("Customer Login", () => {
 
         expect(response.body.success).toBe(true);
 
-        expect(response.body.data).toHaveProperty("token");
+        expect(response.body.data).toHaveProperty("accessToken");
 
     });
 

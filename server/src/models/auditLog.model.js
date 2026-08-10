@@ -44,6 +44,7 @@ const auditLogSchema = new mongoose.Schema(
         "Category",
         "Wishlist",
         "Cart",
+        "Checkout",
         "Payment",
         "Inventory",
         "Admin",
@@ -81,6 +82,14 @@ const auditLogSchema = new mongoose.Schema(
     "ORDER_CONFIRMED",
     "ORDER_CANCELLED",
     "ORDER_DELIVERED",
+
+    "TRACKING_UPDATE",
+    "CUSTOMER_CANCEL",
+
+    "COUPON_APPLY",
+    "COUPON_REMOVE",
+    "COMPLETE",
+    "EXPIRE",
 
     // Inventory
     "STOCK_IN",

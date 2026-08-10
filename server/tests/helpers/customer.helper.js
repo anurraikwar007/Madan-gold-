@@ -29,7 +29,7 @@ export async function customerLogin() {
       password,
     });
 
-  return response.body.data.token;
+  return response.body.data.accessToken;
 }
 
 // ======================================

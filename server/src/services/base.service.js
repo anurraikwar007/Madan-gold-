@@ -74,9 +74,16 @@ export default class BaseService {
   async update(id, payload) {
 
     const updated =
-      await this.repository.updateById(
-        id,
-        payload
+      await this.repository.findOneAndUpdate(
+        {
+          _id: id,
+        },
+        {
+          $set: payload,
+        },
+        {
+          returnDocument: "after",
+        }
       );
 
     if (!updated) {
@@ -96,18 +103,20 @@ export default class BaseService {
   async delete(id) {
 
     const deleted =
-      await this.repository.deleteById(
-        id
-      );
+   await this.repository.deleteOne({
+    _id: id,
+   });
 
-    if (!deleted) {
+    if (
+      !deleted ||
+      deleted.deletedCount === 0
+    ) {
       throw new Error(
         "Resource not found."
       );
     }
 
-    return deleted;
-
+  return true;
   }
 
   // =====================================================

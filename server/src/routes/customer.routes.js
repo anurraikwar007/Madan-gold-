@@ -4,6 +4,8 @@ import { singleUpload } from "../middleware/upload.middleware.js";
 import {
   register,
   login,
+  logout,
+  logoutAll,
   profile,
   updateCustomerProfile,
   uploadAvatar,
@@ -15,13 +17,15 @@ import {
 } from "../controllers/customer.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
+import roleMiddleware from "../middleware/role.middleware.js";
 import validate from "../middleware/validate.js";
 import rateLimiter from "../middleware/rateLimiter.middleware.js";
 
 import {
   registerSchema,
   loginSchema,
- // updateProfileSchema,
+  updateProfileSchema,
+  changePasswordSchema,
   
 } from "../validators/auth.validator.js";
 
@@ -67,11 +71,17 @@ router.post(
  * @desc    Logout customer
  * @access  Private
  */
-/*router.post(
+ router.post(
   "/logout",
   authMiddleware,
   logout
-);*/
+);
+
+router.post(
+  "/logout-all",
+  authMiddleware,
+  logoutAll
+);
 
 
 
@@ -90,6 +100,7 @@ Customer Profile Routes
 router.get(
   "/profile",
   authMiddleware,
+  roleMiddleware("Customer"),
   profile
 );
 
@@ -102,6 +113,7 @@ router.get(
 router.put(
   "/profile",
   authMiddleware,
+  validate(updateProfileSchema),
   updateCustomerProfile
 );
 
@@ -125,7 +137,7 @@ router.put(
 router.put(
   "/change-password",
   authMiddleware,
- // validate(changePasswordSchema),
+ validate(changePasswordSchema),
   changePassword
 );
   
@@ -140,11 +152,12 @@ Customer Address Routes
  * @desc    Get customer addresses
  * @access  Private
  */
-router.get(
+ router.get(
   "/addresses",
   authMiddleware,
+  roleMiddleware("Customer"),
   getCustomerAddresses
-);
+ );
 
 /**
  * @route   POST /api/v1/customers/addresses

@@ -79,26 +79,19 @@ class CheckoutController {
 
   getById = asyncHandler(async (req, res) => {
 
-    const checkout =
-      await CheckoutService.getCheckoutById(
-
-        req.params.id
-
-      );
-
-    return res.status(200).json(
-
-      apiResponse.success(
-
-        "Checkout fetched successfully.",
-
-        checkout
-
-      )
-
+  const checkout =
+    await CheckoutService.getCheckoutById(
+      req.user.id,
+      req.params.id
     );
 
-  });
+  return res.status(200).json(
+    apiResponse.success(
+      "Checkout fetched successfully.",
+      checkout
+    )
+  );
+});
   
     // =====================================================
   // Update Shipping Address
@@ -318,7 +311,8 @@ class CheckoutController {
 
       await CheckoutService.deleteCheckout(
 
-        req.params.id
+        req.params.id,
+        req.user.id
 
       );
 

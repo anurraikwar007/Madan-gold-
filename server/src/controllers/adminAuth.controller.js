@@ -7,45 +7,143 @@ import {
   updateLastLogin,
 } from "../services/auth.service.js";
 
+import {
+  createRefreshToken,
+  revokeRefreshToken,
+  revokeAllRefreshTokens,
+} from "../services/token.service.js";
+
+import {
+  setRefreshTokenCookie,
+  getRefreshTokenFromRequest,
+  clearRefreshTokenCookie,
+} from "../utils/authCookie.js";
+
 // =========================
 // Admin Login
 // =========================
 
-export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+export const login = asyncHandler(
+  async (req, res) => {
+    const {
+      email,
+      password,
+    } = req.body;
 
-  const admin = await findAdminByEmail(email);
+    const admin =
+      await findAdminByEmail(email);
 
-  if (!admin) {
-    return res
-      .status(401)
-      .json(apiResponse.error("Invalid email or password"));
+    if (!admin) {
+      return res.status(401).json(
+        apiResponse.error(
+          "Invalid email or password"
+        )
+      );
+    }
+
+    const isMatch =
+      await admin.comparePassword(
+        password
+      );
+
+    if (!isMatch) {
+      return res.status(401).json(
+        apiResponse.error(
+          "Invalid email or password"
+        )
+      );
+    }
+
+    if (!admin.isActive) {
+      return res.status(403).json(
+        apiResponse.error(
+          "Admin account is inactive."
+        )
+      );
+    }
+
+    await updateLastLogin(admin._id);
+
+    const accessToken =
+      generateToken({
+        id: admin._id,
+        role: admin.role,
+      });
+
+    const refreshToken =
+      await createRefreshToken({
+        userId: admin._id,
+        userType: "Admin",
+        device:
+          req.headers["user-agent"] ||
+          "Unknown",
+        ipAddress:
+          req.ip || null,
+      });
+
+    admin.password = undefined;
+
+    setRefreshTokenCookie(
+      res,
+      refreshToken.token
+    );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Login successful",
+        {
+          accessToken,
+          admin,
+          refreshTokenExpiresAt:
+            refreshToken.expiresAt,
+        }
+      )
+    );
   }
+);
 
-  const isMatch = await admin.comparePassword(password);
+// =========================
+// Admin Logout
+// =========================
 
-  if (!isMatch) {
-    return res
-      .status(401)
-      .json(apiResponse.error("Invalid email or password"));
+export const logout = asyncHandler(
+  async (req, res) => {
+    const refreshToken =
+      getRefreshTokenFromRequest(req);
+
+    await revokeRefreshToken(
+      refreshToken
+    );
+
+    clearRefreshTokenCookie(res);
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Admin logout successful."
+      )
+    );
   }
+);
+  // =========================
+// Admin Logout All Devices
+// =========================
 
-  await updateLastLogin(admin._id);
+export const logoutAll = asyncHandler(
+  async (req, res) => {
+    await revokeAllRefreshTokens({
+      userId: req.admin._id,
+      userType: "Admin",
+    });
 
-  const token = generateToken({
-    id: admin._id,
-    role: admin.role,
-  });
+    clearRefreshTokenCookie(res);
 
-  admin.password = undefined;
-
-  return res.status(200).json(
-    apiResponse.success("Login successful", {
-      token,
-      admin,
-    })
-  );
-});
+    return res.status(200).json(
+      apiResponse.success(
+        "Admin logged out from all devices successfully."
+      )
+    );
+  }
+);
 
 // =========================
 // Admin Profile

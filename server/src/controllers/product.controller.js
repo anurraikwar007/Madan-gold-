@@ -45,16 +45,23 @@ class ProductController {
   });
 
   // Get Product By ID
-  getOne = asyncHandler(async (req, res) => {
-    const product = await getProductById(req.params.id);
-
-    return res.status(200).json(
-      apiResponse.success(
-        "Product fetched successfully.",
-        product
-      )
+ getOne = asyncHandler(async (req, res) => {
+  const isAdmin =
+    ["Admin", "SuperAdmin"].includes(
+      req.user?.role
     );
-  });
+
+  const product = isAdmin
+    ? await getProductById(req.params.id)
+    : await getCustomerProduct(req.params.id);
+
+  return res.status(200).json(
+    apiResponse.success(
+      "Product fetched successfully.",
+      product
+    )
+  );
+});
 
   // Update Product
   update = asyncHandler(async (req, res) => {

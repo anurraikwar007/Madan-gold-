@@ -15,22 +15,30 @@ class AuditService {
     userAgent = "",
     requestId = "",
     metadata = {},
+    session = null,
   }) {
-    return AuditLog.create({
-      entityType,
-      entityId,
-      action,
+    return AuditLog.create(
+      [
+        {
+          entityType,
+          entityId,
+          action,
 
-      performedBy,
-      performedByModel,
+          performedBy,
+          performedByModel,
 
-      changes,
-      reason,
-      ipAddress,
-      userAgent,
-      requestId,
-      metadata,
-    });
+          changes,
+          reason,
+          ipAddress,
+          userAgent,
+          requestId,
+          metadata,
+        },
+      ],
+      {
+        session,
+      }
+    ).then((docs) => docs[0]);
   }
 }
 

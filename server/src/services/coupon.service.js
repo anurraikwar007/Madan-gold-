@@ -248,9 +248,12 @@ async (
 ) => {
 
   const coupon =
-    await CouponRepository.findById(
-      couponId
-    );
+  await CouponRepository.findOne(
+    {
+      _id: couponId,
+      isDeleted: true,
+    }
+  );
 
   if (
     !coupon ||

@@ -4,30 +4,22 @@ class CheckoutDTO {
   // Create Checkout
   // =====================================
 
-  static create(data) {
+  static create(data = {}) {
 
-    if (
-      !data.customer
-    ) {
-      throw new Error(
-        "Customer is required."
-      );
-    }
+  return {
+    shippingAddress:
+      data.shippingAddress
+        ? this.address(
+            data.shippingAddress
+          )
+        : null,
 
-    if (
-      !data.cart
-    ) {
-      throw new Error(
-        "Cart is required."
-      );
-    }
-
-    return {
-      customer: data.customer,
-      cart: data.cart,
-    };
-
-  }
+    couponCode:
+      data.couponCode
+        ?.trim()
+        .toUpperCase() || null,
+  };
+ }
 
   // =====================================
   // Shipping Address

@@ -42,13 +42,16 @@ export const updateOrderStatusSchema = {
   body: Joi.object({
     orderStatus: Joi.string()
       .valid(
-        "Pending",
-        "Confirmed",
-        "Processing",
-        "Shipped",
-        "Delivered",
-        "Cancelled"
-      )
+      "Pending",
+      "Confirmed",
+      "Processing",
+      "Packed",
+      "Shipped",
+      "Out For Delivery",
+      "Delivered",
+      "Cancelled",
+      "Returned"
+    )
       .required(),
   }),
 };

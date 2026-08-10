@@ -8,6 +8,7 @@ import AuditService from "./audit.service.js";
 import ApiError from "../utils/apiError.js";
 
 import Order from "../models/order.model.js";
+import CouponRepository from "../repositories/coupon.repository.js";
 
 // ======================================================
 // Submit Payment
@@ -61,11 +62,20 @@ export const submitPayment = async (
     }
 
     if (
-      order.paymentStatus === "Paid"
+  order.paymentStatus === "Paid"
     ) {
       throw new ApiError(
         400,
         "Payment already verified."
+      );
+    }
+
+if (
+  order.orderStatus === "Cancelled"
+    ) {
+      throw new ApiError(
+        400,
+        "Cancelled order cannot accept payment."
       );
     }
 
@@ -108,13 +118,14 @@ export const submitPayment = async (
       action: "PAYMENT_SUBMITTED",
       performedBy: customerId,
        performedByModel: "Customer",
-      changes: [
+      changes: [ 
         {
           field: "transactionId",
           oldValue: null,
           newValue: transactionId,
         },
       ],
+        session,
     });
 
     await session.commitTransaction();
@@ -208,13 +219,28 @@ export const verifyPayment = async (
         "COD payment cannot be verified."
       );
     }
+       if (!order.transactionId) {
+      throw new ApiError(
+        400,
+        "Payment transaction ID is missing."
+      );
+    }
+   if (
+      order.paymentStatus !==
+      "Verification Pending"
+      ) {
+  throw new ApiError(
+    400,
+    "Payment cannot be verified from the current payment state."
+  );
+}
 
-    if (
-      order.paymentStatus === "Paid"
+  if (
+      order.orderStatus === "Cancelled"
     ) {
       throw new ApiError(
         400,
-        "Payment already verified."
+        "Cancelled order payment cannot be verified."
       );
     }
 
@@ -265,6 +291,7 @@ export const verifyPayment = async (
           newValue: "Paid",
         },
       ],
+       session,
     });
 
     await session.commitTransaction();
@@ -284,155 +311,185 @@ export const verifyPayment = async (
   }
 
 };
+
+  // =====================================
+// Restore Coupon Usage
+// =====================================
+
+
 
 // ======================================================
 // Reject Payment
 // ======================================================
 
-export const rejectPayment = async (
-  orderId,
-  remark,
-  adminId
-) => {
+  export const rejectPayment = async (
+    orderId,
+    remark,
+    adminId
+  ) => {
 
-  const session =
-    await mongoose.startSession();
+    const session =
+      await mongoose.startSession();
 
-  session.startTransaction();
+    session.startTransaction();
 
-  try {
+    try {
 
-    const order =
-      await OrderRepository.findById(
-        orderId,
-        {
-          session,
-          lean: false,
-        }
-      );
+      const order =
+        await OrderRepository.findById(
+          orderId,
+          {
+            session,
+            lean: false,
+          }
+        );
 
-    if (!order) {
-      throw new ApiError(
-        404,
-        "Order not found."
-      );
-    }
+      if (!order) {
+        throw new ApiError(
+          404,
+          "Order not found."
+        );
+      }
 
-    if (
-      order.paymentMethod === "COD"
-    ) {
-      throw new ApiError(
-        400,
-        "COD payment cannot be rejected."
-      );
-    }
+      if (
+        order.paymentMethod === "COD"
+      ) {
+        throw new ApiError(
+          400,
+          "COD payment cannot be rejected."
+        );
+      }
 
-    if (
-      order.paymentStatus === "Paid"
-    ) {
-      throw new ApiError(
-        400,
-        "Verified payment cannot be rejected."
-      );
-    }
-
-    // =====================================
-    // Restore Reserved Stock
-    // =====================================
-
-    for (const item of order.items) {
-
-      await ProductRepository.findOneAndUpdate(
-        {
-          _id: item.product,
-        },
-        {
-          $inc: {
-            "inventory.reservedStock":
-              -item.quantity,
-            "inventory.availableStock":
-              item.quantity,
-          },
-        },
-        {
-          session,
-        }
-      );
-
-    }
-
-    // =====================================
-    // Update Order
-    // =====================================
-
-    order.paymentStatus =
-      "Rejected";
-
-    order.orderStatus =
-      "Cancelled";
-
-    order.paymentRemark =
-      remark;
-
-    order.paymentVerifiedBy =
-      adminId;
-
-    order.paymentVerifiedAt =
-      new Date();
-
-    order.cancelledAt =
-      new Date();
-
-    await order.save({
-      session,
-    });
-
-    // =====================================
-    // Audit
-    // =====================================
-
-    await AuditService.log({
-      entityType: "Payment",
-      entityId: order._id,
-      action: "PAYMENT_REJECTED",
-      performedBy: adminId,
-      performedByModel: "Admin",
-
-      changes: [
-        {
-          field: "paymentStatus",
-          oldValue:
-            "Verification Pending",
-          newValue:
-            "Rejected",
-        },
-        {
-          field: "orderStatus",
-          oldValue:
-            "Pending",
-          newValue:
-            "Cancelled",
-        },
-      ],
-    });
-
-    await session.commitTransaction();
-
-    session.endSession();
-
-    return order;
-
-  } catch (error) {
-
-    await session.abortTransaction();
-
-    session.endSession();
-
-    throw error;
-
+      if (
+    order.paymentStatus !==
+    "Verification Pending"
+  ) {
+    throw new ApiError(
+      400,
+      "Only pending payments can be rejected."
+    );
   }
 
-};
+      if (
+        order.orderStatus === "Cancelled"
+      ) {
+        throw new ApiError(
+          400,
+          "Cancelled order payment cannot be rejected again."
+        );
+      }
+
+      // =====================================
+      // Restore Reserved Stock
+      // =====================================
+
+      for (const item of order.items) {
+        const updated =
+          await ProductRepository.findOneAndUpdate(
+            {
+              _id: item.product,
+              "inventory.reservedStock": {
+                $gte: item.quantity,
+              },
+            },
+            {
+              $inc: {
+                "inventory.reservedStock": -item.quantity,
+                "inventory.availableStock": item.quantity,
+              },
+            },
+            {
+              session,
+            }
+          );
+
+        if (!updated) {
+          throw new ApiError(
+            409,
+            `Inventory mismatch for ${item.product}.`
+          );
+        }
+      }
+
+      // =====================================
+      // Update Order
+      // =====================================
+
+      order.paymentStatus =
+        "Rejected";
+
+      order.orderStatus =
+        "Cancelled";
+
+        order.transactionId = 
+        null;
+
+      order.paymentSubmittedAt =
+        null;
+
+      order.paymentRemark =
+        remark;
+
+       order.paymentVerifiedBy = null;
+       order.paymentVerifiedAt = null;
+
+      order.cancelledAt =
+        new Date();
+
+      await order.save({
+        session,
+      });
+
+      // =====================================
+      // Audit
+      // =====================================
+
+      await AuditService.log({
+        entityType: "Payment",
+        entityId: order._id,
+        action: "PAYMENT_REJECTED",
+        performedBy: adminId,
+        performedByModel: "Admin",
+
+        changes: [
+          {
+            field: "paymentStatus",
+            oldValue:
+              "Verification Pending",
+            newValue:
+              "Rejected",
+          },
+          {
+            field: "orderStatus",
+            oldValue:
+              "Pending",
+            newValue:
+              "Cancelled",
+          },
+        ],
+        session,
+      });
+
+      await session.commitTransaction();
+
+      session.endSession();
+
+      return order;
+
+    } catch (error) {
+
+      await session.abortTransaction();
+
+      session.endSession();
+
+      throw error;
+
+    }
+
+  };    
+ 
+
+
 
 // ======================================================
 // Check Payment Status
