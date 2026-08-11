@@ -11,7 +11,6 @@ export async function customerLogin() {
   const email = `jest${unique}@gmail.com`;
   const password = "Password@123";
 
-  // Register Customer
   await request(app)
     .post("/api/v1/customers/register")
     .send({
@@ -21,13 +20,45 @@ export async function customerLogin() {
       phone: `98765${unique.toString().slice(-5)}`,
     });
 
-  // Login Customer
+  const otp =
+    global.__TEST_VERIFICATION_OTPS__?.[email];
+
+  if (!otp) {
+    throw new Error(
+      `Verification OTP not found for ${email}`
+    );
+  }
+
+  const verificationResponse =
+    await request(app)
+      .post("/api/v1/customers/verify-email")
+      .send({
+        email,
+        otp,
+      });
+
+  if (verificationResponse.statusCode !== 200) {
+    throw new Error(
+      `Email verification failed: ${JSON.stringify(
+        verificationResponse.body
+      )}`
+    );
+  }
+
   const response = await request(app)
     .post("/api/v1/customers/login")
     .send({
       email,
       password,
     });
+
+  if (response.statusCode !== 200) {
+    throw new Error(
+      `Customer login failed: ${JSON.stringify(
+        response.body
+      )}`
+    );
+  }
 
   return response.body.data.accessToken;
 }

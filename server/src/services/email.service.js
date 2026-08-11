@@ -1,3 +1,4 @@
+
 import nodemailer from "nodemailer";
 
 const getTransporter = () => {
@@ -23,10 +24,21 @@ export const sendCustomerVerificationOtp = async (
   email,
   otp
 ) => {
-  // Jest/test environment me actual Gmail call mat karo.
+  // ============================================
+  // TEST ENVIRONMENT
+  // ============================================
+  
   if (process.env.NODE_ENV === "test") {
+    global.__TEST_VERIFICATION_OTPS__ ??= {};
+
+    global.__TEST_VERIFICATION_OTPS__[email] = otp;
+
     return true;
   }
+
+  // ============================================
+  // PRODUCTION
+  // ============================================
 
   const transporter = getTransporter();
 
@@ -62,9 +74,15 @@ export const sendCustomerVerificationOtp = async (
           ${otp}
         </div>
 
-        <p>This OTP is valid for <strong>10 minutes</strong>.</p>
+        <p>
+          This OTP is valid for
+          <strong>10 minutes</strong>.
+        </p>
 
-        <p>If you did not create this account, you can safely ignore this email.</p>
+        <p>
+          If you did not create this account,
+          you can safely ignore this email.
+        </p>
       </div>
     `,
   });
