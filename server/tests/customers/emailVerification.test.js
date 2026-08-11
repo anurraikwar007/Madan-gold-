@@ -11,7 +11,7 @@ describe("Customer Email Verification", () => {
       .send({
         name: "Verification Test",
         email,
-        phone: "9876543210",
+        phone: "9876543311",
         password,
       });
 
