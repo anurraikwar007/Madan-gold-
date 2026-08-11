@@ -92,4 +92,26 @@ export const adminLoginSchema = {
 
     password: Joi.string().required(),
   }),
+  
 };
+
+// ======================================================
+// Verify Customer Email
+// ======================================================
+
+export const verifyEmailSchema = {
+  body: Joi.object({
+    email: Joi.string()
+      .email()
+      .lowercase()
+      .required(),
+
+    otp: Joi.string()
+      .pattern(/^\d{6}$/)
+      .required()
+      .messages({
+        "string.pattern.base":
+          "OTP must be a valid 6 digit code.",
+      }),
+  }),
+}

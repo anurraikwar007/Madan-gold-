@@ -12,35 +12,92 @@ import {
 } from "./token.service.js";
 
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { sendCustomerVerificationOtp } from "./email.service.js";
 
 // =========================
 // Customer Register
 // =========================
 
 export const registerCustomer = async (data) => {
-  const { name, email, phone, password, gender } = data;
-
-  const emailExists = await Customer.findOne({ email });
-
-  if (emailExists) {
-    throw new Error("Email already registered");
-  }
-
-  const phoneExists = await Customer.findOne({ phone });
-
-  if (phoneExists) {
-    throw new Error("Phone already registered");
-  }
-
-  return await Customer.create({
+  const {
     name,
     email,
     phone,
     password,
     gender,
-  });
-};
+  } = data;
 
+  const emailExists =
+    await Customer.findOne({ email });
+
+  if (emailExists) {
+    throw new Error(
+      "Email already registered"
+    );
+  }
+
+  const phoneExists =
+    await Customer.findOne({ phone });
+
+  if (phoneExists) {
+    throw new Error(
+      "Phone already registered"
+    );
+  }
+
+  // 6 digit OTP
+  const otp =
+    crypto.randomInt(100000, 1000000).toString();
+
+  // Hash OTP before storing
+  const hashedOtp =
+    crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+  const otpExpiresAt =
+    new Date(
+      Date.now() + 10 * 60 * 1000
+    );
+
+  const customer =
+    await Customer.create({
+      name,
+      email,
+      phone,
+      password,
+      gender,
+
+      isVerified: false,
+
+      emailVerificationOtp:
+        hashedOtp,
+
+      emailVerificationOtpExpiresAt:
+        otpExpiresAt,
+    });
+
+  try {
+    await sendCustomerVerificationOtp(
+      email,
+      otp
+    );
+  } catch (error) {
+    // Email fail hua to unverified
+    // account database me mat chhodo.
+    await Customer.findByIdAndDelete(
+      customer._id
+    );
+
+    throw new Error(
+      "Unable to send verification OTP. Please try again."
+    );
+  }
+
+  return customer;
+};
 // =========================
 // Customer Login
 // =========================
@@ -77,6 +134,12 @@ export const loginCustomer = async (
       "Invalid email or password"
     );
   }
+
+  if (!customer.isVerified) {
+  throw new Error(
+    "Please verify your email before logging in."
+     );
+   }
 
   customer.lastLogin = new Date();
 
@@ -368,4 +431,68 @@ export const updateProfile = async (
       return await Admin.findByIdAndUpdate(id, {
         lastLogin: new Date(),
       });
+};
+
+export const verifyCustomerEmail = async (
+  email,
+  otp
+) => {
+  const customer =
+    await Customer.findOne({ email })
+      .select(
+        "+emailVerificationOtp +emailVerificationOtpExpiresAt"
+      );
+
+  if (!customer) {
+    throw new Error(
+      "Invalid email or OTP."
+    );
+  }
+
+  if (customer.isVerified) {
+    throw new Error(
+      "Email is already verified."
+    );
+  }
+
+  if (
+    !customer.emailVerificationOtp ||
+    !customer.emailVerificationOtpExpiresAt
+  ) {
+    throw new Error(
+      "Verification OTP is not available."
+    );
+  }
+
+  if (
+    customer.emailVerificationOtpExpiresAt <
+    new Date()
+  ) {
+    throw new Error(
+      "Verification OTP has expired."
+    );
+  }
+
+  const hashedOtp =
+    crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+
+  if (
+    hashedOtp !==
+    customer.emailVerificationOtp
+  ) {
+    throw new Error(
+      "Invalid verification OTP."
+    );
+  }
+
+  customer.isVerified = true;
+  customer.emailVerificationOtp = null;
+  customer.emailVerificationOtpExpiresAt = null;
+
+  await customer.save();
+
+  return customer;
 };

@@ -4,6 +4,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 import {
   registerCustomer,
   loginCustomer,
+  verifyCustomerEmail,
   updateProfile,
   updateAvatar,
   getAddresses,
@@ -39,12 +40,43 @@ export const register = asyncHandler(async (req, res) => {
 
     return res.status(201).json(
         apiResponse.success(
-            "Customer registered successfully.",
+            "Registration successful. Please verify your email with the OTP sent to your Gmail.",
             customer
         )
     );
 
 });
+
+ // =========================
+// Verify Customer Email
+// =========================
+
+export const verifyEmail = asyncHandler(
+  async (req, res) => {
+    const {
+      email,
+      otp,
+    } = req.body;
+
+    const customer =
+      await verifyCustomerEmail(
+        email,
+        otp
+      );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Email verified successfully. You can now login.",
+        {
+          _id: customer._id,
+          name: customer.name,
+          email: customer.email,
+          isVerified: customer.isVerified,
+        }
+      )
+    );
+  }
+);
 
 // =========================
 // Customer Login

@@ -3,6 +3,7 @@ import { singleUpload } from "../middleware/upload.middleware.js";
 
 import {
   register,
+  verifyEmail,
   login,
   logout,
   logoutAll,
@@ -23,6 +24,7 @@ import rateLimiter from "../middleware/rateLimiter.middleware.js";
 
 import {
   registerSchema,
+  verifyEmailSchema,
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
@@ -52,6 +54,18 @@ router.post(
   register
 );
 
+/**
+ * @route   POST /api/v1/customers/verify-email
+ * @desc    Verify customer email using OTP
+ * @access  Public
+ */
+
+router.post(
+  "/verify-email",
+  rateLimiter.authLimiter,
+  validate(verifyEmailSchema),
+  verifyEmail
+);
 
 /**
  * @route   POST /api/v1/customers/login
