@@ -10,6 +10,11 @@ export const login = (data) =>
 export const register = (data) =>
   api.post("/customers/register", data);
 
+export const resendVerification = (email) =>
+  api.post("/customers/resend-verification", {
+    email,
+  });
+
 export const getProfile = () =>
   api.get("/customers/profile");
 

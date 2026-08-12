@@ -181,52 +181,35 @@ export const AuthProvider = ({ children }) => {
   // Customer Signup
   // =========================
 
-  const signup = async ({
-    name,
-    email,
-    password,
-    phone,
-  }) => {
-    try {
-      await AuthAPI.register({
-        name,
-        email,
-        password,
-        phone,
-      });
+    const signup = async ({
+      name,
+      email,
+      password,
+      phone,
+    }) => {
+      try {
+        await AuthAPI.register({
+          name,
+          email,
+          password,
+          phone,
+        });
 
-      /*
-       * Backend registration does NOT
-       * return an accessToken.
-       *
-       * So login immediately after
-       * successful registration.
-       */
-
-      const loginResult =
-        await login(email, password);
-
-      if (!loginResult.success) {
+        return {
+          success: true,
+          requiresVerification: true,
+          message:
+            "Signup successful. Please verify your email before logging in.",
+        };
+      } catch (err) {
         return {
           success: false,
           message:
-            "Signup successful. Please login.",
-          registered: true,
+            err.response?.data?.message ||
+            "Signup Failed",
         };
       }
-
-      return {
-        success: true,
-      };
-    } catch (err) {
-      return {
-        success: false,
-        message:
-          err.response?.data?.message ||
-          "Signup Failed",
-      };
-    }
-  };
+    };
 
   // =========================
   // Admin Login

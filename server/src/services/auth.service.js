@@ -432,6 +432,10 @@ export const updateProfile = async (
         lastLogin: new Date(),
       });
 };
+   
+   // =========================
+   // VerifyCutomerEmail
+   // =========================
 
 export const verifyCustomerEmail = async (
   email,
@@ -495,4 +499,59 @@ export const verifyCustomerEmail = async (
   await customer.save();
 
   return customer;
+};
+
+// =========================
+// Resend Customer Verification OTP
+// =========================
+
+export const resendCustomerVerificationOtp = async (email) => {
+  const customer = await Customer.findOne({ email });
+
+  if (!customer) {
+    throw new Error("Customer not found.");
+  }
+
+  if (customer.isVerified) {
+    throw new Error("Email is already verified.");
+  }
+
+  // Generate new 6 digit OTP
+  const otp = crypto
+    .randomInt(100000, 1000000)
+    .toString();
+
+  // Hash OTP before storing
+  const hashedOtp = crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
+
+  const otpExpiresAt = new Date(
+    Date.now() + 10 * 60 * 1000
+  );
+
+  customer.emailVerificationOtp = hashedOtp;
+  customer.emailVerificationOtpExpiresAt =
+    otpExpiresAt;
+
+  await customer.save();
+
+  try {
+    await sendCustomerVerificationOtp(
+      customer.email,
+      otp
+    );
+  } catch (error) {
+    console.error(
+      "[EMAIL] Resend verification OTP failed:",
+      error
+    );
+
+    throw new Error(
+      "Unable to send verification OTP. Please try again."
+    );
+  }
+
+  return true;
 };

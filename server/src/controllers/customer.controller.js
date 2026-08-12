@@ -5,6 +5,7 @@ import {
   registerCustomer,
   loginCustomer,
   verifyCustomerEmail,
+  resendCustomerVerificationOtp,
   updateProfile,
   updateAvatar,
   getAddresses,
@@ -73,6 +74,24 @@ export const verifyEmail = asyncHandler(
           email: customer.email,
           isVerified: customer.isVerified,
         }
+      )
+    );
+  }
+);
+
+// =========================
+// Resend Customer Verification OTP
+// =========================
+
+export const resendVerification = asyncHandler(
+  async (req, res) => {
+    const { email } = req.body;
+
+    await resendCustomerVerificationOtp(email);
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Verification OTP has been sent again to your email."
       )
     );
   }

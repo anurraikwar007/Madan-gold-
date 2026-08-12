@@ -4,6 +4,7 @@ import { singleUpload } from "../middleware/upload.middleware.js";
 import {
   register,
   verifyEmail,
+  resendVerification,
   login,
   logout,
   logoutAll,
@@ -65,6 +66,18 @@ router.post(
   rateLimiter.authLimiter,
   validate(verifyEmailSchema),
   verifyEmail
+);
+
+/**
+ * @route   POST /api/v1/customers/resend-verification
+ * @desc    Resend customer verification OTP
+ * @access  Public
+ */
+
+router.post(
+  "/resend-verification",
+  rateLimiter.authLimiter,
+  resendVerification
 );
 
 /**

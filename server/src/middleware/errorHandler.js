@@ -52,11 +52,37 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Unknown Error
-  return res.status(500).json({
+  
+  // Known service/application errors
+const knownErrors = [
+  "Invalid email or password",
+  "Email already registered",
+  "Phone already registered",
+  "Please verify your email before logging in.",
+  "Your account is inactive or deleted.",
+  "Customer not found.",
+  "Email is already verified.",
+  "Verification OTP is not available.",
+  "Verification OTP has expired.",
+  "Invalid verification OTP.",
+  "Invalid email or OTP.",
+  "Unable to send verification OTP. Please try again.",
+  "Unable to send verification OTP. Please try again.",
+];
+
+if (knownErrors.includes(err.message)) {
+  return res.status(400).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message: err.message,
     requestId: req.requestId,
+  });
+}
+
+// Unknown Error
+return res.status(500).json({
+  success: false,
+  message: "Internal Server Error",
+  requestId: req.requestId,
   });
 };
 
