@@ -1,5 +1,4 @@
 
-
 import express from "express";
 
 import path from "path";
@@ -22,13 +21,19 @@ import notFound from "./middleware/notFound.js";
 
 import errorHandler from "./middleware/errorHandler.js";
 
-const __filename =
-  fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 
-const __dirname =
-  path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+
+/*
+===========================================
+Render / Reverse Proxy
+===========================================
+*/
+
+app.set("trust proxy", 1);
 
 /*
 ===========================================
@@ -105,10 +110,7 @@ Routes
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-
-    message:
-      "Madan Gold Backend Running",
-
+    message: "Madan Gold Backend Running",
     version: "1.0.0",
   });
 });
@@ -123,7 +125,6 @@ app.use(
   "/api/v1",
   routes
 );
-
 
 /*
 ===========================================

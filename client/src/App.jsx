@@ -1,4 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
 
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -14,37 +18,21 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
+
 import ProtectedRoute from "./components/common/ProtectedRoute";
+
 function App() {
   return (
     <Router>
 
-      {/* AUTO SCROLL */}
       <ScrollToTop />
 
-      <div
-        className="
-          min-h-screen
-          bg-[#FAF9F6]
-          text-[#111111]
-          flex
-          flex-col
-        "
-      >
+      <div className="min-h-screen bg-[#FAF9F6] text-[#111111] flex flex-col">
 
-        {/* NAVBAR */}
         <Navbar />
 
-        {/* MAIN */}
-        <main
-          className="
-            flex-1
-            pt-[78px]
-            md:pt-[86px]
-            pb-28
-            lg:pb-0
-          "
-        >
+        <main className="flex-1 pt-[78px] md:pt-[86px] pb-28 lg:pb-0">
 
           <Routes>
 
@@ -88,10 +76,21 @@ function App() {
               element={<Checkout />}
             />
 
+            {/* ADMIN LOGIN */}
+
+            <Route
+              path="/admin/login"
+              element={<AdminLogin />}
+            />
+
+            {/* ADMIN PANEL */}
+
             <Route
               path="/admin"
               element={
-                <ProtectedRoute adminOnly={true}>
+                <ProtectedRoute
+                  adminOnly={true}
+                >
                   <Admin />
                 </ProtectedRoute>
               }
@@ -101,7 +100,6 @@ function App() {
 
         </main>
 
-        {/* FOOTER */}
         <Footer />
 
       </div>

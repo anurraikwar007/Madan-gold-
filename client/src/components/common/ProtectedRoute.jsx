@@ -6,42 +6,45 @@ const ProtectedRoute = ({
   children,
   adminOnly = false,
 }) => {
+  const {
+    user,
+    loading,
+  } = useAuth();
 
-  const { user, loading } = useAuth();
-
-  /* LOADING */
   if (loading) {
-
     return (
-
-      <div
-        className="
-          min-h-screen
-          flex
-          items-center
-          justify-center
-          text-lg
-        "
-      >
+      <div className="min-h-screen flex items-center justify-center">
         Loading...
       </div>
-
     );
   }
 
-  /* NOT LOGGED IN */
   if (!user) {
-
-    return <Navigate to="/login" />;
+    return (
+      <Navigate
+        to={
+          adminOnly
+            ? "/admin/login"
+            : "/login"
+        }
+        replace
+      />
+    );
   }
 
-  /* ADMIN CHECK */
-  if (
-    adminOnly &&
-    user.role !== "admin"
-  ) {
+  if (adminOnly) {
+    const isAdmin =
+      user.role === "Admin" ||
+      user.role === "SuperAdmin";
 
-    return <Navigate to="/" />;
+    if (!isAdmin) {
+      return (
+        <Navigate
+          to="/"
+          replace
+        />
+      );
+    }
   }
 
   return children;

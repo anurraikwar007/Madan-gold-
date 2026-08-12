@@ -1,15 +1,73 @@
 import api from "../lib/axios";
 
-export const getProducts = (params = {}) =>
+// =========================
+// Customer Products
+// =========================
+
+export const getProducts = (
+  params = {}
+) =>
   api.get("/products", {
     params,
   });
 
-export const getProductById = (id) =>
+export const getProductById = (
+  id
+) =>
   api.get(`/products/${id}`);
 
 export const getFeaturedProducts = () =>
-  api.get("/products?featured=true");
+  api.get(
+    "/products?featured=true"
+  );
 
-export const getBestSellerProducts = () =>
-  api.get("/products?bestseller=true");
+export const getBestSellerProducts =
+  () =>
+    api.get(
+      "/products?bestseller=true"
+    );
+
+// =========================
+// Admin Products
+// =========================
+
+export const createAdminProduct = (
+  data
+) =>
+  api.post(
+    "/admin/products",
+    data
+  );
+
+export const getAdminProducts = (
+  params = {}
+) =>
+  api.get(
+    "/admin/products",
+    {
+      params,
+    }
+  );
+
+export const getAdminProductById = (
+  id
+) =>
+  api.get(
+    `/admin/products/${id}`
+  );
+
+export const updateAdminProduct = (
+  id,
+  data
+) =>
+  api.put(
+    `/admin/products/${id}`,
+    data
+  );
+
+export const deleteAdminProduct = (
+  id
+) =>
+  api.delete(
+    `/admin/products/${id}`
+  );
