@@ -119,63 +119,56 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // =========================
-  // Customer Login
-  // =========================
+ // =========================
+// Customer Login
+// =========================
 
-  const login = async (
-    email,
-    password
-  ) => {
-    try {
-      const { data } =
-        await AuthAPI.login({
-          email,
-          password,
-        });
+const login = async (email, password) => {
+  try {
+    const { data } = await AuthAPI.login({
+      email,
+      password,
+    });
 
-      const accessToken =
-        data?.data?.accessToken;
+    const accessToken = data?.data?.accessToken;
 
-      if (!accessToken) {
-        return {
-          success: false,
-          message:
-            "Login successful but access token missing.",
-        };
-      }
-
-      localStorage.setItem(
-        "token",
-        accessToken
-      );
-
-      const customer =
-        data?.data?.customer;
-
-      if (customer) {
-        setUser(customer);
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(customer)
-        );
-      } else {
-        await loadProfile();
-      }
-
-      return {
-        success: true,
-      };
-    } catch (err) {
+    if (!accessToken) {
       return {
         success: false,
-        message:
-          err.response?.data?.message ||
-          "Login Failed",
+        message: "Login successful but access token missing.",
       };
     }
-  };
+
+    localStorage.setItem("token", accessToken);
+
+    const customer =
+      data?.data?.customer ||
+      data?.data?.user ||
+      data?.data;
+
+    if (customer) {
+      setUser(customer);
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(customer)
+      );
+    } else {
+      await loadProfile();
+    }
+
+    return {
+      success: true,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        err.response?.data?.message ||
+        "Login Failed",
+    };
+  }
+};
 
   // =========================
   // Customer Signup

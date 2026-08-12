@@ -57,6 +57,12 @@ const Signup = () => {
         return;
       }
 
+      navigate("/verify-email", {
+        state: {
+          email: formData.email,
+        },
+      });
+
       navigate("/login", {
       state: {
         email: formData.email,

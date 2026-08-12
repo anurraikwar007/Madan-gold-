@@ -80,22 +80,30 @@ export const registerCustomer = async (data) => {
     });
 
   try {
-    await sendCustomerVerificationOtp(
-      email,
-      otp
-    );
-  } catch (error) {
-    // Email fail hua to unverified
-    // account database me mat chhodo.
-    await Customer.findByIdAndDelete(
-      customer._id
-    );
+  await sendCustomerVerificationOtp(
+    email,
+    otp
+  );
+} catch (error) {
+  console.error(
+    "[EMAIL] Verification OTP failed:",
+    {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode,
+      command: error.command,
+    }
+  );
 
-    throw new Error(
-      "Unable to send verification OTP. Please try again."
-    );
-  }
+  await Customer.findByIdAndDelete(
+    customer._id
+  );
 
+  throw new Error(
+    "Unable to send verification OTP. Please try again."
+  );
+}
   return customer;
 };
 // =========================

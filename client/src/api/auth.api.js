@@ -29,16 +29,16 @@ export const logoutAll = () =>
 // =========================
 
 export const adminLogin = (data) =>
-  api.post("/admin/login", data);
+  api.post("/auth/admin/login", data);
 
 export const adminGetProfile = () =>
-  api.get("/admin/me");
+  api.get("/auth/admin/me");
 
 export const adminLogout = () =>
-  api.post("/admin/logout");
+  api.post("/auth/admin/logout");
 
 export const adminLogoutAll = () =>
-  api.post("/admin/logout-all");
+  api.post("/auth/admin/logout-all");
 
 // =========================
 // Refresh Token
