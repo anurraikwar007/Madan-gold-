@@ -10,13 +10,18 @@ const getTransporter = () => {
     );
   }
 
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user,
-      pass,
-    },
-  });
+ return nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user,
+    pass,
+  },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
+});
 };
 
 export const sendCustomerVerificationOtp = async (email, otp) => {
