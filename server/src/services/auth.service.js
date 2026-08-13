@@ -28,22 +28,48 @@ export const registerCustomer = async (data) => {
     gender,
   } = data;
 
-  const emailExists =
-    await Customer.findOne({ email });
+  const emailExists = await Customer.findOne({ email });
 
-  if (emailExists) {
-    throw new Error(
-      "Email already registered"
-    );
+  // If the account exists but is still unverified, treat signup again
+  // as a request to send a fresh OTP instead of returning 400.
+  if (emailExists && !emailExists.isVerified) {
+    const phoneExists = await Customer.findOne({
+      phone,
+      _id: { $ne: emailExists._id },
+    });
+
+    if (phoneExists) {
+      throw new Error("Phone already registered");
+    }
+
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    emailExists.emailVerificationOtp = crypto
+      .createHash("sha256")
+      .update(otp)
+      .digest("hex");
+    emailExists.emailVerificationOtpExpiresAt =
+      new Date(Date.now() + 10 * 60 * 1000);
+
+    await emailExists.save();
+
+    try {
+      await sendCustomerVerificationOtp(emailExists.email, otp);
+    } catch (error) {
+      console.error("[EMAIL] Verification OTP failed:", error);
+      throw new Error("Unable to send verification OTP. Please try again.");
+    }
+
+    return emailExists;
   }
 
-  const phoneExists =
-    await Customer.findOne({ phone });
+  if (emailExists) {
+    throw new Error("Email already registered. Please login.");
+  }
+
+  const phoneExists = await Customer.findOne({ phone });
 
   if (phoneExists) {
-    throw new Error(
-      "Phone already registered"
-    );
+    throw new Error("Phone already registered");
   }
 
   // 6 digit OTP

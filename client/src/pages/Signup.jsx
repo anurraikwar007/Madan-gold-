@@ -57,6 +57,8 @@ const Signup = () => {
         return;
       }
 
+      localStorage.setItem("verificationEmail", formData.email);
+
       navigate("/verify-email", {
         state: {
           email: formData.email,

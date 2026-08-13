@@ -124,82 +124,59 @@ export const AuthProvider = ({ children }) => {
 // =========================
 
 const login = async (email, password) => {
-  try {
-    const { data } = await AuthAPI.login({
-      email,
-      password,
-    });
+    try {
+      const { data } = await AuthAPI.login({ email, password });
+      const accessToken = data?.data?.accessToken;
 
-    const accessToken = data?.data?.accessToken;
+      if (!accessToken) {
+        return { success: false, message: "Login successful but access token missing." };
+      }
 
-    if (!accessToken) {
+      localStorage.setItem("token", accessToken);
+
+      const customer = data?.data?.customer || data?.data?.user || data?.data;
+      if (customer) {
+        setUser(customer);
+        localStorage.setItem("user", JSON.stringify(customer));
+      } else {
+        await loadProfile();
+      }
+
+      return { success: true };
+    } catch (err) {
+      const message = err.response?.data?.message || "Login Failed";
+      const requiresVerification =
+        /verify your email|email.*verified/i.test(message);
+
       return {
         success: false,
-        message: "Login successful but access token missing.",
+        requiresVerification,
+        email,
+        message,
       };
     }
-
-    localStorage.setItem("token", accessToken);
-
-    const customer =
-      data?.data?.customer ||
-      data?.data?.user ||
-      data?.data;
-
-    if (customer) {
-      setUser(customer);
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(customer)
-      );
-    } else {
-      await loadProfile();
-    }
-
-    return {
-      success: true,
-    };
-  } catch (err) {
-    return {
-      success: false,
-      message:
-        err.response?.data?.message ||
-        "Login Failed",
-    };
-  }
-};
+  };
 
   // =========================
   // Customer Signup
   // =========================
 
-    const signup = async ({
-      name,
-      email,
-      password,
-      phone,
-    }) => {
+    const signup = async ({ name, email, password, phone }) => {
       try {
-        await AuthAPI.register({
-          name,
-          email,
-          password,
-          phone,
-        });
+        const { data } = await AuthAPI.register({ name, email, password, phone });
+        localStorage.setItem("verificationEmail", email);
 
         return {
           success: true,
           requiresVerification: true,
-          message:
-            "Signup successful. Please verify your email before logging in.",
+          email,
+          message: data?.message ||
+            "Signup successful. Please verify your email with the OTP sent to your Gmail.",
         };
       } catch (err) {
         return {
           success: false,
-          message:
-            err.response?.data?.message ||
-            "Signup Failed",
+          message: err.response?.data?.message || "Signup Failed",
         };
       }
     };

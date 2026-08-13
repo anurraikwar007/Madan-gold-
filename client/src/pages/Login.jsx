@@ -54,6 +54,14 @@ const Login = () => {
 
     if (!result.success) {
       setError(result.message);
+
+      if (result.requiresVerification) {
+        localStorage.setItem("verificationEmail", formData.email);
+        navigate("/verify-email", {
+          state: { email: formData.email },
+        });
+      }
+
       return;
     }
 

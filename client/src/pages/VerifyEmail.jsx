@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1";
+import * as AuthAPI from "../api/auth.api";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -86,13 +83,7 @@ const VerifyEmail = () => {
       setError("");
       setMessage("");
 
-      const response = await axios.post(
-        `${API_URL}/customers/verify-email`,
-        {
-          email,
-          otp: enteredOtp,
-        }
-      );
+      const response = await AuthAPI.verifyEmail(email, enteredOtp);
 
       if (response.data?.success) {
         setMessage(
@@ -144,12 +135,7 @@ const VerifyEmail = () => {
       setError("");
       setMessage("");
 
-      const response = await axios.post(
-        `${API_URL}/customers/resend-verification-otp`,
-        {
-          email,
-        }
-      );
+      const response = await AuthAPI.resendVerification(email);
 
       if (response.data?.success) {
         setMessage(
