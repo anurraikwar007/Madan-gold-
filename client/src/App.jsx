@@ -15,6 +15,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Login from "./pages/Login";
+import VerifyEmail from "./pages/VerifyEmail";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
@@ -64,6 +65,11 @@ function App() {
             <Route
               path="/login"
               element={<Login />}
+            />
+
+            <Route
+              path="/verify-email"
+              element={<VerifyEmail />}
             />
 
             <Route

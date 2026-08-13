@@ -63,12 +63,7 @@ const Signup = () => {
         },
       });
 
-      navigate("/login", {
-      state: {
-        email: formData.email,
-        verificationRequired: true,
-      },
-    });
+      
 
     } catch (err) {
 

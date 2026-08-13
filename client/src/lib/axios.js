@@ -1,9 +1,14 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    "https://madan-gold.onrender.com/api/v1",
+
   timeout: 15000,
+
   withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -24,6 +29,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
+
   (error) => {
     const status = error.response?.status;
     const requestUrl = error.config?.url || "";
@@ -32,7 +38,9 @@ api.interceptors.response.use(
     const isAuthRequest =
       requestUrl.includes("/customers/login") ||
       requestUrl.includes("/customers/register") ||
-      requestUrl.includes("/admin/login") ||
+      requestUrl.includes("/customers/resend-verification") ||
+      requestUrl.includes("/customers/verify-email") ||
+      requestUrl.includes("/auth/admin/login") ||
       requestUrl.includes("/auth/refresh-token");
 
     if (status === 401 && !isAuthRequest) {
