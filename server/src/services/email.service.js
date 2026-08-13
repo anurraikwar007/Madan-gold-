@@ -12,8 +12,9 @@ const getTransporter = () => {
 
  return nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
     user,
     pass,
@@ -21,7 +22,7 @@ const getTransporter = () => {
   connectionTimeout: 30000,
   greetingTimeout: 30000,
   socketTimeout: 30000,
-});
+  });
 };
 
 export const sendCustomerVerificationOtp = async (email, otp) => {
