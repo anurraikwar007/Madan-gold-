@@ -6,7 +6,7 @@ const getTransporter = () => {
 
   if (!user || !pass) {
     throw new Error(
-      "MAIL_USER or MAIL_PASSWORD is missing."
+      "Gmail email configuration is missing."
     );
   }
 
@@ -19,33 +19,13 @@ const getTransporter = () => {
   });
 };
 
-// ======================================================
-// Verify SMTP Connection
-// ======================================================
-
-export const verifyEmailTransporter = async () => {
-  const transporter = getTransporter();
-
-  await transporter.verify();
-
-  console.log(
-    "[EMAIL] Gmail SMTP connection verified successfully."
-  );
-
-  return true;
-};
-
-// ======================================================
-// Customer Verification OTP
-// ======================================================
-
 export const sendCustomerVerificationOtp = async (
   email,
   otp
 ) => {
-  // ====================================================
-  // TEST
-  // ====================================================
+  // ============================================
+  // TEST ENVIRONMENT
+  // ============================================
 
   if (process.env.NODE_ENV === "test") {
     global.__TEST_VERIFICATION_OTPS__ ??= {};
@@ -55,22 +35,21 @@ export const sendCustomerVerificationOtp = async (
     return true;
   }
 
-  // ====================================================
+  // ============================================
   // PRODUCTION
-  // ====================================================
+  // ============================================
 
   const transporter = getTransporter();
 
-  const from =
-    process.env.MAIL_FROM ||
-    process.env.MAIL_USER;
+  // Verify SMTP connection before sending
+  await transporter.verify();
 
   console.log(
     `[EMAIL] Sending verification OTP to ${email}`
   );
 
   const info = await transporter.sendMail({
-    from: `"Madan Gold" <${from}>`,
+    from: `"Madan Gold" <${process.env.MAIL_USER}>`,
     to: email,
     subject: "Madan Gold - Verify Your Email",
 
@@ -87,9 +66,8 @@ If you did not create this account, you can safely ignore this email.
         font-family: Arial, sans-serif;
         max-width: 600px;
         margin: auto;
-        padding: 30px;
+        padding: 20px;
       ">
-
         <h2 style="color:#b76e79;">
           Madan Gold
         </h2>
@@ -124,14 +102,13 @@ If you did not create this account, you can safely ignore this email.
           If you did not create this account,
           you can safely ignore this email.
         </p>
-
       </div>
     `,
   });
 
   console.log(
-    `[EMAIL] Verification OTP sent successfully. MessageId: ${info.messageId}`
+    `[EMAIL] Verification OTP sent successfully. Message ID: ${info.messageId}`
   );
 
-  return info;
+  return true;
 };

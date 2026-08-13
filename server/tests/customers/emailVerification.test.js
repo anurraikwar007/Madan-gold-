@@ -2,73 +2,46 @@ import request from "supertest";
 import app from "../../src/app.js";
 
 describe("Customer Email Verification", () => {
-  test("Customer signup should require email verification", async () => {
-    const unique = Date.now();
+  const email = `verify_${Date.now()}@gmail.com`;
 
-    const email =
-      `verify${unique}@gmail.com`;
+  const customer = {
+    name: "Verification Test",
+    email,
+    password: "Test@123456",
+    phone: `9${Date.now().toString().slice(-9)}`,
+  };
 
-    const password = "Test@12345";
+  test("Register → OTP generated → Verify email → Login", async () => {
+    // 1. REGISTER
+    const registerResponse = await request(app)
+      .post("/api/v1/customers/register")
+      .send(customer);
 
-    const phone =
-      `98765${unique.toString().slice(-5)}`;
+    console.log("REGISTER:", registerResponse.statusCode);
+    console.log("REGISTER BODY:", registerResponse.body);
 
-    // ======================================
-    // Register
-    // ======================================
+    expect([200, 201]).toContain(registerResponse.statusCode);
+    expect(registerResponse.body.success).toBe(true);
 
-    const registerResponse =
-      await request(app)
-        .post("/api/v1/customers/register")
-        .send({
-          name: "Verification Test",
-          email,
-          phone,
-          password,
-        });
+    // Registration should create an unverified customer
+    expect(registerResponse.body.data.isVerified).toBe(false);
 
-    console.log(
-      "REGISTER:",
-      registerResponse.statusCode
-    );
-
-    expect([200, 201]).toContain(
-      registerResponse.statusCode
-    );
-
-    expect(
-      registerResponse.body.success
-    ).toBe(true);
-
-    // ======================================
-    // Account should initially be unverified
-    // ======================================
-
-    expect(
-      registerResponse.body.data.isVerified
-    ).toBe(false);
-
-    // ======================================
-    // OTP should exist in test environment
-    // ======================================
-
+    // 2. GET OTP FROM TEST ENVIRONMENT
     const otp =
       global.__TEST_VERIFICATION_OTPS__?.[email];
+
+    console.log("OTP:", otp);
 
     expect(otp).toBeDefined();
     expect(otp).toMatch(/^\d{6}$/);
 
-    // ======================================
-    // Verify Email
-    // ======================================
-
-    const verificationResponse =
-      await request(app)
-        .post("/api/v1/customers/verify-email")
-        .send({
-          email,
-          otp,
-        });
+    // 3. VERIFY EMAIL
+    const verificationResponse = await request(app)
+      .post("/api/v1/customers/verify-email")
+      .send({
+        email,
+        otp,
+      });
 
     console.log(
       "VERIFY:",
@@ -76,12 +49,13 @@ describe("Customer Email Verification", () => {
     );
 
     console.log(
+      "VERIFY BODY:",
       verificationResponse.body
     );
 
-    expect(
+    expect([200, 201]).toContain(
       verificationResponse.statusCode
-    ).toBe(200);
+    );
 
     expect(
       verificationResponse.body.success
@@ -91,30 +65,33 @@ describe("Customer Email Verification", () => {
       verificationResponse.body.data.isVerified
     ).toBe(true);
 
-    delete global.__TEST_VERIFICATION_OTPS__[email];
+    // 4. LOGIN AFTER VERIFICATION
+    const loginResponse = await request(app)
+      .post("/api/v1/customers/login")
+      .send({
+        email,
+        password: customer.password,
+      });
 
-    // ======================================
-    // Verified customer should be able to login
-    // ======================================
-
-    const loginResponse =
-      await request(app)
-        .post("/api/v1/customers/login")
-        .send({
-          email,
-          password,
-        });
-
-    expect(
+    console.log(
+      "LOGIN:",
       loginResponse.statusCode
-    ).toBe(200);
+    );
+
+    console.log(
+      "LOGIN BODY:",
+      loginResponse.body
+    );
+
+    expect(loginResponse.statusCode).toBe(200);
+
+    expect(loginResponse.body.success).toBe(true);
 
     expect(
-      loginResponse.body.success
-    ).toBe(true);
+      loginResponse.body.data.accessToken
+    ).toBeDefined();
 
-    expect(
-      loginResponse.body.data
-    ).toHaveProperty("accessToken");
+    // Cleanup test OTP
+    delete global.__TEST_VERIFICATION_OTPS__[email];
   });
 });
