@@ -13,6 +13,13 @@ const requiredEnv = [
   "CLOUDINARY_API_SECRET",
 ];
 
+if (process.env.NODE_ENV !== "test") {
+  requiredEnv.push(
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL"
+  );
+}
+
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     throw new Error(
@@ -48,6 +55,12 @@ export const env = {
 
   CLOUDINARY_API_SECRET:
     process.env.CLOUDINARY_API_SECRET,
+
+  RESEND_API_KEY:
+    process.env.RESEND_API_KEY,
+
+  RESEND_FROM_EMAIL:
+    process.env.RESEND_FROM_EMAIL,
 
   ADMIN_EMAIL:
     process.env.ADMIN_EMAIL,

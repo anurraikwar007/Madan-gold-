@@ -565,18 +565,27 @@ export const resendCustomerVerificationOtp = async (email) => {
     Date.now() + 10 * 60 * 1000
   );
 
+  const previousOtp = customer.emailVerificationOtp;
+  const previousOtpExpiresAt =
+    customer.emailVerificationOtpExpiresAt;
+
   customer.emailVerificationOtp = hashedOtp;
   customer.emailVerificationOtpExpiresAt =
     otpExpiresAt;
-
-  await customer.save();
 
   try {
     await sendCustomerVerificationOtp(
       customer.email,
       otp
     );
+
+    await customer.save();
   } catch (error) {
+    // Do not leave a DB OTP that was never delivered.
+    customer.emailVerificationOtp = previousOtp;
+    customer.emailVerificationOtpExpiresAt =
+      previousOtpExpiresAt;
+
     console.error(
       "[EMAIL] Resend verification OTP failed:",
       error

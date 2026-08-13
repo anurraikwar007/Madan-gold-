@@ -67,7 +67,7 @@ const knownErrors = [
   "Invalid verification OTP.",
   "Invalid email or OTP.",
   "Unable to send verification OTP. Please try again.",
-  "Unable to send verification OTP. Please try again.",
+
 ];
 
 if (knownErrors.includes(err.message)) {

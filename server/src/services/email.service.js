@@ -1,82 +1,65 @@
-import nodemailer from "nodemailer";
+const RESEND_API_URL = "https://api.resend.com/emails";
 
-const getTransporter = () => {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASSWORD;
+export const sendCustomerVerificationOtp = async (email, otp) => {
+  // Never call an external email provider from Jest.
+  if (process.env.NODE_ENV === "test") {
+    global.__TEST_VERIFICATION_OTPS__ ??= {};
+    global.__TEST_VERIFICATION_OTPS__[email] = otp;
+    return true;
+  }
 
-  if (!user || !pass) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL;
+
+  if (!apiKey || !from) {
     throw new Error(
-      "Gmail email configuration is missing: EMAIL_USER / EMAIL_PASSWORD"
+      "Email configuration is missing: RESEND_API_KEY / RESEND_FROM_EMAIL"
     );
   }
 
- return nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user,
-    pass,
-  },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-  });
-};
-
-export const sendCustomerVerificationOtp = async (email, otp) => {
-  // TEST ENVIRONMENT
-  if (process.env.NODE_ENV === "test") {
-    global.__TEST_VERIFICATION_OTPS__ ??= {};
-
-    global.__TEST_VERIFICATION_OTPS__[email] = otp;
-
-    return true;
-  }
-
-  const transporter = getTransporter();
-
-  try {
-    await transporter.verify();
-
-    console.log("[EMAIL] Gmail SMTP connection successful");
-    console.log("[EMAIL] Sending OTP to:", email);
-
-    const info = await transporter.sendMail({
-      from: `"Madan Gold" <${process.env.EMAIL_USER}>`,
-      to: email,
+  const response = await fetch(RESEND_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from,
+      to: [email],
       subject: "Madan Gold - Email Verification OTP",
       text: `Your Madan Gold verification OTP is: ${otp}. This OTP is valid for 10 minutes.`,
       html: `
-        <div style="font-family: Arial, sans-serif;">
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto">
           <h2>Madan Gold - Email Verification</h2>
           <p>Your verification OTP is:</p>
-
-          <h1 style="letter-spacing: 6px;">
+          <div style="font-size:32px;font-weight:700;letter-spacing:8px;margin:20px 0">
             ${otp}
-          </h1>
-
+          </div>
           <p>This OTP is valid for 10 minutes.</p>
-
           <p>If you did not create a Madan Gold account, please ignore this email.</p>
         </div>
       `,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.error("[EMAIL] Resend API FAILED:", {
+      status: response.status,
+      message: payload?.message || "Unknown email provider error",
+      name: payload?.name,
     });
 
-    console.log("[EMAIL] OTP email sent successfully");
-    console.log("[EMAIL] Message ID:", info.messageId);
-
-    return true;
-  } catch (error) {
-    console.error("[EMAIL] OTP sending FAILED:", {
-      message: error.message,
-      code: error.code,
-      response: error.response,
-      responseCode: error.responseCode,
-      command: error.command,
-    });
-
-    throw error;
+    throw new Error(
+      payload?.message || "Email provider rejected the request."
+    );
   }
+
+  console.log("[EMAIL] Verification OTP sent successfully:", {
+    to: email,
+    id: payload?.id,
+  });
+
+  return true;
 };

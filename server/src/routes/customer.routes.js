@@ -29,7 +29,7 @@ import {
   loginSchema,
   updateProfileSchema,
   changePasswordSchema,
-  
+  resendVerificationSchema,
 } from "../validators/auth.validator.js";
 
 

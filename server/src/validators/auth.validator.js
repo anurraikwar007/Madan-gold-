@@ -115,3 +115,16 @@ export const verifyEmailSchema = {
       }),
   }),
 }
+
+// ======================================================
+// Resend Customer Verification Email
+// ======================================================
+
+export const resendVerificationSchema = {
+  body: Joi.object({
+    email: Joi.string()
+      .email()
+      .lowercase()
+      .required(),
+  }),
+};
