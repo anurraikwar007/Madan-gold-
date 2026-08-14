@@ -113,14 +113,8 @@ const AppLayout = () => {
           {/* ADMIN DASHBOARD */}
 
           <Route
-            path="/admin"
-            element={
-              <ProtectedRoute
-                adminOnly={true}
-              >
-                <Admin />
-              </ProtectedRoute>
-            }
+            path="/admin/*"
+            element={<Admin />}
           />
 
         </Routes>
