@@ -32,11 +32,14 @@ class DashboardRepository {
   // Revenue
   // ==========================================
 
-  async revenue() {
+  async revenue(
+      rangeFilter = {}
+    ) {
 
     const result = await Order.aggregate([
       {
         $match: {
+          ...rangeFilter,
           paymentStatus: "Paid",
           orderStatus: "Delivered",
         },
@@ -99,9 +102,12 @@ class DashboardRepository {
   // Recent Orders
   // ==========================================
 
-  async recentOrders(limit = 10) {
+  async recentOrders(
+  limit = 10,
+      rangeFilter = {}
+    ) {
 
-    return Order.find()
+    return Order.find(rangeFilter)
       .populate("customer")
       .sort({
         createdAt: -1,

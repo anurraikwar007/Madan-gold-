@@ -97,157 +97,341 @@ export const createProduct = async (
 // Get Products
 // ======================================================
 
-export const getAllProducts = async ({
+    export const getAllProducts = async ({
 
-  page = 1,
+      page = 1,
 
-  limit = 10,
+      limit = 10,
 
-  search = "",
+      search = "",
 
-  category,
+      category,
 
-  metal,
+      metal,
 
-  purity,
+      purity,
 
-  gender,
+      gender,
 
-  featured,
+      featured,
 
-  bestseller,
+      bestseller,
 
-  minPrice,
+      minPrice,
 
-  maxPrice,
+      maxPrice,
 
-  sort = "newest",
+      sort = "newest",
 
-}) => {
+    }) => {
 
-  const filter = {
+      const filter = {
 
-    isDeleted: false,
+        isDeleted: false,
 
-    isActive: true,
+        isActive: true,
 
-  };
+      };
 
-  // =====================================
-  // Search
-  // =====================================
+      // =====================================
+      // Search
+      // =====================================
 
-  if (search) {
+      if (search) {
 
-    filter.$text = {
+        filter.$text = {
 
-      $search: search,
+          $search: search,
+
+        };
+
+      }
+
+      // =====================================
+      // Filters
+      // =====================================
+
+      if (category)
+        filter.category = category;
+
+      if (metal)
+        filter.metal = metal;
+
+      if (purity)
+        filter.purity = purity;
+
+      if (gender)
+        filter.gender = gender;
+
+      if (featured !== undefined)
+        filter.featured = featured;
+
+      if (bestseller !== undefined)
+        filter.bestseller = bestseller;
+        // =====================================
+      // Price Filter
+      // =====================================
+
+      if (minPrice || maxPrice) {
+
+        filter.price = {};
+
+        if (minPrice) {
+          filter.price.$gte = Number(minPrice);
+        }
+
+        if (maxPrice) {
+          filter.price.$lte = Number(maxPrice);
+        }
+
+      }
+
+      // =====================================
+      // Sorting
+      // =====================================
+
+      let sortOption = {
+        createdAt: -1,
+      };
+
+      switch (sort) {
+
+        case "price_low":
+
+          sortOption = {
+            price: 1,
+          };
+
+          break;
+
+        case "price_high":
+
+          sortOption = {
+            price: -1,
+          };
+
+          break;
+
+        case "rating":
+
+          sortOption = {
+            averageRating: -1,
+          };
+
+          break;
+
+        case "popular":
+
+          sortOption = {
+            totalReviews: -1,
+          };
+
+          break;
+
+        default:
+
+          sortOption = {
+            createdAt: -1,
+          };
+
+      }
+
+      // =====================================
+      // Pagination
+      // =====================================
+
+      const skip =
+        (page - 1) * limit;
+
+      const [
+        products,
+        totalProducts,
+      ] = await Promise.all([
+
+        ProductRepository.find(
+          filter,
+          {
+            skip,
+            limit,
+            sort: sortOption,
+          }
+        ),
+
+        ProductRepository.count(filter),
+
+      ]);
+
+      return {
+
+        products,
+
+        pagination: {
+
+          total: totalProducts,
+
+          page: Number(page),
+
+          limit: Number(limit),
+
+          totalPages: Math.ceil(
+            totalProducts / limit
+          ),
+
+        },
+
+      };
 
     };
 
+ //======================================================
+//  Get Admin Products
+// ======================================================
+
+  export const getAdminProducts = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  category,
+  metal,
+  purity,
+  gender,
+  featured,
+  bestseller,
+  isActive,
+  isDeleted,
+  minPrice,
+  maxPrice,
+  sort = "newest",
+}) => {
+  page = Math.max(Number(page) || 1, 1);
+  limit = Math.min(
+    Math.max(Number(limit) || 10, 1),
+    100
+  );
+
+  const filter = {};
+
+  // Deleted filter
+  if (isDeleted !== undefined) {
+    filter.isDeleted =
+      isDeleted === true ||
+      isDeleted === "true";
+  } else {
+    filter.isDeleted = false;
   }
 
-  // =====================================
-  // Filters
-  // =====================================
+  // Active filter
+  if (isActive !== undefined) {
+    filter.isActive =
+      isActive === true ||
+      isActive === "true";
+  }
 
-  if (category)
+  // Search
+  if (search) {
+    filter.$text = {
+      $search: search,
+    };
+  }
+
+  if (category) {
     filter.category = category;
+  }
 
-  if (metal)
+  if (metal) {
     filter.metal = metal;
+  }
 
-  if (purity)
+  if (purity) {
     filter.purity = purity;
+  }
 
-  if (gender)
+  if (gender) {
     filter.gender = gender;
+  }
 
-  if (featured !== undefined)
-    filter.featured = featured;
+  if (featured !== undefined) {
+    filter.featured =
+      featured === true ||
+      featured === "true";
+  }
 
-  if (bestseller !== undefined)
-    filter.bestseller = bestseller;
-    // =====================================
-  // Price Filter
-  // =====================================
+  if (bestseller !== undefined) {
+    filter.bestseller =
+      bestseller === true ||
+      bestseller === "true";
+  }
 
-  if (minPrice || maxPrice) {
-
+  // Price
+  if (
+    minPrice !== undefined ||
+    maxPrice !== undefined
+  ) {
     filter.price = {};
 
-    if (minPrice) {
+    if (minPrice !== undefined) {
       filter.price.$gte = Number(minPrice);
     }
 
-    if (maxPrice) {
+    if (maxPrice !== undefined) {
       filter.price.$lte = Number(maxPrice);
     }
-
   }
-
-  // =====================================
-  // Sorting
-  // =====================================
 
   let sortOption = {
     createdAt: -1,
   };
 
   switch (sort) {
-
     case "price_low":
-
       sortOption = {
         price: 1,
       };
-
       break;
 
     case "price_high":
-
       sortOption = {
         price: -1,
       };
-
       break;
 
     case "rating":
-
       sortOption = {
         averageRating: -1,
       };
-
       break;
 
-    case "popular":
-
+    case "stock_low":
       sortOption = {
-        totalReviews: -1,
+        "inventory.availableStock": 1,
       };
+      break;
 
+    case "stock_high":
+      sortOption = {
+        "inventory.availableStock": -1,
+      };
+      break;
+
+    case "oldest":
+      sortOption = {
+        createdAt: 1,
+      };
       break;
 
     default:
-
       sortOption = {
         createdAt: -1,
       };
-
   }
-
-  // =====================================
-  // Pagination
-  // =====================================
 
   const skip =
     (page - 1) * limit;
 
   const [
     products,
-    totalProducts,
+    total,
   ] = await Promise.all([
-
     ProductRepository.find(
       filter,
       {
@@ -258,29 +442,26 @@ export const getAllProducts = async ({
     ),
 
     ProductRepository.count(filter),
-
   ]);
 
   return {
-
     products,
 
     pagination: {
+      total,
+      page,
+      limit,
+      totalPages:
+        Math.ceil(total / limit),
 
-      total: totalProducts,
+      hasNextPage:
+        page <
+        Math.ceil(total / limit),
 
-      page: Number(page),
-
-      limit: Number(limit),
-
-      totalPages: Math.ceil(
-        totalProducts / limit
-      ),
-
+      hasPrevPage:
+        page > 1,
     },
-
   };
-
 };
 
 // ======================================================

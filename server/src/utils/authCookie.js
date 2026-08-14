@@ -5,10 +5,10 @@ const getCookieOptions = () => ({
 
   secure: env.REFRESH_COOKIE_SECURE,
 
-  sameSite:
-    env.NODE_ENV === "production"
-      ? "lax"
-      : "lax",
+    sameSite:
+      env.NODE_ENV === "production"
+        ? "none"
+        : "lax",
 
   maxAge:
     env.REFRESH_TOKEN_DAYS *

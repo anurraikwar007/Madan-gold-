@@ -11,6 +11,8 @@ const requiredEnv = [
   "CLOUDINARY_CLOUD_NAME",
   "CLOUDINARY_API_KEY",
   "CLOUDINARY_API_SECRET",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD",
 ];
 
 if (process.env.NODE_ENV !== "test") {

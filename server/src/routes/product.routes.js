@@ -11,6 +11,11 @@ import {
   updateProductSchema,
 } from "../validators/product.validator.js";
 
+import {
+  multipleUpload,
+  uploadErrorHandler,
+} from "../middleware/upload.middleware.js";
+
 const router = express.Router();
 
 /*
@@ -36,6 +41,15 @@ router.get(
 Admin Routes
 =====================================
 */
+
+router.post(
+  "/upload-images",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
+  multipleUpload("images", 10),
+  uploadErrorHandler,
+  ProductController.uploadImages
+);
 
 // Create Product
 router.post(

@@ -11,8 +11,10 @@ export const orderQueryDTO = (query) => {
 
         search: query.search?.trim() || "",
 
-        status: query.status || "",
-
+        status:
+                query.status ||
+                query.orderStatus ||
+                "",
         paymentStatus:
             query.paymentStatus || "",
 

@@ -4,6 +4,7 @@ import { apiResponse } from "../utils/apiResponse.js";
 import {
   createProduct,
   getAllProducts,
+  getAdminProducts,
   getProductById,
   updateProduct,
   deleteProduct,
@@ -13,6 +14,10 @@ import {
   getRelatedProducts,
   searchSuggestions,
 } from "../services/product.service.js";
+
+import {
+  multipleUpload,
+} from "../middleware/upload.middleware.js";
 
 class ProductController {
   // Create Product
@@ -43,6 +48,19 @@ class ProductController {
       )
     );
   });
+  
+  //Get AdminAll Product
+      getAdminAll = asyncHandler(async (req, res) => {
+      const data =
+        await getAdminProducts(req.query);
+
+      return res.status(200).json(
+        apiResponse.success(
+          "Admin products fetched successfully.",
+          data
+        )
+      );
+    });
 
   // Get Product By ID
  getOne = asyncHandler(async (req, res) => {
@@ -175,6 +193,35 @@ class ProductController {
       )
     );
   });
+
+  uploadImages = asyncHandler(async (req, res) => {
+  const files = req.files || [];
+
+  if (!files.length) {
+    return res.status(400).json(
+      apiResponse.error(
+        "At least one image is required."
+      )
+    );
+  }
+
+  const images = files.map((file, index) => ({
+    public_id:
+      file.filename || file.public_id,
+    url:
+      file.path || file.secure_url,
+    alt: "",
+    isPrimary: index === 0,
+  }));
+
+  return res.status(200).json(
+    apiResponse.success(
+      "Product images uploaded successfully.",
+      images
+    )
+  );
+});
+
 }
 
 export default new ProductController();

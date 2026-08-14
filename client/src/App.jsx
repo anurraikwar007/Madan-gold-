@@ -2,6 +2,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
+  useLocation,
 } from "react-router-dom";
 
 import Navbar from "./components/layout/Navbar";
@@ -18,10 +19,121 @@ import Login from "./pages/Login";
 import VerifyEmail from "./pages/VerifyEmail";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
+
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 
 import ProtectedRoute from "./components/common/ProtectedRoute";
+
+const AppLayout = () => {
+  const location = useLocation();
+
+  const isAdminRoute =
+    location.pathname.startsWith(
+      "/admin"
+    );
+
+  return (
+    <div className="min-h-screen bg-[#FAF9F6] text-[#111111] flex flex-col">
+
+      {!isAdminRoute && (
+        <Navbar />
+      )}
+
+      <main
+        className={
+          isAdminRoute
+            ? "flex-1"
+            : "flex-1 pt-[78px] md:pt-[86px] pb-28 lg:pb-0"
+        }
+      >
+
+        <Routes>
+
+          {/* CUSTOMER ROUTES */}
+
+          <Route
+            path="/"
+            element={<Home />}
+          />
+
+          <Route
+            path="/shop"
+            element={<Shop />}
+          />
+
+          <Route
+            path="/product/:id"
+            element={
+              <ProductDetail />
+            }
+          />
+
+          <Route
+            path="/cart"
+            element={<Cart />}
+          />
+
+          <Route
+            path="/wishlist"
+            element={<Wishlist />}
+          />
+
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+
+          <Route
+            path="/verify-email"
+            element={
+              <VerifyEmail />
+            }
+          />
+
+          <Route
+            path="/signup"
+            element={<Signup />}
+          />
+
+          <Route
+            path="/checkout"
+            element={<Checkout />}
+          />
+
+          {/* ADMIN LOGIN */}
+
+          <Route
+            path="/admin/login"
+            element={
+              <AdminLogin />
+            }
+          />
+
+          {/* ADMIN DASHBOARD */}
+
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute
+                adminOnly={true}
+              >
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+
+        </Routes>
+
+      </main>
+
+      {!isAdminRoute && (
+        <Footer />
+      )}
+
+    </div>
+  );
+};
 
 function App() {
   return (
@@ -29,86 +141,7 @@ function App() {
 
       <ScrollToTop />
 
-      <div className="min-h-screen bg-[#FAF9F6] text-[#111111] flex flex-col">
-
-        <Navbar />
-
-        <main className="flex-1 pt-[78px] md:pt-[86px] pb-28 lg:pb-0">
-
-          <Routes>
-
-            <Route
-              path="/"
-              element={<Home />}
-            />
-
-            <Route
-              path="/shop"
-              element={<Shop />}
-            />
-
-            <Route
-              path="/product/:id"
-              element={<ProductDetail />}
-            />
-
-            <Route
-              path="/cart"
-              element={<Cart />}
-            />
-
-            <Route
-              path="/wishlist"
-              element={<Wishlist />}
-            />
-
-            <Route
-              path="/login"
-              element={<Login />}
-            />
-
-            <Route
-              path="/verify-email"
-              element={<VerifyEmail />}
-            />
-
-            <Route
-              path="/signup"
-              element={<Signup />}
-            />
-
-            <Route
-              path="/checkout"
-              element={<Checkout />}
-            />
-
-            {/* ADMIN LOGIN */}
-
-            <Route
-              path="/admin/login"
-              element={<AdminLogin />}
-            />
-
-            {/* ADMIN PANEL */}
-
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute
-                  adminOnly={true}
-                >
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-
-          </Routes>
-
-        </main>
-
-        <Footer />
-
-      </div>
+      <AppLayout />
 
     </Router>
   );

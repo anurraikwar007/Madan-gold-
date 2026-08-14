@@ -83,19 +83,21 @@ export const login = asyncHandler(
 
     admin.password = undefined;
 
-    setRefreshTokenCookie(
-      res,
-      refreshToken.token
-    );
+      const adminData =
+        admin.toObject();
 
-    return res.status(200).json(
+      delete adminData.password;
+
+      return res.status(200).json(
       apiResponse.success(
         "Login successful",
         {
           accessToken,
-          admin,
+
+          admin: adminData,
+
           refreshTokenExpiresAt:
-            refreshToken.expiresAt,
+          refreshToken.expiresAt,
         }
       )
     );
@@ -111,9 +113,11 @@ export const logout = asyncHandler(
     const refreshToken =
       getRefreshTokenFromRequest(req);
 
-    await revokeRefreshToken(
-      refreshToken
-    );
+    if (refreshToken) {
+      await revokeRefreshToken(
+        refreshToken
+      );
+    }
 
     clearRefreshTokenCookie(res);
 

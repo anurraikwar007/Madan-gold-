@@ -17,12 +17,20 @@ import {
   adminLoginSchema,
 } from "../validators/auth.validator.js";
 
+import {
+  createProductSchema,
+  updateProductSchema,
+} from "../validators/product.validator.js";
 
 import ProductController from "../controllers/product.controller.js";
 import CategoryController from "../controllers/category.controller.js";
 import CouponController from "../controllers/coupon.controller.js";
 import OrderController from "../controllers/order.controller.js";
 import DashboardController from "../controllers/dashboard.controller.js";
+import {
+  multipleUpload,
+  uploadErrorHandler,
+} from "../middleware/upload.middleware.js";
 
 
 const router = Router();
@@ -118,14 +126,27 @@ Products Management
 
 
 /**
+ * @route   POST /api/v1/admin/products/upload-images
+ * @desc    Upload product images
+ * @access  Private (Admin)
+ */
+router.post(
+  "/products/upload-images",
+  multipleUpload("images", 10),
+  uploadErrorHandler,
+  ProductController.uploadImages
+);
+
+/**
  * @route   POST /api/v1/admin/products
  * @desc    Create product
  * @access  Private (Admin)
  */
-router.post(
-  "/products",
-  ProductController.create
-);
+  router.post(
+    "/products",
+    validate(createProductSchema),
+    ProductController.create
+  );
 
 
 
@@ -136,9 +157,8 @@ router.post(
  */
 router.get(
   "/products",
-  ProductController.getAll
+  ProductController.getAdminAll
 );
-
 
 
 /**
@@ -158,10 +178,11 @@ router.get(
  * @desc    Update product
  * @access  Private (Admin)
  */
-router.put(
-  "/products/:id",
-  ProductController.update
-);
+  router.put(
+    "/products/:id",
+    validate(updateProductSchema),
+    ProductController.update
+  );
 
 
 

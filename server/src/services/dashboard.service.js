@@ -89,90 +89,68 @@ class DashboardService {
 
     }
 
-      async getDashboard() {
+  async getDashboard(range = "all") {
+   const filter = getDateFilter(range);
 
-      const [
+  const [
+    productStats,
+    categoryStats,
+    customerStats,
+    orderStats,
+    revenueStats,
+    pendingOrders,
+    recentOrders,
+    lowStockProducts,
+  ] = await Promise.all([
+    this.getProductStatistics(),
 
-        productStats,
+    this.getCategoryStatistics(),
 
-        categoryStats,
+    this.getCustomerStatistics(),
 
-        customerStats,
+    this.getOrderStatistics(filter),
 
-        orderStats,
+    this.getRevenueStatistics(filter),
 
-        revenueStats,
+    this.getPendingOrders(filter),
 
-        pendingOrders,
+    this.getRecentOrders(10, filter),
 
-        recentOrders,
+    DashboardRepository.lowStock(),
+  ]);
 
-        lowStockProducts,
+  return {
+    range,
 
-      ] = await Promise.all([
+    overview: {
+      products: productStats.totalProducts,
+      activeProducts: productStats.activeProducts,
 
-        this.getProductStatistics(),
+      categories: categoryStats.totalCategories,
+      activeCategories: categoryStats.activeCategories,
 
-        this.getCategoryStatistics(),
+      customers: customerStats.totalCustomers,
 
-        this.getCustomerStatistics(),
+      orders: orderStats.totalOrders,
 
-        this.getOrderStatistics(),
+      revenue: revenueStats.totalRevenue,
+    },
 
-        this.getRevenueStatistics(),
+    orders: {
+      pending: pendingOrders,
+      completed: orderStats.completedOrders,
+      cancelled: orderStats.cancelledOrders,
+    },
 
-        this.getPendingOrders(),
+    inventory: {
+      lowStock: lowStockProducts.length,
+    },
 
-        this.getRecentOrders(),
+    recentOrders,
 
-        DashboardRepository.lowStock(),
-
-      ]);
-
-      return {
-
-        overview: {
-
-          products: productStats.totalProducts,
-
-          activeProducts: productStats.activeProducts,
-
-          categories: categoryStats.totalCategories,
-
-          activeCategories: categoryStats.activeCategories,
-
-          customers: customerStats.totalCustomers,
-
-          orders: orderStats.totalOrders,
-
-          revenue: revenueStats.totalRevenue,
-
-        },
-
-        orders: {
-
-          pending: pendingOrders,
-
-          completed: orderStats.completedOrders,
-
-          cancelled: orderStats.cancelledOrders,
-
-        },
-
-        inventory: {
-
-          lowStock: lowStockProducts.length,
-
-        },
-
-        recentOrders,
-
-        lowStockProducts,
-
-      };
-
-    }
-
+    lowStockProducts,
+  };
+}
   // =====================================================
   // Product Statistics
   // =====================================================
@@ -211,8 +189,14 @@ class DashboardService {
   // Order Statistics
   // =====================================================
 
-  async getOrderStatistics() {
+  async getOrderStatistics(
+  filter = {}
+) {
     const stats = await Order.aggregate([
+      {
+        $match: filter,
+      },
+
       {
         $group: {
           _id: null,
@@ -224,7 +208,12 @@ class DashboardService {
           pendingOrders: {
             $sum: {
               $cond: [
-                { $eq: ["$orderStatus", "Pending"] },
+                {
+                  $eq: [
+                    "$orderStatus",
+                    "Pending",
+                  ],
+                },
                 1,
                 0,
               ],
@@ -234,7 +223,12 @@ class DashboardService {
           completedOrders: {
             $sum: {
               $cond: [
-                { $eq: ["$orderStatus", "Delivered"] },
+                {
+                  $eq: [
+                    "$orderStatus",
+                    "Delivered",
+                  ],
+                },
                 1,
                 0,
               ],
@@ -244,7 +238,12 @@ class DashboardService {
           cancelledOrders: {
             $sum: {
               $cond: [
-                { $eq: ["$orderStatus", "Cancelled"] },
+                {
+                  $eq: [
+                    "$orderStatus",
+                    "Cancelled",
+                  ],
+                },
                 1,
                 0,
               ],
@@ -268,26 +267,29 @@ class DashboardService {
   // Revenue Statistics
   // =====================================================
 
-      async getRevenueStatistics() {
+     async getRevenueStatistics(
+        filter = {}
+      ) {
         const stats = await Order.aggregate([
           {
-            $match:{
- paymentStatus:"Paid",
- orderStatus:"Delivered"
-           },
+            $match: {
+              ...filter,
+              paymentStatus: "Paid",
+              orderStatus: "Delivered",
+            },
           },
 
           {
             $group: {
               _id: null,
 
-                    totalRevenue: {
+              totalRevenue: {
                 $sum: "$totalAmount",
-            },
+              },
 
-            averageOrderValue: {
+              averageOrderValue: {
                 $avg: "$totalAmount",
-            },
+              },
             },
           },
         ]);
@@ -349,17 +351,23 @@ class DashboardService {
   // Pending Orders Count
   // =====================================================
 
-  async getPendingOrders() {
-    return Order.countDocuments({
-      orderStatus: "Pending",
-    });
-  }
+  async getPendingOrders(
+      filter = {}
+    ) {
+        return Order.countDocuments({
+          ...filter,
+          orderStatus: "Pending",
+        });
+    }
     // =====================================================
   // Recent Orders
   // =====================================================
 
-  async getRecentOrders(limit = 10) {
-    return Order.find()
+  async getRecentOrders(
+  limit = 10,
+  filter = {}
+) {
+    return Order.find(filter)
       .populate(
         "customer",
         "name email"
@@ -369,7 +377,7 @@ class DashboardService {
       })
       .limit(limit)
       .lean();
-  }
+    }
 
   // =====================================================
   // Monthly Sales (Last 12 Months)

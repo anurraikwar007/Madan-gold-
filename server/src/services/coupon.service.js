@@ -248,17 +248,12 @@ async (
 ) => {
 
   const coupon =
-  await CouponRepository.findOne(
-    {
-      _id: couponId,
-      isDeleted: true,
-    }
-  );
+  await CouponRepository.findOne({
+    _id: couponId,
+    isDeleted: false,
+  });
 
-  if (
-    !coupon ||
-    coupon.isDeleted
-  ) {
+  if (!coupon) {
     throw new Error(
       "Coupon not found."
     );

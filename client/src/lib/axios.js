@@ -36,12 +36,12 @@ api.interceptors.response.use(
     const currentPath = window.location.pathname;
 
     const isAuthRequest =
-      requestUrl.includes("/customers/login") ||
-      requestUrl.includes("/customers/register") ||
-      requestUrl.includes("/customers/resend-verification") ||
-      requestUrl.includes("/customers/verify-email") ||
-      requestUrl.includes("/auth/admin/login") ||
-      requestUrl.includes("/auth/refresh-token");
+    requestUrl.includes("/customers/login") ||
+    requestUrl.includes("/customers/register") ||
+    requestUrl.includes("/customers/resend-verification") ||
+    requestUrl.includes("/customers/verify-email") ||
+    requestUrl.includes("/admin/login") ||
+    requestUrl.includes("/auth/refresh-token");
 
     if (status === 401 && !isAuthRequest) {
       localStorage.removeItem("token");

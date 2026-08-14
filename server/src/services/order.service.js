@@ -718,8 +718,8 @@ export const getAdminOrders = async (query) => {
 
     const filter = {};
 
-    if (dto.orderStatus) {
-        filter.orderStatus = dto.orderStatus;
+    if (dto.status) {
+        filter.orderStatus = dto.status;
     }
 
     if (dto.paymentStatus) {
