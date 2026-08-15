@@ -10,6 +10,13 @@ import ApiError from "../utils/apiError.js";
 import Order from "../models/order.model.js";
 import CouponRepository from "../repositories/coupon.repository.js";
 
+import {
+  StandardCheckoutPayRequest,
+} from "@phonepe-pg/pg-sdk-node";
+
+import { getPhonePeClient } from "../config/phonepe.js";
+import { env } from "../config/env.js";
+
 // ======================================================
 // Submit Payment
 // ======================================================
@@ -412,6 +419,26 @@ export const verifyPayment = async (
       }
 
       // =====================================
+      // Coupon Rollback
+      // =====================================
+
+      if (order.coupon) {
+
+        const couponRestored =
+          await CouponRepository.decreaseUsage(
+            order.coupon,
+            session
+          );
+
+        if (!couponRestored) {
+          throw new ApiError(
+            409,
+            "Coupon usage rollback failed."
+          );
+        }
+      }
+
+      // =====================================
       // Update Order
       // =====================================
 
@@ -583,11 +610,14 @@ export const getPaymentDetails = async (
 
   // Customer sirf apna payment dekh sakta hai
 
-  if (user.role !== "Admin") {
-    query.customer =
-      user._id;
-  }
-
+ if (
+      !["Admin", "SuperAdmin"].includes(
+        user.role
+      )
+    ) {
+      query.customer =
+        user._id;
+    }
   const order =
     await Order.findOne(query)
       .populate(
@@ -669,4 +699,697 @@ async () => {
 
   };
 
+};
+
+// ======================================================
+// PhonePe - Initiate Payment
+// ======================================================
+
+export const initiatePhonePePayment = async (
+  customerId,
+  orderId
+) => {
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(
+      400,
+      "Invalid order id."
+    );
+  }
+
+  const order =
+    await OrderRepository.findOne({
+      _id: orderId,
+      customer: customerId,
+    });
+
+  if (!order) {
+    throw new ApiError(
+      404,
+      "Order not found."
+    );
+  }
+
+  if (
+    order.paymentMethod !== "PHONEPE"
+  ) {
+    throw new ApiError(
+      400,
+      "This order is not a PhonePe order."
+    );
+  }
+
+  if (
+    order.orderStatus === "Cancelled"
+  ) {
+    throw new ApiError(
+      400,
+      "Cancelled order cannot be paid."
+    );
+  }
+
+  if (
+    order.paymentStatus === "Paid"
+  ) {
+    throw new ApiError(
+      400,
+      "Order is already paid."
+    );
+  }
+
+  if (
+    order.paymentRedirectUrl &&
+    order.phonePeMerchantOrderId &&
+    order.paymentStatus === "Pending"
+  ) {
+    return {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      paymentStatus: order.paymentStatus,
+      paymentUrl: order.paymentRedirectUrl,
+    };
+  }
+
+  const merchantOrderId =
+    order.orderNumber;
+
+  const amount =
+    Math.round(
+      Number(order.totalAmount) * 100
+    );
+
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new ApiError(
+      400,
+      "Invalid order amount."
+    );
+  }
+
+  const request =
+    StandardCheckoutPayRequest.builder()
+      .merchantOrderId(
+        merchantOrderId
+      )
+      .amount(amount)
+      .redirectUrl(
+        env.PHONEPE_REDIRECT_URL
+      )
+      .build();
+
+  let response;
+
+  try {
+    const client =
+      getPhonePeClient();
+
+    response =
+      await client.pay(request);
+
+  } catch (error) {
+
+    console.error(
+      "PhonePe payment initiation failed:",
+      error
+    );
+
+    throw new ApiError(
+      502,
+      "Unable to initiate PhonePe payment."
+    );
+  }
+
+  if (!response?.redirectUrl) {
+    throw new ApiError(
+      502,
+      "PhonePe did not return a payment URL."
+    );
+  }
+
+  order.phonePeMerchantOrderId =
+    merchantOrderId;
+
+  order.phonePeOrderId =
+    response.orderId ||
+    "";
+
+  order.paymentRedirectUrl =
+    response.redirectUrl;
+
+  order.phonePeState =
+    response.state ||
+    "PENDING";
+
+  order.paymentStatus =
+    "Pending";
+
+  await order.save();
+
+  return {
+    orderId: order._id,
+    orderNumber:
+      order.orderNumber,
+    paymentStatus:
+      order.paymentStatus,
+    paymentUrl:
+      order.paymentRedirectUrl,
+  };
+};
+
+// ======================================================
+// PhonePe Failed Payment Handler
+// ======================================================
+
+const handlePhonePePaymentFailure = async (
+  order
+) => {
+
+  const session =
+    await mongoose.startSession();
+
+  session.startTransaction();
+
+  try {
+
+    const freshOrder =
+      await OrderRepository.findById(
+        order._id,
+        {
+          session,
+          lean: false,
+        }
+      );
+
+    if (!freshOrder) {
+      throw new ApiError(
+        404,
+        "Order not found."
+      );
+    }
+
+    // Already processed
+    if (
+      freshOrder.paymentStatus ===
+      "Rejected"
+    ) {
+      await session.commitTransaction();
+      session.endSession();
+
+      return freshOrder;
+    }
+
+    // ==========================================
+    // Release Reserved Inventory
+    // ==========================================
+
+    for (const item of freshOrder.items) {
+
+      const updated =
+        await ProductRepository.findOneAndUpdate(
+          {
+            _id: item.product,
+            "inventory.reservedStock": {
+              $gte: item.quantity,
+            },
+          },
+          {
+            $inc: {
+              "inventory.reservedStock":
+                -item.quantity,
+
+              "inventory.availableStock":
+                item.quantity,
+            },
+          },
+          {
+            session,
+          }
+        );
+
+      if (!updated) {
+        throw new ApiError(
+          409,
+          `Inventory release failed for ${item.product}.`
+        );
+      }
+    }
+
+    // ==========================================
+    // Restore Coupon
+    // ==========================================
+
+    if (freshOrder.coupon) {
+
+      const restored =
+        await CouponRepository.decreaseUsage(
+          freshOrder.coupon,
+          session
+        );
+
+      if (!restored) {
+        throw new ApiError(
+          409,
+          "Coupon usage rollback failed."
+        );
+      }
+    }
+
+    // ==========================================
+    // Update Order
+    // ==========================================
+
+    freshOrder.paymentStatus =
+      "Rejected";
+
+    freshOrder.orderStatus =
+      "Cancelled";
+
+    freshOrder.paymentRemark =
+      "PhonePe payment failed.";
+
+    freshOrder.cancelReason =
+      "PhonePe payment failed.";
+
+    freshOrder.cancelledAt =
+      new Date();
+
+    await freshOrder.save({
+      session,
+    });
+
+    // ==========================================
+    // Audit
+    // ==========================================
+
+    await AuditService.log({
+      entityType: "Payment",
+      entityId: freshOrder._id,
+      action: "PHONEPE_PAYMENT_FAILED",
+
+      performedBy:
+        freshOrder.customer,
+
+      performedByModel:
+        "Customer",
+
+      changes: [
+        {
+          field: "paymentStatus",
+          oldValue:
+            "Pending",
+          newValue:
+            "Rejected",
+        },
+        {
+          field: "orderStatus",
+          oldValue:
+            "Pending",
+          newValue:
+            "Cancelled",
+        },
+      ],
+
+      session,
+    });
+
+    await session.commitTransaction();
+
+    session.endSession();
+
+    return freshOrder;
+
+  } catch (error) {
+
+    await session.abortTransaction();
+
+    session.endSession();
+
+    throw error;
+  }
+};
+
+//=========================================================
+//PhonePe- PaymentStatus
+//=========================================================
+
+export const getPhonePePaymentStatus = async (
+  customerId,
+  orderId
+) => {
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new ApiError(
+      400,
+      "Invalid order id."
+    );
+  }
+
+  const order =
+    await OrderRepository.findOne({
+      _id: orderId,
+      customer: customerId,
+    });
+
+  if (!order) {
+    throw new ApiError(
+      404,
+      "Order not found."
+    );
+  }
+
+  if (order.paymentMethod !== "PHONEPE") {
+    throw new ApiError(
+      400,
+      "This order is not a PhonePe order."
+    );
+  }
+
+  if (!order.phonePeMerchantOrderId) {
+    throw new ApiError(
+      400,
+      "PhonePe payment has not been initiated."
+    );
+  }
+
+  if (order.paymentStatus === "Paid") {
+    return {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      paymentStatus: "Paid",
+      orderStatus: order.orderStatus,
+      phonePeState: order.phonePeState,
+      transactionId:
+        order.phonePeTransactionId || "",
+    };
+  }
+
+  if (order.orderStatus === "Cancelled") {
+    throw new ApiError(
+      400,
+      "Cancelled order payment cannot be checked."
+    );
+  }
+
+  const client = getPhonePeClient();
+
+  let response;
+
+  try {
+    response =
+      await client.getOrderStatus(
+        order.phonePeMerchantOrderId
+      );
+  } catch (error) {
+    console.error(
+      "PhonePe status check failed:",
+      error
+    );
+
+    throw new ApiError(
+      502,
+      "Unable to check PhonePe payment status."
+    );
+  }
+
+  const state =
+    String(
+      response?.state || ""
+    ).toUpperCase();
+
+  const transactionId =
+    response?.paymentDetails?.[0]
+      ?.transactionId || "";
+
+  order.phonePeState = state;
+
+  if (transactionId) {
+    order.phonePeTransactionId =
+      transactionId;
+  }
+
+  // ==========================================
+  // PAYMENT SUCCESS
+  // ==========================================
+
+  if (state === "COMPLETED") {
+    order.paymentStatus = "Paid";
+
+    order.paymentVerifiedAt =
+      new Date();
+
+    if (
+      order.orderStatus === "Pending"
+    ) {
+      order.orderStatus =
+        "Confirmed";
+    }
+
+    order.paymentRemark =
+      "PhonePe payment successful.";
+  }
+
+  // ==========================================
+  // PAYMENT FAILED
+  // ==========================================
+
+ else if (
+  state === "FAILED"
+) {
+
+  const failedOrder =
+    await handlePhonePePaymentFailure(
+      order
+    );
+
+  return {
+    orderId:
+      failedOrder._id,
+
+    orderNumber:
+      failedOrder.orderNumber,
+
+    paymentStatus:
+      failedOrder.paymentStatus,
+
+    orderStatus:
+      failedOrder.orderStatus,
+
+    phonePeState:
+      failedOrder.phonePeState,
+
+    transactionId:
+      failedOrder.phonePeTransactionId ||
+      "",
+  };
+}
+
+  // ==========================================
+  // PAYMENT PENDING
+  // ==========================================
+
+  else {
+    order.paymentStatus =
+      "Pending";
+  }
+
+  await order.save();
+
+  return {
+    orderId: order._id,
+    orderNumber:
+      order.orderNumber,
+    paymentStatus:
+      order.paymentStatus,
+    orderStatus:
+      order.orderStatus,
+    phonePeState:
+      state,
+    transactionId,
+  };
+};
+
+// ======================================================
+// PhonePe Callback
+// ======================================================
+
+export const handlePhonePeCallback = async (
+  authorization,
+  body
+) => {
+
+  if (
+    !env.PHONEPE_CALLBACK_USERNAME ||
+    !env.PHONEPE_CALLBACK_PASSWORD
+  ) {
+    throw new ApiError(
+      503,
+      "PhonePe callback credentials are not configured."
+    );
+  }
+
+  if (!authorization) {
+    throw new ApiError(
+      401,
+      "PhonePe callback authorization is missing."
+    );
+  }
+
+  const client =
+    getPhonePeClient();
+
+  let callback;
+
+  try {
+
+    callback =
+      await client.validateCallback(
+        env.PHONEPE_CALLBACK_USERNAME,
+        env.PHONEPE_CALLBACK_PASSWORD,
+        authorization,
+        JSON.stringify(body)
+      );
+
+  } catch (error) {
+
+    console.error(
+      "PhonePe callback validation failed:",
+      error
+    );
+
+    throw new ApiError(
+      401,
+      "Invalid PhonePe callback."
+    );
+  }
+
+  if (!callback) {
+    throw new ApiError(
+      401,
+      "Invalid PhonePe callback."
+    );
+  }
+
+  const merchantOrderId =
+    body?.payload?.merchantOrderId ||
+    body?.data?.merchantOrderId ||
+    body?.merchantOrderId ||
+    null;
+
+  if (!merchantOrderId) {
+    throw new ApiError(
+      400,
+      "PhonePe merchant order ID is missing."
+    );
+  }
+
+  const order =
+    await OrderRepository.findOne({
+      phonePeMerchantOrderId:
+        merchantOrderId,
+  });
+
+  if (!order) {
+    throw new ApiError(
+      404,
+      "Order linked to PhonePe callback not found."
+    );
+  }
+
+  // ==========================================
+  // IMPORTANT:
+  // Do NOT trust callback status directly.
+  // Verify using PhonePe Status API.
+  // ==========================================
+
+  const response =
+    await client.getOrderStatus(
+      merchantOrderId
+    );
+
+  const state =
+    String(
+      response?.state || ""
+    ).toUpperCase();
+
+  const transactionId =
+    response?.paymentDetails?.[0]
+      ?.transactionId || "";
+
+  order.phonePeState =
+    state;
+
+  if (transactionId) {
+    order.phonePeTransactionId =
+      transactionId;
+  }
+
+  // ==========================================
+  // SUCCESS
+  // ==========================================
+
+  if (state === "COMPLETED") {
+
+    order.paymentStatus =
+      "Paid";
+
+    order.paymentVerifiedAt =
+      new Date();
+
+    order.paymentRemark =
+      "PhonePe payment successful.";
+
+    if (
+      order.orderStatus ===
+      "Pending"
+    ) {
+      order.orderStatus =
+        "Confirmed";
+    }
+
+    await order.save();
+
+  }
+
+  // ==========================================
+  // FAILED
+  // ==========================================
+
+  else if (
+    state === "FAILED"
+  ) {
+
+    await handlePhonePePaymentFailure(
+      order
+    );
+
+  }
+
+  // ==========================================
+  // PENDING
+  // ==========================================
+
+  else {
+
+    order.paymentStatus =
+      "Pending";
+
+    await order.save();
+  }
+
+  return {
+    orderId:
+      order._id,
+
+    orderNumber:
+      order.orderNumber,
+
+    paymentStatus:
+      order.paymentStatus,
+
+    orderStatus:
+      order.orderStatus,
+
+    phonePeState:
+      state,
+
+    transactionId,
+  };
 };

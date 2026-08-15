@@ -7,7 +7,7 @@ import app from "../../src/app.js";
 
 export async function adminLogin() {
   const response = await request(app)
-    .post("/api/v1/auth/admin/login")
+    .post("/api/v1/admin/login")
     .send({
       email: "admin@madangold.com",
       password: "12345678",

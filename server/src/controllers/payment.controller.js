@@ -6,9 +6,38 @@ import {
   getPendingPayments,
   verifyPayment,
   rejectPayment,
+  getPhonePePaymentStatus,
+  handlePhonePeCallback,
   getPaymentHistory,
   getPaymentDetails,
+  initiatePhonePePayment,
 } from "../services/payment.service.js";
+
+
+// ======================================
+// PhonePe Callback
+// ======================================
+
+export const phonePeCallback =
+  asyncHandler(async (req, res) => {
+
+    const authorization =
+      req.headers.authorization ||
+      req.headers.Authorization;
+
+    const data =
+      await handlePhonePeCallback(
+        authorization,
+        req.body
+      );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "PhonePe callback processed successfully.",
+        data
+      )
+    );
+  });
 
 // ======================================
 // Customer Submit Payment
@@ -119,3 +148,41 @@ export const paymentDetails = asyncHandler(async (req, res) => {
     )
   );
 });
+
+// ======================================
+// PhonePe Initiate Payment
+// ======================================
+
+export const initiatePhonePe = asyncHandler(
+  async (req, res) => {
+
+    const payment =
+      await initiatePhonePePayment(
+        req.user._id,
+        req.body.orderId
+      );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "PhonePe payment initiated successfully.",
+        payment
+      )
+    );
+  }
+);
+
+export const phonePePaymentStatus =
+  asyncHandler(async (req, res) => {
+    const data =
+      await getPhonePePaymentStatus(
+        req.user._id,
+        req.params.orderId
+      );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Payment status fetched successfully.",
+        data
+      )
+    );
+  });

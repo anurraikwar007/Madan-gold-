@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
 import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Plus,
   Pencil,
   Trash2,
-  Plus,
-  Search,
 } from "lucide-react";
 
 import {
@@ -26,51 +29,72 @@ const initialForm = {
   name: "",
   description: "",
   isActive: true,
+  isFeatured: false,
 };
 
 export default function AdminCategories() {
-  const [categories, setCategories] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [categories, setCategories] =
+    useState([]);
 
-  const [editing, setEditing] = useState(null);
-  const [open, setOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+  const [form, setForm] =
+    useState(initialForm);
 
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [search, setSearch] = useState("");
+  const [editing, setEditing] =
+    useState(null);
+
+  const [open, setOpen] =
+    useState(false);
+
+  const [deleteId, setDeleteId] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [saving, setSaving] =
+    useState(false);
 
   const load = async () => {
     setLoading(true);
 
     try {
-      const response = await getAdminCategories({
-        page: 1,
-        limit: 100,
-        search,
-      });
+      const response =
+        await getAdminCategories({
+          page: 1,
+          limit: 100,
+        });
 
       const data = response?.data?.data;
 
       setCategories(
-        data?.categories ||
+        data?.docs ||
+          data?.categories ||
           (Array.isArray(data) ? data : [])
       );
     } catch (error) {
       console.error(
-        "Categories load failed:",
+        "Failed to load categories:",
         error
       );
+
+      setCategories([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+ useEffect(() => {
+      const timer = setTimeout(() => {
+        load();
+      }, 0);
 
-  const updateField = (field, value) => {
+      return () => clearTimeout(timer);
+    }, []);
+
+  const updateField = (
+    field,
+    value
+  ) => {
     setForm((prev) => ({
       ...prev,
       [field]: value,
@@ -79,7 +103,9 @@ export default function AdminCategories() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm(initialForm);
+    setForm({
+      ...initialForm,
+    });
     setOpen(true);
   };
 
@@ -88,10 +114,15 @@ export default function AdminCategories() {
 
     setForm({
       name: category.name || "",
+
       description:
         category.description || "",
+
       isActive:
         category.isActive !== false,
+
+      isFeatured:
+        !!category.isFeatured,
     });
 
     setOpen(true);
@@ -105,10 +136,22 @@ export default function AdminCategories() {
     try {
       const payload = {
         name: form.name.trim(),
+
         description:
           form.description.trim(),
-        isActive: form.isActive,
+
+        isActive:
+          form.isActive,
+
+        isFeatured:
+          form.isFeatured,
       };
+
+      if (!payload.name) {
+        throw new Error(
+          "Category name is required."
+        );
+      }
 
       if (editing) {
         await updateAdminCategory(
@@ -121,6 +164,12 @@ export default function AdminCategories() {
         );
       }
 
+      window.dispatchEvent(
+        new Event(
+          "categories-updated"
+        )
+      );
+
       setOpen(false);
       setEditing(null);
       setForm(initialForm);
@@ -130,6 +179,12 @@ export default function AdminCategories() {
       console.error(
         "Category save failed:",
         error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Category save failed."
       );
     } finally {
       setSaving(false);
@@ -142,7 +197,15 @@ export default function AdminCategories() {
     setSaving(true);
 
     try {
-      await deleteAdminCategory(deleteId);
+      await deleteAdminCategory(
+        deleteId
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "categories-updated"
+        )
+      );
 
       setDeleteId(null);
 
@@ -152,6 +215,12 @@ export default function AdminCategories() {
         "Category delete failed:",
         error
       );
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Category delete failed."
+      );
     } finally {
       setSaving(false);
     }
@@ -160,7 +229,7 @@ export default function AdminCategories() {
   return (
     <AdminPage
       title="Categories"
-      description="Manage product categories"
+      description="Manage product categories used across the store"
       action={
         <AdminButton
           variant="gold"
@@ -171,29 +240,6 @@ export default function AdminCategories() {
         </AdminButton>
       }
     >
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="relative max-w-md">
-          <Search
-            size={17}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                load();
-              }
-            }}
-            placeholder="Search categories..."
-            className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-[#B88A44]"
-          />
-        </div>
-      </div>
-
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] text-left text-sm">
@@ -211,6 +257,10 @@ export default function AdminCategories() {
                   Status
                 </th>
 
+                <th className="px-5 py-4">
+                  Featured
+                </th>
+
                 <th className="px-5 py-4 text-right">
                   Actions
                 </th>
@@ -218,85 +268,97 @@ export default function AdminCategories() {
             </thead>
 
             <tbody>
-              {categories.map(
-                (category) => (
-                  <tr
-                    key={category._id}
-                    className="border-t border-slate-100"
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="px-5 py-10 text-center text-slate-400"
                   >
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">
-                        {category.name}
-                      </p>
-                    </td>
+                    Loading categories...
+                  </td>
+                </tr>
+              ) : categories.length ? (
+                categories.map(
+                  (category) => (
+                    <tr
+                      key={
+                        category._id
+                      }
+                      className="border-t border-slate-100"
+                    >
+                      <td className="px-5 py-4 font-semibold text-slate-800">
+                        {
+                          category.name
+                        }
+                      </td>
 
-                    <td className="max-w-md px-5 py-4 text-slate-500">
-                      <p className="truncate">
+                      <td className="px-5 py-4 text-slate-500">
                         {category.description ||
                           "—"}
-                      </p>
-                    </td>
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          category.isActive !==
-                          false
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {category.isActive !==
-                        false
-                          ? "Active"
-                          : "Inactive"}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() =>
-                            openEdit(
-                              category
-                            )
-                          }
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            category.isActive
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
                         >
-                          <Pencil
-                            size={17}
-                          />
-                        </button>
+                          {category.isActive
+                            ? "Active"
+                            : "Inactive"}
+                        </span>
+                      </td>
 
-                        <button
-                          onClick={() =>
-                            setDeleteId(
-                              category._id
-                            )
-                          }
-                          className="rounded-lg p-2 text-rose-500 hover:bg-rose-50"
-                        >
-                          <Trash2
-                            size={17}
-                          />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      <td className="px-5 py-4">
+                        {category.isFeatured
+                          ? "Yes"
+                          : "No"}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <AdminButton
+                            variant="soft"
+                            onClick={() =>
+                              openEdit(
+                                category
+                              )
+                            }
+                          >
+                            <Pencil
+                              size={15}
+                            />
+                          </AdminButton>
+
+                          <AdminButton
+                            variant="danger"
+                            onClick={() =>
+                              setDeleteId(
+                                category._id
+                              )
+                            }
+                          >
+                            <Trash2
+                              size={15}
+                            />
+                          </AdminButton>
+                        </div>
+                      </td>
+                    </tr>
+                  )
                 )
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="px-5 py-12 text-center text-slate-400"
+                  >
+                    No categories found.
+                  </td>
+                </tr>
               )}
-
-              {!categories.length &&
-                !loading && (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="px-5 py-12 text-center text-slate-400"
-                    >
-                      No categories found.
-                    </td>
-                  </tr>
-                )}
             </tbody>
           </table>
         </div>
@@ -305,14 +367,13 @@ export default function AdminCategories() {
       <AdminModal
         open={open}
         onClose={() =>
-          setOpen(false)
+          !saving && setOpen(false)
         }
         title={
           editing
             ? "Edit Category"
             : "Add Category"
         }
-        width="max-w-xl"
       >
         <form
           onSubmit={save}
@@ -327,53 +388,71 @@ export default function AdminCategories() {
                 e.target.value
               )
             }
-            placeholder="e.g. Rings"
             required
           />
 
           <AdminTextarea
             label="Description"
-            value={form.description}
+            value={
+              form.description
+            }
             onChange={(e) =>
               updateField(
                 "description",
                 e.target.value
               )
             }
-            placeholder="Category description..."
           />
 
-          <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
-            <span className="text-sm font-medium text-slate-700">
-              Active Category
-            </span>
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={
+                  form.isActive
+                }
+                onChange={(e) =>
+                  updateField(
+                    "isActive",
+                    e.target.checked
+                  )
+                }
+              />
+              Active
+            </label>
 
-            <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) =>
-                updateField(
-                  "isActive",
-                  e.target.checked
-                )
-              }
-              className="h-4 w-4 accent-[#B88A44]"
-            />
-          </label>
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={
+                  form.isFeatured
+                }
+                onChange={(e) =>
+                  updateField(
+                    "isFeatured",
+                    e.target.checked
+                  )
+                }
+              />
+              Featured
+            </label>
+          </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
             <AdminButton
               variant="soft"
+              type="button"
               onClick={() =>
                 setOpen(false)
               }
+              disabled={saving}
             >
               Cancel
             </AdminButton>
 
             <AdminButton
-              type="submit"
               variant="gold"
+              type="submit"
               loading={saving}
             >
               {editing
@@ -386,13 +465,14 @@ export default function AdminCategories() {
 
       <AdminConfirm
         open={!!deleteId}
+        loading={saving}
         onCancel={() =>
+          !saving &&
           setDeleteId(null)
         }
         onConfirm={remove}
-        loading={saving}
-        title="Delete Category?"
-        message="This category will be removed from the admin catalogue."
+        title="Delete category?"
+        message="This category will be removed from the active category list."
       />
     </AdminPage>
   );

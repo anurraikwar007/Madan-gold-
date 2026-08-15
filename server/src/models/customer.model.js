@@ -91,6 +91,18 @@ const customerSchema = new mongoose.Schema(
       default: null,
     },
 
+    emailVerificationAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+
+    emailVerificationLockedUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
     isActive: {
       type: Boolean,
       default: true,

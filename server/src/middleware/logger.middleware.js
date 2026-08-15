@@ -50,16 +50,12 @@ const loggerMiddleware = (req, res, next) => {
         req.params,
 
       authenticatedUser:
-        req.customer?._id ||
-        req.admin?._id ||
-        null,
+      req.user?._id ||
+      null,
 
-      role:
-        req.admin
-          ? "Admin"
-          : req.customer
-          ? "Customer"
-          : "Guest",
+    role:
+      req.user?.role ||
+      "Guest",
     });
   });
 

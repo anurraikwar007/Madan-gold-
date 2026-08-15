@@ -142,10 +142,10 @@ const orderSchema = new mongoose.Schema(
     },
 
     paymentMethod: {
-      type: String,
-      enum: ["COD", "UPI"],
-      default: "UPI",
-    },
+        type: String,
+        enum: ["COD", "PHONEPE", "UPI"],
+        default: "PHONEPE",
+      },
 
     paymentStatus: {
       type: String,
@@ -159,6 +159,37 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
       
     },
+
+    phonePeMerchantOrderId: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+      },
+
+        phonePeOrderId: {
+          type: String,
+          default: "",
+          trim: true,
+        },
+
+        phonePeTransactionId: {
+          type: String,
+          default: "",
+          trim: true,
+        },
+
+        phonePeState: {
+          type: String,
+          default: "",
+          trim: true,
+        },
+
+        paymentRedirectUrl: {
+          type: String,
+          default: "",
+          trim: true,
+        },
 
     paymentApp: {
       type: String,

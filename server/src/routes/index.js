@@ -6,6 +6,7 @@ import customerRoutes from "./customer.routes.js";
 import productRoutes from "./product.routes.js";
 import categoryRoutes from "./category.routes.js";
 import orderRoutes from "./order.routes.js";
+import checkoutRoutes from "./checkout.routes.js";
 import cartRoutes from "./cart.routes.js";
 import couponRoutes from "./coupon.routes.js";
 import paymentRoutes from "./payment.routes.js";
@@ -41,6 +42,8 @@ router.use("/products", productRoutes);
 router.use("/categories", categoryRoutes);
 
 router.use("/orders", orderRoutes);
+
+router.use("/checkout", checkoutRoutes);
 
 router.use("/cart", cartRoutes);
 

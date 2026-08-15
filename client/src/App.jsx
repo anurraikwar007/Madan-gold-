@@ -23,7 +23,7 @@ import Checkout from "./pages/Checkout";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 
-import ProtectedRoute from "./components/common/ProtectedRoute";
+
 
 const AppLayout = () => {
   const location = useLocation();

@@ -1,4 +1,5 @@
 import {
+   useCallback,
   useEffect,
   useState,
 } from "react";
@@ -57,37 +58,22 @@ const initialForm = {
 };
 
 export default function AdminProducts() {
-  const [products, setProducts] =
-    useState([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [editing, setEditing] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [, setPage] = useState(1);
+  
 
-  const [categories, setCategories] =
-    useState([]);
-
-  const [form, setForm] =
-    useState(initialForm);
-
-  const [editing, setEditing] =
-    useState(null);
-
-  const [open, setOpen] =
-    useState(false);
-
-  const [deleteId, setDeleteId] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [selectedFiles, setSelectedFiles] =
-    useState([]);
-
-  const load = async () => {
+  const load = useCallback(async  (
+  targetPage = 1
+    ) => {
     setLoading(true);
 
     try {
@@ -96,13 +82,15 @@ export default function AdminProducts() {
         categoriesResponse,
       ] = await Promise.all([
         getAdminProducts({
-          page: 1,
+          page: targetPage,
           limit: 100,
           search,
         }),
+
         getAdminCategories({
           page: 1,
           limit: 100,
+          isActive: true,
         }),
       ]);
 
@@ -112,21 +100,44 @@ export default function AdminProducts() {
       const categoryData =
         categoriesResponse?.data?.data;
 
-      setProducts(
-        productData?.products || []
-      );
+        setProducts(
+          productData?.products || []
+        );
+
+        setPage(
+            productData?.pagination?.page ||
+            targetPage
+          );
+
+        
 
       setCategories(
-        categoryData?.categories || []
+        categoryData?.docs ||
+          categoryData?.categories ||
+          (Array.isArray(categoryData)
+            ? categoryData
+            : [])
       );
+    } catch (error) {
+      console.error(
+        "Failed to load admin products/categories:",
+        error
+      );
+
+      setProducts([]);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
-  };
+  },[search]);
 
-  useEffect(() => {
+ useEffect(() => {
+  const timer = setTimeout(() => {
     load();
-  }, []);
+  }, 0);
+
+      return () => clearTimeout(timer);
+    }, [load]);
 
   const updateField = (
     field,
@@ -140,7 +151,10 @@ export default function AdminProducts() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm(initialForm);
+    setForm({
+      ...initialForm,
+      images: [],
+    });
     setSelectedFiles([]);
     setOpen(true);
   };
@@ -150,55 +164,77 @@ export default function AdminProducts() {
 
     setForm({
       name: product.name || "",
+
       description:
         product.description || "",
+
       shortDescription:
         product.shortDescription || "",
+
       category:
         product.category || "",
+
       metal:
         product.metal || "Gold",
+
       purity:
         product.purity || "22K",
+
       gender:
         product.gender || "Unisex",
+
       weight:
         product.weight ?? "",
+
       price:
         product.price ?? "",
+
       discountPrice:
         product.discountPrice ?? 0,
+
       makingCharges:
         product.makingCharges ?? 0,
+
       gst:
         product.gst ?? 3,
+
       featured:
         !!product.featured,
+
       bestseller:
         !!product.bestseller,
+
       isActive:
         product.isActive !== false,
+
       stock:
         product.inventory?.stock ?? "",
+
       reservedStock:
         product.inventory?.reservedStock ??
         0,
+
       availableStock:
         product.inventory?.availableStock ??
         "",
+
       lowStockThreshold:
         product.inventory
           ?.lowStockThreshold ?? 5,
+
       seoTitle:
         product.seoTitle || "",
+
       seoDescription:
         product.seoDescription || "",
+
       seoKeywords:
         Array.isArray(
           product.seoKeywords
         )
           ? product.seoKeywords.join(", ")
           : "",
+
       images:
         product.images || [],
     });
@@ -241,38 +277,62 @@ export default function AdminProducts() {
 
       const payload = {
         name: form.name.trim(),
+
         description:
           form.description.trim(),
+
         shortDescription:
           form.shortDescription.trim(),
+
         category:
           form.category.trim(),
+
         metal: form.metal,
+
         purity: form.purity,
+
         gender: form.gender,
-        weight: Number(form.weight),
-        price: Number(form.price),
+
+        weight:
+          Number(form.weight) || 0,
+
+        price:
+          Number(form.price) || 0,
+
         discountPrice:
           Number(form.discountPrice) || 0,
+
         makingCharges:
           Number(form.makingCharges) || 0,
-        gst: Number(form.gst) || 0,
-        featured: form.featured,
-        bestseller: form.bestseller,
-        isActive: form.isActive,
+
+        gst:
+          Number(form.gst) || 0,
+
+        featured:
+          form.featured,
+
+        bestseller:
+          form.bestseller,
+
+        isActive:
+          form.isActive,
 
         inventory: {
-          stock: Number(form.stock) || 0,
+          stock:
+            Number(form.stock) || 0,
+
           reservedStock:
             Number(
               form.reservedStock
             ) || 0,
+
           availableStock:
             form.availableStock === ""
               ? Number(form.stock) || 0
               : Number(
                   form.availableStock
                 ),
+
           lowStockThreshold:
             Number(
               form.lowStockThreshold
@@ -283,8 +343,10 @@ export default function AdminProducts() {
 
         seoTitle:
           form.seoTitle.trim(),
+
         seoDescription:
           form.seoDescription.trim(),
+
         seoKeywords:
           form.seoKeywords
             .split(",")
@@ -293,6 +355,24 @@ export default function AdminProducts() {
             )
             .filter(Boolean),
       };
+
+      if (!payload.name) {
+        throw new Error(
+          "Product name is required."
+        );
+      }
+
+      if (!payload.category) {
+        throw new Error(
+          "Please select a category."
+        );
+      }
+
+      if (!payload.price) {
+        throw new Error(
+          "Product price is required."
+        );
+      }
 
       if (editing) {
         await updateAdminProduct(
@@ -305,8 +385,27 @@ export default function AdminProducts() {
         );
       }
 
+      window.dispatchEvent(
+        new Event("products-updated")
+      );
+
       setOpen(false);
+      setEditing(null);
+      setForm(initialForm);
+      setSelectedFiles([]);
+
       await load();
+    } catch (error) {
+      console.error(
+        "Product save failed:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Product save failed."
+      );
     } finally {
       setSaving(false);
     }
@@ -322,8 +421,24 @@ export default function AdminProducts() {
         deleteId
       );
 
+      window.dispatchEvent(
+        new Event("products-updated")
+      );
+
       setDeleteId(null);
+
       await load();
+    } catch (error) {
+      console.error(
+        "Product delete failed:",
+        error
+      );
+
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Product delete failed."
+      );
     } finally {
       setSaving(false);
     }
@@ -361,7 +476,8 @@ export default function AdminProducts() {
               if (
                 e.key === "Enter"
               ) {
-                load();
+                setPage(1);
+                load(1);
               }
             }}
             placeholder="Search products..."
@@ -378,18 +494,23 @@ export default function AdminProducts() {
                 <th className="px-5 py-4">
                   Product
                 </th>
+
                 <th className="px-5 py-4">
                   Category
                 </th>
+
                 <th className="px-5 py-4">
                   Price
                 </th>
+
                 <th className="px-5 py-4">
                   Stock
                 </th>
+
                 <th className="px-5 py-4">
                   Status
                 </th>
+
                 <th className="px-5 py-4 text-right">
                   Actions
                 </th>
@@ -397,129 +518,140 @@ export default function AdminProducts() {
             </thead>
 
             <tbody>
-              {products.map(
-                (product) => (
-                  <tr
-                    key={product._id}
-                    className="border-t border-slate-100"
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-5 py-10 text-center text-slate-400"
                   >
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 overflow-hidden rounded-xl bg-slate-100">
+                    Loading products...
+                  </td>
+                </tr>
+              ) : products.length ? (
+                products.map(
+                  (product) => (
+                    <tr
+                      key={
+                        product._id
+                      }
+                      className="border-t border-slate-100"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
                           {product.images
                             ?.length ? (
                             <img
                               src={
                                 product
                                   .images[0]
-                                  ?.url
                               }
                               alt={
                                 product.name
                               }
-                              className="h-full w-full object-cover"
+                              className="h-12 w-12 rounded-lg object-cover"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center text-slate-400">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
                               <ImagePlus
-                                size={17}
+                                size={18}
                               />
                             </div>
                           )}
+
+                          <div>
+                            <p className="font-semibold text-slate-800">
+                              {
+                                product.name
+                              }
+                            </p>
+
+                            <p className="text-xs text-slate-400">
+                              {product.gender ||
+                                "Unisex"}
+                            </p>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <p className="font-semibold text-slate-800">
-                            {product.name}
-                          </p>
+                      <td className="px-5 py-4 text-slate-600">
+                        {product.category ||
+                          "—"}
+                      </td>
 
-                          <p className="text-xs text-slate-400">
-                            {product.purity}{" "}
-                            •{" "}
-                            {product.metal}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-5 py-4 text-slate-500">
-                      {product.category}
-                    </td>
-
-                    <td className="px-5 py-4 font-semibold">
-                      ₹
-                      {Number(
-                        product.discountPrice ||
+                      <td className="px-5 py-4 font-semibold text-slate-800">
+                        ₹
+                        {Number(
                           product.price ||
-                          0
-                      ).toLocaleString(
-                        "en-IN"
-                      )}
-                    </td>
+                            0
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+                      </td>
 
-                    <td className="px-5 py-4">
-                      {product.inventory
-                        ?.stock ?? 0}
-                    </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {product.inventory
+                          ?.availableStock ??
+                          product.inventory
+                            ?.stock ??
+                          0}
+                      </td>
 
-                    <td className="px-5 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          product.isActive
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {product.isActive
-                          ? "Active"
-                          : "Inactive"}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() =>
-                            openEdit(
-                              product
-                            )
-                          }
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            product.isActive
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
                         >
-                          <Pencil
-                            size={17}
-                          />
-                        </button>
+                          {product.isActive
+                            ? "Active"
+                            : "Inactive"}
+                        </span>
+                      </td>
 
-                        <button
-                          onClick={() =>
-                            setDeleteId(
-                              product._id
-                            )
-                          }
-                          className="rounded-lg p-2 text-rose-500 hover:bg-rose-50"
-                        >
-                          <Trash2
-                            size={17}
-                          />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <AdminButton
+                            variant="soft"
+                            onClick={() =>
+                              openEdit(
+                                product
+                              )
+                            }
+                          >
+                            <Pencil
+                              size={15}
+                            />
+                          </AdminButton>
+
+                          <AdminButton
+                            variant="danger"
+                            onClick={() =>
+                              setDeleteId(
+                                product._id
+                              )
+                            }
+                          >
+                            <Trash2
+                              size={15}
+                            />
+                          </AdminButton>
+                        </div>
+                      </td>
+                    </tr>
+                  )
                 )
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-5 py-12 text-center text-slate-400"
+                  >
+                    No products found.
+                  </td>
+                </tr>
               )}
-
-              {!products.length &&
-                !loading && (
-                  <tr>
-                    <td
-                      colSpan="6"
-                      className="px-5 py-12 text-center text-slate-400"
-                    >
-                      No products found.
-                    </td>
-                  </tr>
-                )}
             </tbody>
           </table>
         </div>
@@ -528,7 +660,7 @@ export default function AdminProducts() {
       <AdminModal
         open={open}
         onClose={() =>
-          setOpen(false)
+          !saving && setOpen(false)
         }
         title={
           editing
@@ -572,16 +704,214 @@ export default function AdminProducts() {
               {categories.map(
                 (category) => (
                   <option
-                    key={category._id}
+                    key={
+                      category._id
+                    }
                     value={
                       category.name
                     }
                   >
-                    {category.name}
+                    {
+                      category.name
+                    }
                   </option>
                 )
               )}
             </AdminSelect>
+
+            <AdminSelect
+              label="Gender"
+              value={form.gender}
+              onChange={(e) =>
+                updateField(
+                  "gender",
+                  e.target.value
+                )
+              }
+            >
+              <option value="Unisex">
+                Unisex
+              </option>
+
+              <option value="Men">
+                Men
+              </option>
+
+              <option value="Women">
+                Women
+              </option>
+
+              <option value="Kids">
+                Kids
+              </option>
+            </AdminSelect>
+
+            <AdminSelect
+              label="Metal"
+              value={form.metal}
+              onChange={(e) =>
+                updateField(
+                  "metal",
+                  e.target.value
+                )
+              }
+            >
+              <option value="Gold">
+                Gold
+              </option>
+
+              <option value="Silver">
+                Silver
+              </option>
+
+              <option value="Diamond">
+                Diamond
+              </option>
+
+              <option value="Platinum">
+                Platinum
+              </option>
+            </AdminSelect>
+
+            <AdminSelect
+              label="Purity"
+              value={form.purity}
+              onChange={(e) =>
+                updateField(
+                  "purity",
+                  e.target.value
+                )
+              }
+            >
+              <option value="22K">
+                22K
+              </option>
+
+              <option value="24K">
+                24K
+              </option>
+
+              <option value="18K">
+                18K
+              </option>
+
+              <option value="14K">
+                14K
+              </option>
+            </AdminSelect>
+
+            <AdminInput
+              label="Weight"
+              type="number"
+              step="0.01"
+              value={form.weight}
+              onChange={(e) =>
+                updateField(
+                  "weight",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="Price"
+              type="number"
+              min="0"
+              value={form.price}
+              onChange={(e) =>
+                updateField(
+                  "price",
+                  e.target.value
+                )
+              }
+              required
+            />
+
+            <AdminInput
+              label="Discount Price"
+              type="number"
+              min="0"
+              value={
+                form.discountPrice
+              }
+              onChange={(e) =>
+                updateField(
+                  "discountPrice",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="Making Charges"
+              type="number"
+              min="0"
+              value={
+                form.makingCharges
+              }
+              onChange={(e) =>
+                updateField(
+                  "makingCharges",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="GST %"
+              type="number"
+              min="0"
+              value={form.gst}
+              onChange={(e) =>
+                updateField(
+                  "gst",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="Stock"
+              type="number"
+              min="0"
+              value={form.stock}
+              onChange={(e) =>
+                updateField(
+                  "stock",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="Available Stock"
+              type="number"
+              min="0"
+              value={
+                form.availableStock
+              }
+              onChange={(e) =>
+                updateField(
+                  "availableStock",
+                  e.target.value
+                )
+              }
+            />
+
+            <AdminInput
+              label="Low Stock Threshold"
+              type="number"
+              min="0"
+              value={
+                form.lowStockThreshold
+              }
+              onChange={(e) =>
+                updateField(
+                  "lowStockThreshold",
+                  e.target.value
+                )
+              }
+            />
           </div>
 
           <AdminTextarea
@@ -599,234 +929,33 @@ export default function AdminProducts() {
 
           <AdminTextarea
             label="Description"
-            value={
-              form.description
-            }
+            value={form.description}
             onChange={(e) =>
               updateField(
                 "description",
                 e.target.value
               )
             }
-            required
           />
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <AdminSelect
-              label="Metal"
-              value={form.metal}
-              onChange={(e) =>
-                updateField(
-                  "metal",
-                  e.target.value
-                )
-              }
-            >
-              <option>Gold</option>
-              <option>Silver</option>
-              <option>Platinum</option>
-            </AdminSelect>
-
-            <AdminSelect
-              label="Purity"
-              value={form.purity}
-              onChange={(e) =>
-                updateField(
-                  "purity",
-                  e.target.value
-                )
-              }
-            >
-              <option>14K</option>
-              <option>18K</option>
-              <option>22K</option>
-              <option>24K</option>
-              <option>925 Silver</option>
-              <option>950 Platinum</option>
-            </AdminSelect>
-
-            <AdminSelect
-              label="Gender"
-              value={form.gender}
-              onChange={(e) =>
-                updateField(
-                  "gender",
-                  e.target.value
-                )
-              }
-            >
-              <option>Men</option>
-              <option>Women</option>
-              <option>Kids</option>
-              <option>Unisex</option>
-            </AdminSelect>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-4">
-            <AdminInput
-              label="Weight (g)"
-              type="number"
-              step="0.01"
-              value={form.weight}
-              onChange={(e) =>
-                updateField(
-                  "weight",
-                  e.target.value
-                )
-              }
-              required
-            />
-
-            <AdminInput
-              label="Price"
-              type="number"
-              value={form.price}
-              onChange={(e) =>
-                updateField(
-                  "price",
-                  e.target.value
-                )
-              }
-              required
-            />
-
-            <AdminInput
-              label="Discount Price"
-              type="number"
-              value={
-                form.discountPrice
-              }
-              onChange={(e) =>
-                updateField(
-                  "discountPrice",
-                  e.target.value
-                )
-              }
-            />
-
-            <AdminInput
-              label="Making Charges"
-              type="number"
-              value={
-                form.makingCharges
-              }
-              onChange={(e) =>
-                updateField(
-                  "makingCharges",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-4">
-            <AdminInput
-              label="GST %"
-              type="number"
-              value={form.gst}
-              onChange={(e) =>
-                updateField(
-                  "gst",
-                  e.target.value
-                )
-              }
-            />
-
-            <AdminInput
-              label="Stock"
-              type="number"
-              value={form.stock}
-              onChange={(e) =>
-                updateField(
-                  "stock",
-                  e.target.value
-                )
-              }
-              required
-            />
-
-            <AdminInput
-              label="Available Stock"
-              type="number"
-              value={
-                form.availableStock
-              }
-              onChange={(e) =>
-                updateField(
-                  "availableStock",
-                  e.target.value
-                )
-              }
-            />
-
-            <AdminInput
-              label="Low Stock Alert"
-              type="number"
-              value={
-                form.lowStockThreshold
-              }
-              onChange={(e) =>
-                updateField(
-                  "lowStockThreshold",
-                  e.target.value
-                )
-              }
-            />
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Toggle
-              label="Active"
-              checked={form.isActive}
-              onChange={(value) =>
-                updateField(
-                  "isActive",
-                  value
-                )
-              }
-            />
-
-            <Toggle
-              label="Featured"
-              checked={form.featured}
-              onChange={(value) =>
-                updateField(
-                  "featured",
-                  value
-                )
-              }
-            />
-
-            <Toggle
-              label="Bestseller"
-              checked={
-                form.bestseller
-              }
-              onChange={(value) =>
-                updateField(
-                  "bestseller",
-                  value
-                )
-              }
-            />
-          </div>
-
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
               Product Images
             </label>
 
             <input
               type="file"
-              multiple
               accept="image/*"
-              onChange={handleFiles}
-              className="mt-2 block w-full rounded-xl border border-dashed border-slate-300 p-4 text-sm"
+              multiple
+              onChange={
+                handleFiles
+              }
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm"
             />
 
             {selectedFiles.length >
               0 && (
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-slate-500">
                 {
                   selectedFiles.length
                 }{" "}
@@ -849,7 +978,7 @@ export default function AdminProducts() {
 
             <AdminInput
               label="SEO Keywords"
-              placeholder="gold ring, jewellery, ring"
+              placeholder="ring, gold ring, jewellery"
               value={
                 form.seoKeywords
               }
@@ -875,19 +1004,71 @@ export default function AdminProducts() {
             }
           />
 
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={
+                  form.featured
+                }
+                onChange={(e) =>
+                  updateField(
+                    "featured",
+                    e.target.checked
+                  )
+                }
+              />
+              Featured
+            </label>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={
+                  form.bestseller
+                }
+                onChange={(e) =>
+                  updateField(
+                    "bestseller",
+                    e.target.checked
+                  )
+                }
+              />
+              Bestseller
+            </label>
+
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={
+                  form.isActive
+                }
+                onChange={(e) =>
+                  updateField(
+                    "isActive",
+                    e.target.checked
+                  )
+                }
+              />
+              Active
+            </label>
+          </div>
+
           <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
             <AdminButton
               variant="soft"
+              type="button"
               onClick={() =>
                 setOpen(false)
               }
+              disabled={saving}
             >
               Cancel
             </AdminButton>
 
             <AdminButton
-              type="submit"
               variant="gold"
+              type="submit"
               loading={saving}
             >
               {editing
@@ -900,39 +1081,15 @@ export default function AdminProducts() {
 
       <AdminConfirm
         open={!!deleteId}
+        loading={saving}
         onCancel={() =>
+          !saving &&
           setDeleteId(null)
         }
         onConfirm={remove}
-        loading={saving}
-        title="Delete Product?"
-        message="Product soft-delete ho jayega aur customer side par available nahi rahega."
+        title="Delete product?"
+        message="This product will be removed from the active store catalogue."
       />
     </AdminPage>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
-      <span className="text-sm font-medium text-slate-700">
-        {label}
-      </span>
-
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) =>
-          onChange(
-            e.target.checked
-          )
-        }
-        className="h-4 w-4 accent-[#B88A44]"
-      />
-    </label>
   );
 }

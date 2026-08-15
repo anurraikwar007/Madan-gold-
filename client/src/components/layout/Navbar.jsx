@@ -38,10 +38,7 @@ const Navbar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setMobileOpen(false);
-    setShopOpen(false);
-  }, [location.pathname]);
+  
 
   // Prevent body scrolling when mobile menu is open
   useEffect(() => {

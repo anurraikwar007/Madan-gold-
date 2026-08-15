@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {  useCallback, useEffect, useState } from "react";
 import {
   Pencil,
   Trash2,
@@ -61,7 +61,7 @@ export default function AdminCoupons() {
   const [search, setSearch] =
     useState("");
 
-  const load = async () => {
+  const load =  useCallback(async () => {
     setLoading(true);
 
     try {
@@ -76,7 +76,8 @@ export default function AdminCoupons() {
         response?.data?.data;
 
       setCoupons(
-        data?.coupons ||
+        data?.docs ||
+          data?.coupons ||
           (Array.isArray(data)
             ? data
             : [])
@@ -89,11 +90,15 @@ export default function AdminCoupons() {
     } finally {
       setLoading(false);
     }
-  };
+  },[search]);
 
   useEffect(() => {
+  const timer = setTimeout(() => {
     load();
-  }, []);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [load]);
 
   const updateField = (
     field,

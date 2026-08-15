@@ -49,7 +49,7 @@ const checkoutSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       required: true,
-      index: true,
+      
     },
 
     coupon: {
@@ -123,7 +123,10 @@ const checkoutSchema = new mongoose.Schema(
     timestamps: true,
   },
   
-  ccheckoutSchema.index(
+ 
+);
+
+ checkoutSchema.index(
   { customer: 1 },
   {
     unique: true,
@@ -133,7 +136,6 @@ const checkoutSchema = new mongoose.Schema(
   }
   )
 
-);
 
 const Checkout = mongoose.model(
   "Checkout",

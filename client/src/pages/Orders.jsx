@@ -2,20 +2,39 @@ import { useEffect, useState } from "react";
 
 import {
   PackageCheck,
-  ChevronRight,
+  
   CalendarDays,
   CreditCard,
 } from "lucide-react";
+
+import { getCustomerOrders } from "../api/order.api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    const data =
-      JSON.parse(localStorage.getItem("orders")) || [];
+  const loadOrders = async () => {
+    try {
+      const response = await getCustomerOrders();
 
-    setOrders(data);
-  }, []);
+      const data = response?.data?.data;
+
+      setOrders(
+        data?.orders ||
+          data?.items ||
+          (Array.isArray(data) ? data : [])
+      );
+    } catch {
+      setOrders([]);
+    }
+  };
+
+  const timer = setTimeout(() => {
+    loadOrders();
+  }, 0);
+
+  return () => clearTimeout(timer);
+}, []);
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] pt-28 pb-20 px-4">

@@ -300,20 +300,21 @@ export const createOrder = async (
     // Coupon Validation
     // =====================================
 
-    const {
-      coupon,
-      discount,
-    } = await applyCoupon(
-      dto.couponCode,
-      cart.totalAmount
-    );
+   const cartTotal =
+  orderItems.reduce(
+    (total, item) =>
+      total +
+      item.price * item.quantity,
+    0
+  );
 
-    // =====================================
-    // Pricing
-    // =====================================
-
-    const cartTotal =
-    cart.totalAmount;
+      const {
+        coupon,
+        discount,
+      } = await applyCoupon(
+        dto.couponCode,
+        cartTotal
+      );
 
    const shippingCharge =
     cartTotal < 1000
@@ -359,13 +360,12 @@ export const createOrder = async (
   );
 
     const finalAmount = Math.max(
-       0,
-       cart.totalAmount -
-        discount +
-        shippingCharge +
-        gst
-    );
-
+        0,
+        cartTotal -
+          discount +
+          shippingCharge +
+          gst
+      );
     // =====================================
     // Order Number
     // =====================================
@@ -454,8 +454,7 @@ export const createOrder = async (
           paymentMethod:
             dto.paymentMethod,
 
-          subtotal:
-            cart.totalAmount,
+          subtotal: cartTotal,
 
           discount,
 
@@ -469,15 +468,9 @@ export const createOrder = async (
           coupon:
             coupon?._id || null,
 
-          paymentStatus:
+           paymentStatus: "Pending",
 
-            dto.paymentMethod === "COD"
-
-              ? "Pending"
-
-              : "Verification Pending",
-
-          orderStatus:
+           orderStatus:
             "Pending",
 
         },
@@ -864,38 +857,18 @@ async (
       for (const item of order.items) {
 
         const updated =
-       await ProductRepository.findOneAndUpdate(
-
-        {
-            _id: item.product,
-        },
-
-        {
-            $inc: {
-                "inventory.stock": -item.quantity,
-                "inventory.reservedStock": -item.quantity,
-            },
-        },
-
-        {
-            new: true,
-            session,
-        }
-
-    );
-
-        if (!updated) {
-
-          throw new ApiError(
-
-            400,
-
-            `Inventory mismatch for ${item.name}`
-
+          await ProductRepository.confirmInventory(
+            item.product,
+            item.quantity,
+            session
           );
 
+        if (!updated) {
+          throw new ApiError(
+            409,
+            `Inventory mismatch for ${item.name}`
+          );
         }
-
       }
 
       order.deliveredAt =
@@ -904,53 +877,50 @@ async (
       if (
         order.paymentMethod === "COD"
       ) {
-
         order.paymentStatus =
           "Paid";
-
       }
-
     }
 
-    // =====================================
-    // Cancelled
-    // =====================================
+        // =====================================
+        // Cancelled
+        // =====================================
 
-    if (status === "Cancelled") {
+        if (status === "Cancelled") {
 
-      for (const item of order.items) {
+          for (const item of order.items) {
 
-        await ProductRepository.findOneAndUpdate(
+            await ProductRepository.findOneAndUpdate(
 
-          {
+              {
 
-            _id: item.product,
+                _id: item.product,
 
-          },
+              },
 
-          {
+              {
 
-            $inc: {
+                $inc: {
 
-              "inventory.reservedStock":
-                -item.quantity,
+                  "inventory.reservedStock":
+                    -item.quantity,
 
-              "inventory.availableStock":
-                item.quantity,
+                  "inventory.availableStock":
+                    item.quantity,
 
-            },
+                },
 
-          },
+              },
 
-          {
+              {
 
-            session,
+                session,
+
+              }
+
+            );
 
           }
-
-        );
-
-      }
 
       // =====================================
       // Coupon Rollback
@@ -1268,64 +1238,46 @@ async (
     // =====================================
 
     for (const item of order.items) {
-
-      await ProductRepository.findOneAndUpdate(
-
-        {
-
-          _id: item.product,
-
-        },
-
-        {
-
-          $inc: {
-
-            "inventory.reservedStock":
-              -item.quantity,
-
-            "inventory.availableStock":
-              item.quantity,
-
-          },
-
-        },
-
-        {
-
-          session,
-
-        }
-
-      );
-
-    }
-
-    // =====================================
-    // Coupon Rollback
-    // =====================================
-
-    if (order.coupon) {
-
-      const coupon =
-        await CouponRepository.findById(
-          order.coupon
+      const updated =
+        await ProductRepository.releaseInventory(
+          item.product,
+          item.quantity,
+          session
         );
 
-      if (
-        coupon &&
-        coupon.usedCount > 0
-      ) {
-
-        coupon.usedCount -= 1;
-
-        await coupon.save({
-          session,
-        });
-
+      if (!updated) {
+        throw new ApiError(
+          409,
+          `Inventory mismatch for ${item.name}.`
+        );
       }
-
     }
+
+        // =====================================
+        // Coupon Rollback
+        // =====================================
+
+        if (order.coupon) {
+
+          const coupon =
+            await CouponRepository.findById(
+              order.coupon
+            );
+
+          if (
+            coupon &&
+            coupon.usedCount > 0
+          ) {
+
+            coupon.usedCount -= 1;
+
+            await coupon.save({
+              session,
+            });
+
+          }
+
+        }
 
     // =====================================
     // Update Order

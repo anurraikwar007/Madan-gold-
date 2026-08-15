@@ -85,4 +85,27 @@ export const env = {
 
   REFRESH_COOKIE_SECURE:
     process.env.NODE_ENV === "production",
+
+   PHONEPE_CLIENT_ID:
+  process.env.PHONEPE_CLIENT_ID,
+
+PHONEPE_CLIENT_SECRET:
+  process.env.PHONEPE_CLIENT_SECRET,
+
+PHONEPE_CLIENT_VERSION:
+  Number(
+    process.env.PHONEPE_CLIENT_VERSION
+  ) || 1,
+
+    PHONEPE_ENV:
+      process.env.PHONEPE_ENV || "SANDBOX",
+
+    PHONEPE_REDIRECT_URL:
+      process.env.PHONEPE_REDIRECT_URL,
+
+    PHONEPE_CALLBACK_USERNAME:
+      process.env.PHONEPE_CALLBACK_USERNAME,
+
+    PHONEPE_CALLBACK_PASSWORD:
+      process.env.PHONEPE_CALLBACK_PASSWORD,
 };

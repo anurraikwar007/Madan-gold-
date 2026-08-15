@@ -1,5 +1,5 @@
 import { useCart } from "../context/CartContext";
-import { Heart, ShoppingBag, Trash2 } from "lucide-react";
+import {  ShoppingBag, Trash2 } from "lucide-react";
 
 const Wishlist = () => {
   const { wishlist, toggleWishlist, addToCart } = useCart();

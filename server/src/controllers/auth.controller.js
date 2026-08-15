@@ -83,17 +83,22 @@ class AuthController {
    * Generate refresh token
    */
   const refreshToken =
-    await createRefreshToken({
-      userId: admin._id,
-      userType: "Admin",
+  await createRefreshToken({
+    userId: admin._id,
+    userType: "Admin",
+    device:
+      req.headers["user-agent"] ||
+      "Unknown",
+    ipAddress:
+      req.ip || null,
+  });
 
-      device:
-        req.headers["user-agent"] ||
-        "Unknown",
+setRefreshTokenCookie(
+  res,
+  refreshToken.token
+  );
 
-      ipAddress:
-        req.ip || null,
-    });
+admin.password = undefined;
 
   /*
    * Store refresh token

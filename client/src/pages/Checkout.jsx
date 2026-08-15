@@ -332,10 +332,7 @@ const Checkout = () => {
                     mt-2
                   "
                 >
-                  MG2026#
-                  {Math.floor(
-                    Math.random() * 100000
-                  )}
+                  
                 </h3>
 
               </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Eye,
   Search,
@@ -19,12 +19,12 @@ import {
 } from "./AdminUI";
 
 const orderStatuses = [
-  "pending",
-  "confirmed",
-  "processing",
-  "shipped",
-  "delivered",
-  "cancelled",
+  "Pending",
+  "Confirmed",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
 ];
 
 export default function AdminOrders() {
@@ -49,7 +49,7 @@ export default function AdminOrders() {
   const [status, setStatus] =
     useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -65,7 +65,8 @@ export default function AdminOrders() {
         response?.data?.data;
 
       setOrders(
-        data?.orders ||
+        data?.items ||
+          data?.orders ||
           (Array.isArray(data)
             ? data
             : [])
@@ -78,12 +79,16 @@ export default function AdminOrders() {
     } finally {
       setLoading(false);
     }
-  };
+  },[search,status]);
 
-  useEffect(() => {
-    load();
-  }, [status]);
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          load();
+        }, 0);
 
+        return () => clearTimeout(timer);
+      }, [load]);
+      
   const viewOrder = async (id) => {
     try {
       const response =

@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -21,7 +22,7 @@ export const CartProvider = ({ children }) => {
       LOAD CART
   =========================== */
 
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     try {
       const { data } = await CartAPI.getCart();
 
@@ -31,14 +32,15 @@ export const CartProvider = ({ children }) => {
         [];
 
       setCart(items);
-    } catch (err) {
+    } catch  {
       setCart([]);
     }
 
     setLoading(false);
-  };
+  },[]);
 
   useEffect(() => {
+  const timer = setTimeout(() => {
     const token = localStorage.getItem("token");
 
     if (token) {
@@ -51,7 +53,10 @@ export const CartProvider = ({ children }) => {
       JSON.parse(localStorage.getItem("wishlist")) || [];
 
     setWishlist(savedWishlist);
-  }, []);
+  }, 0);
+
+  return () => clearTimeout(timer);
+}, [loadCart]);
 
   /* ===========================
       SAVE WISHLIST
@@ -100,7 +105,7 @@ export const CartProvider = ({ children }) => {
       await loadCart();
 
       toast.success("Removed From Cart");
-    } catch (err) {
+    } catch {
       toast.error("Failed");
     }
   };
@@ -116,7 +121,7 @@ export const CartProvider = ({ children }) => {
       );
 
       await loadCart();
-    } catch (err) {
+    } catch  {
       toast.error("Failed");
     }
   };
@@ -128,7 +133,7 @@ export const CartProvider = ({ children }) => {
       setCart([]);
 
       toast.success("Cart Cleared");
-    } catch (err) {
+    } catch {
       toast.error("Failed");
     }
   };

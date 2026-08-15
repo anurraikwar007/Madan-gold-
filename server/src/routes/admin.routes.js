@@ -22,6 +22,8 @@ import {
   updateProductSchema,
 } from "../validators/product.validator.js";
 
+import rateLimiter from "../middleware/rateLimiter.middleware.js";
+
 import ProductController from "../controllers/product.controller.js";
 import CategoryController from "../controllers/category.controller.js";
 import CouponController from "../controllers/coupon.controller.js";
@@ -49,11 +51,12 @@ Admin Authentication Routes
  * @desc    Admin login
  * @access  Public
  */
-router.post(
-  "/login",
-  validate(adminLoginSchema),
-  login
-);
+    router.post(
+      "/login",
+      rateLimiter.authLimiter,
+      validate(adminLoginSchema),
+      login
+    );
   
 /**
  * @route   POST /api/v1/admin/logout

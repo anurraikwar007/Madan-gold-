@@ -17,6 +17,23 @@ const authLimiter = rateLimit({
 });
 
 
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+
+  max: 30,
+
+  message: {
+    success: false,
+    message:
+      "Too many refresh attempts, please try again later",
+  },
+
+  standardHeaders: true,
+
+  legacyHeaders: false,
+});
+
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
 
@@ -35,5 +52,6 @@ const apiLimiter = rateLimit({
 
 export default {
   authLimiter,
+  refreshLimiter,
   apiLimiter,
 };

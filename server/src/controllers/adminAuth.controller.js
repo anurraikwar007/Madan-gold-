@@ -81,6 +81,11 @@ export const login = asyncHandler(
           req.ip || null,
       });
 
+      setRefreshTokenCookie(
+        res,
+        refreshToken.token
+      );
+
     admin.password = undefined;
 
       const adminData =

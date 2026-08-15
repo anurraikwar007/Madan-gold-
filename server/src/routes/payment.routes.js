@@ -5,14 +5,26 @@ import {
   pending,
   verify,
   reject,
+  phonePePaymentStatus,
+  phonePeCallback,
   history,
   paymentDetails,
+  initiatePhonePe,
 } from "../controllers/payment.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
 
 const router = express.Router();
+
+// =========================================
+// PhonePe Callback / Webhook
+// =========================================
+
+router.post(
+  "/phonepe/callback",
+  phonePeCallback
+);
 
 /*
 =========================================
@@ -26,6 +38,20 @@ router.post(
   authMiddleware,
   roleMiddleware("Customer"),
   submit
+);
+
+ router.post(
+  "/phonepe/initiate",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  initiatePhonePe
+);
+
+router.get(
+  "/phonepe/status/:orderId",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  phonePePaymentStatus
 );
 
 /*
@@ -68,9 +94,14 @@ router.get(
 
 // Payment Details
 router.get(
-    "/:id",
-    authMiddleware,
-    paymentDetails
+  "/:id",
+  authMiddleware,
+  roleMiddleware(
+    "Customer",
+    "Admin",
+    "SuperAdmin"
+  ),
+  paymentDetails
 );
 
 export default router;

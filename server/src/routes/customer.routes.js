@@ -77,6 +77,7 @@ router.post(
 router.post(
   "/resend-verification",
   rateLimiter.authLimiter,
+  validate(resendVerificationSchema),
   resendVerification
 );
 
@@ -101,12 +102,14 @@ router.post(
  router.post(
   "/logout",
   authMiddleware,
+  roleMiddleware("Customer"),
   logout
 );
 
 router.post(
   "/logout-all",
   authMiddleware,
+  roleMiddleware("Customer"),
   logoutAll
 );
 
@@ -137,12 +140,13 @@ router.get(
  * @desc    Update customer profile
  * @access  Private
  */
-router.put(
-  "/profile",
-  authMiddleware,
-  validate(updateProfileSchema),
-  updateCustomerProfile
-);
+  router.put(
+    "/profile",
+    authMiddleware,
+    roleMiddleware("Customer"),
+    validate(updateProfileSchema),
+    updateCustomerProfile
+  );
 
    /**
  * @route   PATCH /api/v1/customers/avatar
@@ -150,23 +154,25 @@ router.put(
  * @access  Private
  */
     router.patch(
-    "/avatar",
-    authMiddleware,
-    singleUpload("avatar"),
-    uploadAvatar
-   );
+      "/avatar",
+      authMiddleware,
+      roleMiddleware("Customer"),
+      singleUpload("avatar"),
+      uploadAvatar
+    );
 
  /**
  * @route   PATCH /api/v1/customers/change-password
  * @desc    Change customer password
  * @access  Private
  */
-router.put(
-  "/change-password",
-  authMiddleware,
- validate(changePasswordSchema),
-  changePassword
-);
+    router.put(
+      "/change-password",
+      authMiddleware,
+      roleMiddleware("Customer"),
+      validate(changePasswordSchema),
+      changePassword
+    );
   
  /*
 ===========================================================
@@ -194,6 +200,7 @@ Customer Address Routes
 router.post(
   "/addresses",
   authMiddleware,
+  roleMiddleware("Customer"),
   addCustomerAddress
 );
 
@@ -205,6 +212,7 @@ router.post(
 router.put(
   "/addresses/:id",
   authMiddleware,
+  roleMiddleware("Customer"),
   updateCustomerAddress
 );
 
@@ -216,6 +224,7 @@ router.put(
 router.delete(
   "/addresses/:id",
   authMiddleware,
+  roleMiddleware("Customer"),
   deleteCustomerAddress
 );
 

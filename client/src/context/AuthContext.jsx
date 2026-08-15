@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -13,7 +14,77 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+ 
+
   // =========================
+  // Customer Profile
+  // =========================
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const { data } = await AuthAPI.getProfile();
+
+      const customer =
+        data?.data?.customer ||
+        data?.data?.user ||
+        data?.data;
+
+      if (customer) {
+        setUser(customer);
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(customer)
+        );
+      }
+
+      return customer;
+    } catch  {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  },[]);
+
+  // =========================
+  // Admin Profile
+  // =========================
+
+  const loadAdminProfile = useCallback(async () => {
+    try {
+      const { data } =
+        await AuthAPI.adminGetProfile();
+
+      const admin =
+        data?.data?.admin ||
+        data?.data;
+
+      if (admin) {
+        setUser(admin);
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify(admin)
+        );
+      }
+
+      return admin;
+    } catch  {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  },[]);
+
+    // =========================
   // Load User
   // =========================
 
@@ -49,75 +120,8 @@ export const AuthProvider = ({ children }) => {
     }
 
     loadProfile();
-  }, []);
+  }, [loadProfile, loadAdminProfile]);
 
-  // =========================
-  // Customer Profile
-  // =========================
-
-  const loadProfile = async () => {
-    try {
-      const { data } = await AuthAPI.getProfile();
-
-      const customer =
-        data?.data?.customer ||
-        data?.data?.user ||
-        data?.data;
-
-      if (customer) {
-        setUser(customer);
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(customer)
-        );
-      }
-
-      return customer;
-    } catch (err) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      setUser(null);
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // =========================
-  // Admin Profile
-  // =========================
-
-  const loadAdminProfile = async () => {
-    try {
-      const { data } =
-        await AuthAPI.adminGetProfile();
-
-      const admin =
-        data?.data?.admin ||
-        data?.data;
-
-      if (admin) {
-        setUser(admin);
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(admin)
-        );
-      }
-
-      return admin;
-    } catch (err) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      setUser(null);
-
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
 
  // =========================
 // Customer Login
@@ -253,7 +257,13 @@ const login = async (email, password) => {
       } else {
         await AuthAPI.logout();
       }
-    } catch {}
+    }catch (error) {
+      console.warn(
+        "Logout request failed:",
+        error
+      );
+    }
+    
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");

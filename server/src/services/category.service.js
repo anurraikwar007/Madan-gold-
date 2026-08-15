@@ -282,15 +282,15 @@ class CategoryService {
         featured === "true";
     }
 
-    return this.paginate(
+    return CategoryRepository.paginate(
   filter,
-  {
-    page,
-    limit,
-    sort,
-    lean: true,
-   }
-  );
+      {
+        page: Number(page),
+        limit: Number(limit),
+        sort,
+        lean: true,
+      }
+    );
   }
 
   // =====================================================

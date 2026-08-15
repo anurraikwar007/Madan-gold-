@@ -471,70 +471,89 @@ export const updateProfile = async (
    // VerifyCutomerEmail
    // =========================
 
-export const verifyCustomerEmail = async (
-  email,
-  otp
-) => {
-  const customer =
-    await Customer.findOne({ email })
-      .select(
-        "+emailVerificationOtp +emailVerificationOtpExpiresAt"
-      );
+    export const verifyCustomerEmail = async (
+      email,
+      otp
+    ) => {
+      const customer =
+        await Customer.findOne({ email })
+          .select(
+            "+emailVerificationOtp +emailVerificationOtpExpiresAt +emailVerificationAttempts +emailVerificationLockedUntil"
+          );
 
-  if (!customer) {
-    throw new Error(
-      "Invalid email or OTP."
-    );
-  }
+      if (!customer) {
+        throw new Error(
+          "Invalid email or OTP."
+        );
+      }
 
-  if (customer.isVerified) {
-    throw new Error(
-      "Email is already verified."
-    );
-  }
+      if (customer.isVerified) {
+        throw new Error(
+          "Email is already verified."
+        );
+      }
 
-  if (
-    !customer.emailVerificationOtp ||
-    !customer.emailVerificationOtpExpiresAt
-  ) {
-    throw new Error(
-      "Verification OTP is not available."
-    );
-  }
+      if (
+        customer.emailVerificationLockedUntil &&
+        customer.emailVerificationLockedUntil > new Date()
+      ) {
+        throw new Error(
+          "Too many invalid OTP attempts. Please try again later."
+        );
+      }
 
-  if (
-    customer.emailVerificationOtpExpiresAt <
-    new Date()
-  ) {
-    throw new Error(
-      "Verification OTP has expired."
-    );
-  }
+      if (
+        !customer.emailVerificationOtp ||
+        !customer.emailVerificationOtpExpiresAt
+      ) {
+        throw new Error(
+          "Verification OTP is not available."
+        );
+      }
 
-  const hashedOtp =
-    crypto
-      .createHash("sha256")
-      .update(otp)
-      .digest("hex");
+      if (
+        customer.emailVerificationOtpExpiresAt < new Date()
+      ) {
+        throw new Error(
+          "Verification OTP has expired."
+        );
+      }
 
-  if (
-    hashedOtp !==
-    customer.emailVerificationOtp
-  ) {
-    throw new Error(
-      "Invalid verification OTP."
-    );
-  }
+      const hashedOtp =
+        crypto
+          .createHash("sha256")
+          .update(otp)
+          .digest("hex");
 
-  customer.isVerified = true;
-  customer.emailVerificationOtp = null;
-  customer.emailVerificationOtpExpiresAt = null;
+      if (
+        hashedOtp !== customer.emailVerificationOtp
+      ) {
+        customer.emailVerificationAttempts += 1;
 
-  await customer.save();
+        if (customer.emailVerificationAttempts >= 5) {
+          customer.emailVerificationLockedUntil =
+            new Date(Date.now() + 15 * 60 * 1000);
 
-  return customer;
-};
+          customer.emailVerificationAttempts = 0;
+        }
 
+        await customer.save();
+
+        throw new Error(
+          "Invalid verification OTP."
+        );
+      }
+
+      customer.isVerified = true;
+      customer.emailVerificationOtp = null;
+      customer.emailVerificationOtpExpiresAt = null;
+      customer.emailVerificationAttempts = 0;
+      customer.emailVerificationLockedUntil = null;
+
+      await customer.save();
+
+      return customer;
+    };
 // =========================
 // Resend Customer Verification OTP
 // =========================
@@ -572,6 +591,9 @@ export const resendCustomerVerificationOtp = async (email) => {
   customer.emailVerificationOtp = hashedOtp;
   customer.emailVerificationOtpExpiresAt =
     otpExpiresAt;
+
+  customer.emailVerificationAttempts = 0;
+  customer.emailVerificationLockedUntil = null;
 
   try {
     await sendCustomerVerificationOtp(

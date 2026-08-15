@@ -22,7 +22,7 @@ const ProductDetail = () => {
     if (products.length === 0) {
       refreshProducts?.();
     }
-  }, []);
+  }, [products.length, refreshProducts]);
 
   if (loading) {
     return <Loader />;

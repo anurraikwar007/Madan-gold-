@@ -19,23 +19,21 @@ const Shop = () => {
     useState("all");
 
   useEffect(() => {
-    const gender =
-      searchParams.get("gender");
+  const timer = setTimeout(() => {
+    const gender = searchParams.get("gender");
+    const category = searchParams.get("category");
 
-    const category =
-      searchParams.get("category");
+    if (gender) {
+      setSelectedGender(gender.toLowerCase());
+    }
 
-    if (gender)
-      setSelectedGender(
-        gender.toLowerCase()
-      );
+    if (category) {
+      setSelectedCategory(category.toLowerCase());
+    }
+  }, 0);
 
-    if (category)
-      setSelectedCategory(
-        category.toLowerCase()
-      );
-  }, [searchParams]);
-
+  return () => clearTimeout(timer);
+}, [searchParams]);
   const genders = [
     "all",
     ...new Set(

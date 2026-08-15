@@ -160,10 +160,10 @@ const FeaturedProducts = () => {
 
           gap-7
           "
-        ></div>
+        >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
 
-            <div>
+            <div
               key={item}
               className="
               group
@@ -186,7 +186,7 @@ const FeaturedProducts = () => {
               hover:-translate-y-2
               hover:shadow-[0_20px_50px_rgba(46,91,186,.12)]
               "
-            
+                 >
 
               {/* Discount Badge */}
 
