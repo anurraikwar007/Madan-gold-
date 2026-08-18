@@ -1,6 +1,14 @@
 import { useState } from "react";
 
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+
+import {
+  forgotCustomerPassword,
+} from "../api/auth.api";
 
 import { Eye, EyeOff } from "lucide-react";
 
@@ -9,6 +17,25 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
 
   const navigate = useNavigate();
+
+  const [
+  searchParams,
+  ] = useSearchParams();
+
+  const [
+    forgotMode,
+    setForgotMode,
+  ] = useState(false);
+
+  const [
+    forgotEmail,
+    setForgotEmail,
+  ] = useState("");
+
+  const [
+    forgotMessage,
+    setForgotMessage,
+  ] = useState("");
 
   const { login } = useAuth();
 
@@ -61,6 +88,34 @@ const Login = () => {
           state: { email: formData.email },
         });
       }
+
+      const handleForgotPassword = async () => {
+  if (!forgotEmail.trim()) {
+    setError("Enter your email address.");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+  setForgotMessage("");
+
+  try {
+    await forgotCustomerPassword(
+      forgotEmail.trim()
+    );
+
+    setForgotMessage(
+      "If this email is registered, a password reset link has been sent."
+    );
+  } catch (err) {
+    setError(
+      err.response?.data?.message ||
+        "Unable to process request."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
       return;
     }
@@ -222,6 +277,112 @@ const Login = () => {
 
           </div>
 
+                                {forgotMode && (
+                      <div className="space-y-4 rounded-3xl border border-[#ead9bd] bg-[#fffaf0] p-5">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.25em] text-[#B88A44]">
+                            Account Recovery
+                          </p>
+
+                          <h3 className="mt-2 text-2xl">
+                            Reset your password
+                          </h3>
+
+                          <p className="mt-2 text-sm text-gray-500">
+                            Enter your registered email and we'll send
+                            you a secure reset link.
+                          </p>
+                        </div>
+
+                        <input
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) =>
+                            setForgotEmail(e.target.value)
+                          }
+                          placeholder="you@example.com"
+                          className="
+                            w-full
+                            h-14
+                            px-5
+                            rounded-2xl
+                            border
+                            border-[#ead9bd]
+                            bg-white
+                            outline-none
+                            focus:border-[#B88A44]
+                            focus:ring-4
+                            focus:ring-[#B88A44]/10
+                          "
+                        />
+
+                        {forgotMessage && (
+                          <p className="text-sm text-emerald-700">
+                            {forgotMessage}
+                          </p>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          disabled={loading}
+                          className="
+                            w-full
+                            h-14
+                            rounded-2xl
+                            bg-[#171315]
+                            text-white
+                            font-semibold
+                            hover:bg-[#B88A44]
+                            transition
+                            disabled:opacity-50
+                          "
+                        >
+                          {loading
+                            ? "Sending..."
+                            : "Send Reset Link"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForgotMode(false);
+                            setError("");
+                            setForgotMessage("");
+                          }}
+                          className="
+                            w-full
+                            text-sm
+                            text-gray-500
+                            hover:text-black
+                          "
+                        >
+                          Back to login
+                        </button>
+                      </div>
+                    )}
+
+                      {!forgotMode && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotMode(true);
+                    setError("");
+                    setForgotMessage("");
+                  }}
+                  className="
+                    text-sm
+                    font-semibold
+                    text-[#9A6D32]
+                    hover:text-[#B88A44]
+                  "
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
           {/* ERROR */}
           {error && (
 
@@ -237,8 +398,9 @@ const Login = () => {
           )}
 
           {/* BUTTON */}
-          <button
-            type="submit"
+          {!forgotMode && (
+            <button
+              type="submit"
             disabled={loading}
             className="
               w-full
@@ -259,6 +421,7 @@ const Login = () => {
               : "Login"}
 
           </button>
+          )}
 
         </form>
 

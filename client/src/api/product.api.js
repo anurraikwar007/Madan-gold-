@@ -38,3 +38,10 @@ export const updateAdminProduct = (id, data) =>
 
 export const deleteAdminProduct = (id) =>
   api.delete(`/admin/products/${id}`);
+
+export const getRelatedProducts = (
+  id
+) =>
+  api.get(
+    `/products/${id}/related`
+  );

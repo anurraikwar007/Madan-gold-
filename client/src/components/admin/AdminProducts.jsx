@@ -10,12 +10,17 @@ import {
   Plus,
   Search,
   ImagePlus,
+  Eye,
+  EyeOff,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 
 import {
   getAdminProducts,
   createAdminProduct,
   updateAdminProduct,
+  toggleAdminProduct,
   deleteAdminProduct,
   uploadAdminProductImages,
   getAdminCategories,
@@ -29,6 +34,9 @@ import {
   AdminModal,
   AdminConfirm,
   AdminPage,
+  AdminToggle,
+  AdminStatus,
+  AdminCard,
 } from "./AdminUI";
 
 const initialForm = {
@@ -64,6 +72,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState(null);
   const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -411,46 +420,159 @@ export default function AdminProducts() {
     }
   };
 
-  const remove = async () => {
-    if (!deleteId) return;
+    const remove = async () => {
+      if (!deleteId) return;
 
-    setSaving(true);
+      setSaving(true);
 
-    try {
-      await deleteAdminProduct(
-        deleteId
+      try {
+        await deleteAdminProduct(
+          deleteId
+        );
+
+        window.dispatchEvent(
+          new Event("products-updated")
+        );
+
+        setDeleteId(null);
+
+        await load();
+      } catch (error) {
+        console.error(
+          "Product delete failed:",
+          error
+        );
+
+        alert(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Product delete failed."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
+    const toggleSelected = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter(
+            (item) => item !== id
+          )
+        : [...prev, id]
+    );
+    };
+
+    const toggleSelectAll = () => {
+      if (
+        selectedIds.length ===
+        products.length
+      ) {
+        setSelectedIds([]);
+        return;
+      }
+
+      setSelectedIds(
+        products.map(
+          (product) => product._id
+        )
+      );
+    };
+
+    const bulkUpdateStatus = async (
+      targetStatus
+    ) => {
+      if (!selectedIds.length) return;
+
+      setSaving(true);
+
+      try {
+        const selectedProducts =
+          products.filter((product) =>
+            selectedIds.includes(
+              product._id
+            )
+          );
+
+        const targets =
+          selectedProducts.filter(
+            (product) =>
+              product.isActive !==
+              targetStatus
+          );
+
+        await Promise.all(
+          targets.map((product) =>
+            toggleAdminProduct(
+              product._id
+            )
+          )
+        );
+
+        setSelectedIds([]);
+
+        await load();
+      } catch (error) {
+        console.error(
+          "Product visibility update failed:",
+          error
+        );
+
+        alert(
+          error?.response?.data?.message ||
+            "Unable to update visibility."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
+
+    const bulkDelete = async () => {
+      if (!selectedIds.length) return;
+
+      const confirmed = window.confirm(
+        `Delete ${selectedIds.length} selected products?`
       );
 
-      window.dispatchEvent(
-        new Event("products-updated")
-      );
+      if (!confirmed) return;
 
-      setDeleteId(null);
+      setSaving(true);
 
-      await load();
-    } catch (error) {
-      console.error(
-        "Product delete failed:",
-        error
-      );
+      try {
+        await Promise.all(
+          selectedIds.map((id) =>
+            deleteAdminProduct(id)
+          )
+        );
 
-      alert(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Product delete failed."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+        setSelectedIds([]);
 
+        window.dispatchEvent(
+          new Event("products-updated")
+        );
+
+        await load();
+      } catch (error) {
+        console.error(
+          "Bulk product delete failed:",
+          error
+        );
+
+        alert(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Bulk delete failed."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
   return (
     <AdminPage
       title="Products"
       description="Manage jewellery products, inventory and SEO"
       action={
         <AdminButton
-          variant="gold"
+          variant="primary"
           onClick={openCreate}
         >
           <Plus size={17} />
@@ -464,6 +586,39 @@ export default function AdminProducts() {
             size={17}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
+
+           {selectedIds.length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-violet-100 bg-violet-50/60 p-3">
+              <span className="mr-2 text-sm font-semibold text-slate-700">
+                  {selectedIds.length} selected
+                </span>
+
+                <AdminButton
+                  variant="soft"
+                  onClick={() =>
+                    bulkUpdateStatus(true)
+                  }
+                >
+                  Show
+                </AdminButton>
+
+                <AdminButton
+                  variant="soft"
+                  onClick={() =>
+                    bulkUpdateStatus(false)
+                  }
+                >
+                  Hide
+                </AdminButton>
+
+                <AdminButton
+                  variant="danger"
+                  onClick={bulkDelete}
+                >
+                  Delete
+                </AdminButton>
+              </div>
+            )}
 
           <input
             value={search}
@@ -488,9 +643,25 @@ export default function AdminProducts() {
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full  min-w-[900px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
+                  <th className="w-12 px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={toggleSelectAll}
+                    className="text-[#8B6A48]"
+                  >
+                    {products.length > 0 &&
+                    selectedIds.length ===
+                      products.length ? (
+                      <CheckSquare size={18} />
+                    ) : (
+                      <Square size={18} />
+                    )}
+                  </button>
+                </th>
+
                 <th className="px-5 py-4">
                   Product
                 </th>
@@ -521,13 +692,13 @@ export default function AdminProducts() {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="px-5 py-10 text-center text-slate-400"
                   >
                     Loading products...
                   </td>
                 </tr>
-              ) : products.length ? (
+              ): products.length ? (
                 products.map(
                   (product) => (
                     <tr
@@ -542,13 +713,18 @@ export default function AdminProducts() {
                             ?.length ? (
                             <img
                               src={
-                                product
-                                  .images[0]
+                                typeof product.images[0] === "string"
+                                  ? product.images[0]
+                                  : product.images[0]?.url ||
+                                    product.images[0]?.secure_url ||
+                                    product.images[0]?.src ||
+                                    ""
                               }
-                              alt={
-                                product.name
-                              }
-                              className="h-12 w-12 rounded-lg object-cover"
+                              alt={product.name}
+                              className="h-12 w-12 rounded-xl object-cover ring-1 ring-slate-200"
+                              onError={(event) => {
+                                event.currentTarget.style.display = "none";
+                              }}
                             />
                           ) : (
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
@@ -596,18 +772,48 @@ export default function AdminProducts() {
                           0}
                       </td>
 
-                      <td className="px-5 py-4">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            product.isActive
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
-                        >
-                          {product.isActive
-                            ? "Active"
-                            : "Inactive"}
-                        </span>
+                      
+                       <td className="px-5 py-4">
+                        <AdminToggle
+                          checked={product.isActive !== false}
+                          label
+                          onChange={async () => {
+                            try {
+                              const response =
+                                await toggleAdminProduct(product._id);
+
+                              const updatedProduct =
+                                response?.data?.data;
+
+                              setProducts((prev) =>
+                                prev.map((item) =>
+                                  item._id === product._id
+                                    ? {
+                                        ...item,
+                                        isActive:
+                                          updatedProduct?.isActive ??
+                                          !item.isActive,
+                                      }
+                                    : item
+                                )
+                              );
+
+                              window.dispatchEvent(
+                                new Event("products-updated")
+                              );
+                            } catch (error) {
+                              console.error(
+                                "Product visibility toggle failed:",
+                                error
+                              );
+
+                              alert(
+                                error?.response?.data?.message ||
+                                  "Unable to update product visibility."
+                              );
+                            }
+                          }}
+                        />
                       </td>
 
                       <td className="px-5 py-4">
@@ -1092,4 +1298,5 @@ export default function AdminProducts() {
       />
     </AdminPage>
   );
+   
 }

@@ -4,6 +4,9 @@ import api from "../lib/axios";
 // Customer Orders
 // =========================
 
+export const createOrder = (payload) =>
+  api.post("/orders", payload);
+
 export const getMyOrders = (
   params = {}
 ) =>

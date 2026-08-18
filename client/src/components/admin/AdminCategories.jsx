@@ -7,12 +7,15 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import {
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,
+  toggleAdminCategory,
   deleteAdminCategory,
 } from "../../api/admin.api";
 
@@ -23,6 +26,9 @@ import {
   AdminModal,
   AdminConfirm,
   AdminPage,
+  AdminToggle,
+  AdminStatus,
+  AdminCard,
 } from "./AdminUI";
 
 const initialForm = {
@@ -35,6 +41,9 @@ const initialForm = {
 export default function AdminCategories() {
   const [categories, setCategories] =
     useState([]);
+   
+  const [selectedIds, setSelectedIds,] = 
+    useState([]);
 
   const [form, setForm] =
     useState(initialForm);
@@ -44,6 +53,8 @@ export default function AdminCategories() {
 
   const [open, setOpen] =
     useState(false);
+
+  
 
   const [deleteId, setDeleteId] =
     useState(null);
@@ -226,6 +237,117 @@ export default function AdminCategories() {
     }
   };
 
+  const toggleSelected = (id) => {
+  setSelectedIds((prev) =>
+    prev.includes(id)
+      ? prev.filter(
+          (item) => item !== id
+        )
+      : [...prev, id]
+  );
+};
+
+const toggleSelectAll = () => {
+  if (
+    categories.length > 0 &&
+    selectedIds.length ===
+      categories.length
+  ) {
+    setSelectedIds([]);
+    return;
+  }
+
+  setSelectedIds(
+    categories.map(
+      (item) => item._id
+    )
+  );
+};
+
+const bulkUpdateStatus = async (
+  targetStatus
+) => {
+  if (!selectedIds.length) return;
+
+  setSaving(true);
+
+  try {
+    const selectedCategories =
+      categories.filter((category) =>
+        selectedIds.includes(
+          category._id
+        )
+      );
+
+    const targets =
+      selectedCategories.filter(
+        (category) =>
+          category.isActive !==
+          targetStatus
+      );
+
+    await Promise.all(
+      targets.map((category) =>
+        toggleAdminCategory(
+          category._id
+        )
+      )
+    );
+
+    setSelectedIds([]);
+
+    await load();
+  } catch (error) {
+    console.error(
+      "Category visibility update failed:",
+      error
+    );
+
+    alert(
+      error?.response?.data?.message ||
+        "Unable to update visibility."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
+const bulkDelete = async () => {
+  if (!selectedIds.length) return;
+
+  const confirmed = window.confirm(
+    `Delete ${selectedIds.length} selected categories?`
+  );
+
+  if (!confirmed) return;
+
+  setSaving(true);
+
+  try {
+    await Promise.all(
+      selectedIds.map((id) =>
+        deleteAdminCategory(id)
+      )
+    );
+
+    setSelectedIds([]);
+
+    await load();
+  } catch (error) {
+    console.error(
+      "Bulk category delete failed:",
+      error
+    );
+
+    alert(
+      error?.response?.data?.message ||
+        "Bulk delete failed."
+    );
+  } finally {
+    setSaving(false);
+  }
+};
+
   return (
     <AdminPage
       title="Categories"
@@ -242,9 +364,57 @@ export default function AdminCategories() {
     >
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
+          {selectedIds.length > 0 && (
+  <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-[#eadfce] bg-[#fffaf0] p-3">
+    <span className="mr-2 text-sm font-semibold">
+                        {selectedIds.length} selected
+                      </span>
+
+                      <AdminButton
+                        variant="soft"
+                        onClick={() =>
+                          bulkUpdateStatus(true)
+                        }
+                      >
+                        Show
+                      </AdminButton>
+
+                      <AdminButton
+                        variant="soft"
+                        onClick={() =>
+                          bulkUpdateStatus(false)
+                        }
+                      >
+                        Hide
+                      </AdminButton>
+
+                      <AdminButton
+                        variant="danger"
+                        onClick={bulkDelete}
+                      >
+                        Delete
+                      </AdminButton>
+                    </div>
+                  )}
           <table className="w-full min-w-[700px] text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
+                <th className="w-12 px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={toggleSelectAll}
+                    className="text-[#8B6A48]"
+                  >
+                    {categories.length > 0 &&
+                    selectedIds.length ===
+                      categories.length ? (
+                      <CheckSquare size={18} />
+                    ) : (
+                      <Square size={18} />
+                    )}
+                  </button>
+                </th>
+                
                 <th className="px-5 py-4">
                   Category
                 </th>
@@ -270,6 +440,12 @@ export default function AdminCategories() {
             <tbody>
               {loading ? (
                 <tr>
+                  <td
+                    colSpan="6"
+                    className="px-5 py-10 text-center text-slate-400"
+                  >
+                    Loading categories...
+                  </td>
                   <td
                     colSpan="5"
                     className="px-5 py-10 text-center text-slate-400"
@@ -476,4 +652,6 @@ export default function AdminCategories() {
       />
     </AdminPage>
   );
+
+   
 }

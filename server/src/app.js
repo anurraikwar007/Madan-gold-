@@ -21,6 +21,8 @@ import notFound from "./middleware/notFound.js";
 
 import errorHandler from "./middleware/errorHandler.js";
 
+import rateLimiter from "./middleware/rateLimiter.middleware.js";
+
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
@@ -76,6 +78,21 @@ app.use(
     extended: true,
     limit: "100kb",
   })
+);
+
+app.use(
+  "/api/v1",
+  (req, res, next) => {
+    if (req.path === "/health") {
+      return next();
+    }
+
+    return rateLimiter.apiLimiter(
+      req,
+      res,
+      next
+    );
+  }
 );
 
 /*

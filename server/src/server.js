@@ -11,7 +11,7 @@ const startServer = async () => {
       console.log("==================================");
       console.log(`🚀 Server Running on Port ${env.PORT}`);
       console.log(`🌍 Environment : ${env.NODE_ENV}`);
-      console.log(`📡 API : http://localhost:${env.PORT}/api/v1`);
+      console.log(`📡 API : /api/v1`);      
       console.log("==================================");
     });
   } catch (error) {

@@ -19,19 +19,13 @@ import {
 } from "lucide-react";
 
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 import {
@@ -661,61 +655,51 @@ export default function AdminDashboard() {
               KPI CARDS
           ================================================= */}
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <AdminStatCard
-              title="Total Revenue"
-              value={formatCompactCurrency(
-                totalRevenue
-              )}
-              note={
-                averageOrderValue > 0
-                  ? `Avg order ${formatCurrency(
-                      averageOrderValue
-                    )}`
-                  : "Paid & delivered orders"
-              }
-              icon={IndianRupee}
-              iconClass="bg-amber-50 text-[#B88A44]"
-            />
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <AdminStatCard
+                title="Total Revenue"
+                value={formatCompactCurrency(totalRevenue)}
+                note={
+                  averageOrderValue > 0
+                    ? `Avg order ${formatCurrency(averageOrderValue)}`
+                    : "Paid & delivered orders"
+                }
+                icon={IndianRupee}
+                iconClass="bg-violet-50 text-violet-600"
+              />
 
-            <AdminStatCard
-              title="Total Orders"
-              value={totalOrders.toLocaleString(
-                "en-IN"
-              )}
-              note={`${deliveredPercentage}% delivered`}
-              icon={ShoppingBag}
-              iconClass="bg-blue-50 text-blue-600"
-            />
+              <AdminStatCard
+                title="Total Orders"
+                value={totalOrders.toLocaleString("en-IN")}
+                note={`${deliveredPercentage}% delivered`}
+                icon={ShoppingBag}
+                iconClass="bg-blue-50 text-blue-600"
+              />
 
-            <AdminStatCard
-              title="Customers"
-              value={totalCustomers.toLocaleString(
-                "en-IN"
-              )}
-              note="Registered customers"
-              icon={Users}
-              iconClass="bg-violet-50 text-violet-600"
-            />
+              <AdminStatCard
+                title="Customers"
+                value={totalCustomers.toLocaleString("en-IN")}
+                note="Registered customers"
+                icon={Users}
+                iconClass="bg-cyan-50 text-cyan-600"
+              />
 
-            <AdminStatCard
-              title="Products"
-              value={totalProducts.toLocaleString(
-                "en-IN"
-              )}
-              note={
-                lowStockCount > 0
-                  ? `${lowStockCount} low stock`
-                  : "Inventory healthy"
-              }
-              icon={Package}
-              iconClass={
-                lowStockCount > 0
-                  ? "bg-rose-50 text-rose-600"
-                  : "bg-emerald-50 text-emerald-600"
-              }
-            />
-          </div>
+              <AdminStatCard
+                title="Products"
+                value={totalProducts.toLocaleString("en-IN")}
+                note={
+                  lowStockCount > 0
+                    ? `${lowStockCount} low stock`
+                    : "Inventory healthy"
+                }
+                icon={Package}
+                iconClass={
+                  lowStockCount > 0
+                    ? "bg-rose-50 text-rose-600"
+                    : "bg-emerald-50 text-emerald-600"
+                }
+              />
+            </div>
 
           {/* ================================================
               SECONDARY KPI
@@ -727,7 +711,7 @@ export default function AdminDashboard() {
               title="Pending Orders"
               value={pendingOrders}
               percentage={`${pendingPercentage}%`}
-              iconClass="bg-amber-50 text-amber-600"
+              iconClass="bg-violet-50 text-violet-600"
             />
 
             <MiniMetric
@@ -787,77 +771,80 @@ export default function AdminDashboard() {
               }
             >
               {revenueChartData.length > 0 ? (
-                <ResponsiveContainer
-                  width="100%"
-                  height={310}
-                >
-                  <LineChart
-                    data={revenueChartData}
-                    margin={{
-                      top: 15,
-                      right: 10,
-                      left: 0,
-                      bottom: 0,
-                    }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#E2E8F0"
-                    />
+               <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={revenueChartData}>
+                        <defs>
+                          <linearGradient
+                            id="revenueGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#6366F1"
+                              stopOpacity={0.28}
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor="#6366F1"
+                              stopOpacity={0.02}
+                            />
+                          </linearGradient>
+                        </defs>
 
-                    <XAxis
-                      dataKey="label"
-                      tick={{
-                        fontSize: 11,
-                        fill: "#94A3B8",
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
+                        <CartesianGrid
+                          strokeDasharray="4 8"
+                          stroke="#E2E8F0"
+                          vertical={false}
+                        />
 
-                    <YAxis
-                      tick={{
-                        fontSize: 11,
-                        fill: "#94A3B8",
-                      }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={
-                        formatCompactCurrency
-                      }
-                    />
+                        <XAxis
+                          dataKey="label"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{
+                            fill: "#94A3B8",
+                            fontSize: 11,
+                          }}
+                        />
 
-                    <Tooltip
-                      contentStyle={
-                        CHART_TOOLTIP_STYLE
-                      }
-                      formatter={(
-                        value
-                      ) => [
-                        formatCurrency(
-                          value
-                        ),
-                        "Revenue",
-                      ]}
-                    />
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{
+                            fill: "#94A3B8",
+                            fontSize: 11,
+                          }}
+                          tickFormatter={formatCompactCurrency}
+                        />
 
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#B88A44"
-                      strokeWidth={3}
-                      dot={{
-                        r: 3,
-                        fill: "#B88A44",
-                        strokeWidth: 0,
-                      }}
-                      activeDot={{
-                        r: 6,
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                        <Tooltip
+                          contentStyle={{
+                            background: "#ffffff",
+                            border: "1px solid #E2E8F0",
+                            borderRadius: 16,
+                            boxShadow:
+                              "0 18px 50px rgba(15,23,42,.10)",
+                          }}
+                        />
+
+                        <Area
+                          type="monotone"
+                          dataKey="revenue"
+                          stroke="#6366F1"
+                          strokeWidth={3}
+                          fill="url(#revenueGradient)"
+                          dot={false}
+                          activeDot={{
+                            r: 6,
+                            strokeWidth: 3,
+                            stroke: "#ffffff",
+                          }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
               ) : (
                 <EmptyChart
                   icon={IndianRupee}
@@ -878,7 +865,7 @@ export default function AdminDashboard() {
                       width="100%"
                       height={230}
                     >
-                      <PieChart>
+{/*                       <PieChart>
                         <Pie
                           data={statusData}
                           dataKey="value"
@@ -913,7 +900,7 @@ export default function AdminDashboard() {
                             CHART_TOOLTIP_STYLE
                           }
                         />
-                      </PieChart>
+                      </PieChart> */}
                     </ResponsiveContainer>
 
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -983,7 +970,7 @@ export default function AdminDashboard() {
             headerRight={
               <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
                 <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#B88A44]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#6366F1]" />
                   Revenue
                 </div>
 
@@ -999,7 +986,7 @@ export default function AdminDashboard() {
                 width="100%"
                 height={330}
               >
-                <BarChart
+                {/* <BarChart
                   data={orderTrendData}
                   margin={{
                     top: 10,
@@ -1082,7 +1069,7 @@ export default function AdminDashboard() {
                     yAxisId="revenue"
                     dataKey="revenue"
                     name="Revenue"
-                    fill="#B88A44"
+                    fill="#6366F1"
                     radius={[
                       5,
                       5,
@@ -1105,7 +1092,7 @@ export default function AdminDashboard() {
                     ]}
                     maxBarSize={18}
                   />
-                </BarChart>
+                </BarChart> */}
               </ResponsiveContainer>
             ) : (
               <EmptyChart
@@ -1130,7 +1117,7 @@ export default function AdminDashboard() {
                   width="100%"
                   height={300}
                 >
-                  <BarChart
+                  {/* <BarChart
                     data={monthlyChartData}
                     margin={{
                       top: 10,
@@ -1184,7 +1171,7 @@ export default function AdminDashboard() {
                     <Bar
                       dataKey="revenue"
                       name="Sales"
-                      fill="#B88A44"
+                      fill="#6366F1"
                       radius={[
                         6,
                         6,
@@ -1193,7 +1180,7 @@ export default function AdminDashboard() {
                       ]}
                       maxBarSize={42}
                     />
-                  </BarChart>
+                  </BarChart> */}
                 </ResponsiveContainer>
               ) : (
                 <EmptyChart
@@ -1507,7 +1494,7 @@ export default function AdminDashboard() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#B88A44]/10 text-[#B88A44]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#6366F1]/10 text-[#6366F1]">
                     <BarChart3
                       size={18}
                     />

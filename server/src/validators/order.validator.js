@@ -3,7 +3,7 @@ import Joi from "joi";
 export const createOrderSchema = {
   body: Joi.object({
     paymentMethod: Joi.string()
-      .valid("COD", "ONLINE")
+      .valid("COD", "PHONEPE", "UPI")
       .required(),
 
     shippingAddress: Joi.object({

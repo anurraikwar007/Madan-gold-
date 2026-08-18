@@ -19,7 +19,7 @@ import Login from "./pages/Login";
 import VerifyEmail from "./pages/VerifyEmail";
 import Signup from "./pages/Signup";
 import Checkout from "./pages/Checkout";
-
+import Orders from "./pages/Orders";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 
@@ -99,6 +99,11 @@ const AppLayout = () => {
           <Route
             path="/checkout"
             element={<Checkout />}
+          />
+
+          <Route
+            path="/orders"
+            element={<Orders />}
           />
 
           {/* ADMIN LOGIN */}

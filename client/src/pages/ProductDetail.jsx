@@ -8,6 +8,8 @@ import EmptyState from "../components/common/EmptyState";
 
 import ProductImageGallery from "../components/product/ProductImageGallery";
 import ProductInfo from "../components/product/ProductInfo";
+import ProductReviews from "../components/product/ProductReviews";
+import RelatedProducts from "../components/product/RelatedProducts";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -65,8 +67,24 @@ const ProductDetail = () => {
           product={product}
         />
 
-        <ProductInfo
+                <ProductInfo
           product={product}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <ProductReviews
+          productId={product._id}
+          averageRating={
+            product.averageRating
+          }
+          totalReviews={
+            product.totalReviews
+          }
+        />
+
+        <RelatedProducts
+          productId={product._id}
         />
       </div>
     </div>

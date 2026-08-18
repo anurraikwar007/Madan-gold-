@@ -1,7 +1,10 @@
 import apiError from "../utils/apiError.js";
 
 const errorHandler = (err, req, res, next) => {
-  console.error(err);
+  if (process.env.NODE_ENV !== "production") {
+    console.error(err);
+  }
+
 
   // Already our custom error
   if (err instanceof apiError) {

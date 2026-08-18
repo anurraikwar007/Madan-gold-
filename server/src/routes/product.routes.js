@@ -29,8 +29,14 @@ router.get(
   "/",
   ProductController.getAll
 );
+ 
+ //
+  router.get(
+    "/:id/related",
+    ProductController.relatedProducts
+  );
 
-// Get Single Product
+ // Get Single Product
 router.get(
   "/:id",
   ProductController.getOne

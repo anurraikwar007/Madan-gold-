@@ -1,13 +1,29 @@
 import api from "../lib/axios";
 
-export const login = (data) =>
-  api.post("/customers/login", data);
+export const getProductReviews = (
+  productId,
+  params = {}
+) =>
+  api.get(
+    `/reviews/product/${productId}`,
+    { params }
+  );
 
-export const register = (data) =>
-  api.post("/customers/register", data);
+export const createReview = (data) =>
+  api.post("/reviews", data);
 
-export const getProfile = () =>
-  api.get("/customers/profile");
+export const updateReview = (
+  reviewId,
+  data
+) =>
+  api.put(
+    `/reviews/${reviewId}`,
+    data
+  );
 
-export const logout = () =>
-  api.post("/customers/logout");
+export const deleteReview = (
+  reviewId
+) =>
+  api.delete(
+    `/reviews/${reviewId}`
+  );

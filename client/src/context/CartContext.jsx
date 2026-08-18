@@ -41,13 +41,22 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
   const timer = setTimeout(() => {
-    const token = localStorage.getItem("token");
+   const token = localStorage.getItem("token");
+const savedUser = localStorage.getItem("user");
 
-    if (token) {
-      loadCart();
-    } else {
-      setLoading(false);
-    }
+let user = null;
+
+try {
+  user = savedUser ? JSON.parse(savedUser) : null;
+} catch {
+  user = null;
+}
+
+if (token && user?.role === "Customer") {
+  loadCart();
+} else {
+  setLoading(false);
+}
 
     const savedWishlist =
       JSON.parse(localStorage.getItem("wishlist")) || [];

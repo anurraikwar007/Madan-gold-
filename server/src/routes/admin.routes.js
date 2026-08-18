@@ -187,7 +187,10 @@ router.get(
     ProductController.update
   );
 
-
+  router.patch(
+  "/products/:id/toggle-active",
+  ProductController.toggleActive
+ );
 
 /**
  * @route   DELETE /api/v1/admin/products/:id
@@ -253,7 +256,11 @@ router.put(
   "/categories/:id",
   CategoryController.updateCategory
 );
-
+ 
+router.patch(
+  "/categories/:id/toggle-active",
+  CategoryController.toggleActive
+);
 
 
 /**

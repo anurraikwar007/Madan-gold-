@@ -247,8 +247,17 @@ const login = async (email, password) => {
   // Logout
   // =========================
 
-  const logout = async () => {
-    try {
+    const logout = async () => {
+      const confirmed =
+        window.confirm(
+          "Are you sure you want to logout?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
       if (
         user?.role === "Admin" ||
         user?.role === "SuperAdmin"

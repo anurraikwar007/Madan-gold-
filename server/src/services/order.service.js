@@ -359,13 +359,23 @@ export const createOrder = async (
     0
   );
 
+    const makingCharge =
+  cart.items.reduce(
+    (total, item) =>
+      total +
+      (item.product.makingCharges || 0) *
+        item.quantity,
+    0
+  );
+
     const finalAmount = Math.max(
-        0,
-        cartTotal -
-          discount +
-          shippingCharge +
-          gst
-      );
+      0,
+      cartTotal +
+        makingCharge -
+        discount +
+        shippingCharge +
+        gst
+    );
     // =====================================
     // Order Number
     // =====================================
@@ -456,6 +466,8 @@ export const createOrder = async (
 
           subtotal: cartTotal,
 
+          makingCharge,
+
           discount,
 
           shippingCharge,
@@ -481,7 +493,7 @@ export const createOrder = async (
 
         }
            
-      );      console.log(JSON.stringify(orderItems, null, 2));
+      );     
           // =====================================
     // Coupon Usage
     // =====================================

@@ -15,6 +15,7 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
 
+
 const Navbar = () => {
   const { cartCount = 0, wishlist = [] } = useCart();
   const { user, logout } = useAuth();

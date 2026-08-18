@@ -93,10 +93,7 @@ class AuthController {
       req.ip || null,
   });
 
-setRefreshTokenCookie(
-  res,
-  refreshToken.token
-  );
+
 
 admin.password = undefined;
 

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
 
 import {
   ShieldCheck,
-  CreditCard,
+  
   Truck,
   CheckCircle2,
   PackageCheck,
 } from "lucide-react";
 
 import { useCart } from "../context/CartContext";
+import { createOrder } from "../api/order.api";
+import { createCheckout } from "../api/checkout.api";
 
 const Checkout = () => {
 
@@ -25,7 +27,16 @@ const Checkout = () => {
     useState("cod");
 
   const [currentStep, setCurrentStep] =
-    useState(1);
+  useState(1);
+
+  const [checkoutTotal, setCheckoutTotal] =
+  useState(null);
+
+  const [checkoutLoading, setCheckoutLoading] =
+    useState(false);
+
+  const [placedOrder, setPlacedOrder] =
+    useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -45,48 +56,156 @@ const Checkout = () => {
   /* TOTAL */
   /* ========================= */
 
-  const totalPrice = cart.reduce(
-    (acc, item) =>
-      acc +
-      Number(item.price) *
-        Number(item.quantity || 1),
-    0
-  );
+  const totalPrice = checkoutTotal;
 
   /* ========================= */
   /* INPUT */
   /* ========================= */
 
   const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
 
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+useEffect(() => {
+  const requiredFields = [
+    formData.name,
+    formData.phone,
+    formData.address,
+    formData.city,
+    formData.state,
+    formData.pincode,
+  ];
 
+  const isComplete =
+    requiredFields.every(
+      (value) => String(value).trim().length > 0
+    );
+
+  if (!isComplete || cart.length === 0) {
+    setCheckoutTotal(null);
+    return;
+  }
+
+  const timer = setTimeout(async () => {
+    try {
+      setCheckoutLoading(true);
+
+      const response =
+        await createCheckout({
+          shippingAddress: {
+            fullName: formData.name,
+            phone: formData.phone,
+            house: formData.address,
+            area: formData.address,
+            landmark: "",
+            city: formData.city,
+            state: formData.state,
+            country: "India",
+            pincode: formData.pincode,
+          },
+        });
+
+      const checkout =
+        response?.data?.data;
+
+      setCheckoutTotal(
+        Number(checkout?.grandTotal ?? 0)
+      );
+    } catch (error) {
+      console.error(
+        "CHECKOUT_QUOTE_ERROR:",
+        error
+      );
+
+      setCheckoutTotal(null);
+    } finally {
+      setCheckoutLoading(false);
+    }
+  }, 500);
+
+      return () => clearTimeout(timer);
+    }, [
+      formData.name,
+      formData.phone,
+      formData.address,
+      formData.city,
+      formData.state,
+      formData.pincode,
+        cart.length,
+    JSON.stringify(
+      cart.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+    }))
+  ),
+
+    ]);
   /* ========================= */
   /* PLACE ORDER */
   /* ========================= */
 
-  const handleSubmit = (e) => {
+  
 
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+  if (checkoutTotal === null) {
+    throw new Error(
+      "Please complete your delivery address first."
+    );
+  }
+
+  
+    const payload = {
+      paymentMethod: "COD",
+
+      shippingAddress: {
+        fullName: formData.name,
+        phone: formData.phone,
+        house: formData.address,
+        area: formData.address,
+        landmark: "",
+        city: formData.city,
+        state: formData.state,
+        country: "India",
+        pincode: formData.pincode,
+      },
+    };
+
+    const response =
+  await createOrder(payload);
+
+    if (!response?.data?.success) {
+      throw new Error(
+        response?.data?.message ||
+        "Unable to place order."
+      );
+    }
+
+    setPlacedOrder(
+      response?.data?.data || null
+    );
 
     setOrderPlaced(true);
-
-    /* ORDER JUST PLACED */
     setCurrentStep(1);
 
-    /* AUTO UPDATE */
-    setTimeout(() => {
-      setCurrentStep(2);
-    }, 4000);
+  } catch (error) {
+    console.error(
+      "ORDER_CREATE_ERROR:",
+      error
+    );
 
-    setTimeout(() => {
-      setCurrentStep(3);
-    }, 8000);
-  };
+    alert(
+      error?.response?.data?.message ||
+      error?.message ||
+      "Unable to place order. Please try again."
+    );
+  }
+};
 
   /* ========================= */
   /* ORDER SUCCESS */
@@ -332,7 +451,7 @@ const Checkout = () => {
                     mt-2
                   "
                 >
-                  
+                  {placedOrder?.orderNumber || "—"}
                 </h3>
 
               </div>
@@ -382,7 +501,12 @@ const Checkout = () => {
                     mt-2
                   "
                 >
-                  ₹ {totalPrice.toLocaleString()}
+                 ₹{" "}
+                    {Number(
+                      placedOrder?.totalAmount ??
+                      totalPrice ??
+                      0
+                    ).toLocaleString()}
                 </h3>
 
               </div>
@@ -663,156 +787,17 @@ const Checkout = () => {
 
               </label>
 
-              {/* CARD */}
-              <label
-                className={`
-                  flex
-                  items-start
-                  gap-4
-                  border
-                  rounded-2xl
-                  p-5
-                  mt-4
-                  cursor-pointer
-                  transition-all
-                  ${
-                    paymentMethod === "card"
-                      ? "border-[#D4AF37] bg-[#D4AF37]/10"
-                      : "border-black/10"
-                  }
-                `}
-              >
-
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === "card"}
-                  onChange={() =>
-                    setPaymentMethod("card")
-                  }
-                />
-
-                <div className="w-full">
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      gap-2
-                    "
-                  >
-
-                    <CreditCard size={18} />
-
-                    <h4 className="font-semibold">
-                      Credit / Debit Card
-                    </h4>
-
-                  </div>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    Secure online payment
-                  </p>
-
-                  {paymentMethod === "card" && (
-
-                    <div className="mt-5 space-y-4">
-
-                      <input
-                        type="text"
-                        name="cardNumber"
-                        placeholder="Card Number"
-                        value={formData.cardNumber}
-                        onChange={handleChange}
-                        required
-                        className="
-                          w-full
-                          h-[55px]
-                          rounded-xl
-                          border
-                          border-black/10
-                          px-4
-                          outline-none
-                        "
-                      />
-
-                      <input
-                        type="text"
-                        name="cardName"
-                        placeholder="Card Holder Name"
-                        value={formData.cardName}
-                        onChange={handleChange}
-                        required
-                        className="
-                          w-full
-                          h-[55px]
-                          rounded-xl
-                          border
-                          border-black/10
-                          px-4
-                          outline-none
-                        "
-                      />
-
-                      <div
-                        className="
-                          grid
-                          grid-cols-2
-                          gap-4
-                        "
-                      >
-
-                        <input
-                          type="text"
-                          name="expiry"
-                          placeholder="MM/YY"
-                          value={formData.expiry}
-                          onChange={handleChange}
-                          required
-                          className="
-                            w-full
-                            h-[55px]
-                            rounded-xl
-                            border
-                            border-black/10
-                            px-4
-                            outline-none
-                          "
-                        />
-
-                        <input
-                          type="password"
-                          name="cvv"
-                          placeholder="CVV"
-                          value={formData.cvv}
-                          onChange={handleChange}
-                          required
-                          className="
-                            w-full
-                            h-[55px]
-                            rounded-xl
-                            border
-                            border-black/10
-                            px-4
-                            outline-none
-                          "
-                        />
-
-                      </div>
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              </label>
+              
 
             </div>
 
             {/* BUTTON */}
             <button
               type="submit"
+              disabled={
+                checkoutLoading ||
+                checkoutTotal === null
+              }
               className="
                 w-full
                 h-[60px]
@@ -963,7 +948,14 @@ const Checkout = () => {
                   font-bold
                 "
               >
-                ₹ {totalPrice.toLocaleString()}
+               ₹{" "}
+              {checkoutLoading
+                ? "Calculating..."
+                : checkoutTotal === null
+                ? "—"
+                : Number(
+                    checkoutTotal
+                  ).toLocaleString()}
               </span>
 
             </div>

@@ -7,7 +7,7 @@ import {
   CreditCard,
 } from "lucide-react";
 
-import { getCustomerOrders } from "../api/order.api";
+import { getMyOrders } from "../api/order.api";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -15,15 +15,15 @@ const Orders = () => {
   useEffect(() => {
   const loadOrders = async () => {
     try {
-      const response = await getCustomerOrders();
+    const response = await getMyOrders();
 
-      const data = response?.data?.data;
+          const data = response?.data?.data;
 
-      setOrders(
-        data?.orders ||
-          data?.items ||
-          (Array.isArray(data) ? data : [])
-      );
+          setOrders(
+            Array.isArray(data)
+              ? data
+              : []
+          );
     } catch {
       setOrders([]);
     }
@@ -82,7 +82,7 @@ const Orders = () => {
 
           {orders.map((order) => (
             <div
-              key={order.id}
+              key={order._id}
               className="
                 bg-white
                 rounded-[2rem]
@@ -102,7 +102,7 @@ const Orders = () => {
                   </p>
 
                   <h2 className="font-semibold text-xl mt-2">
-                    {order.id}
+                    {order.orderNumber}
                   </h2>
 
                 </div>
@@ -130,7 +130,7 @@ const Orders = () => {
 
                 {order.items.map((item) => (
                   <div
-                    key={item.id}
+                    key={`${order._id}-${item.product}-${item.quantity}`}
                     className="
                       flex
                       flex-col
@@ -162,7 +162,7 @@ const Orders = () => {
                       </h3>
 
                       <p className="text-sm text-gray-500 mt-1">
-                        Quantity : {item.qty}
+                        Quantity : {item.quantity}
                       </p>
 
                     </div>
@@ -171,7 +171,7 @@ const Orders = () => {
                     <div className="text-xl font-bold text-[#D4AF37]">
                       ₹
                       {(
-                        item.price * item.qty
+                        item.price * item.quantity
                       ).toLocaleString()}
                     </div>
 
@@ -189,7 +189,7 @@ const Orders = () => {
                   <div className="w-3 h-3 rounded-full bg-green-500" />
 
                   <p className="font-medium">
-                    Order Confirmed
+                   {order.orderStatus || "Pending"}
                   </p>
 
                 </div>
@@ -203,7 +203,7 @@ const Orders = () => {
 
                   <h3 className="text-3xl font-bold text-[#D4AF37]">
                     ₹
-                    {order.pricing?.total?.toLocaleString()}
+                    {order.totalAmount?.toLocaleString()}
                   </h3>
 
                 </div>
@@ -218,15 +218,17 @@ const Orders = () => {
                 </p>
 
                 <p className="mt-3 text-gray-700 leading-relaxed">
-                  {order.address?.name},
+                  {order.shippingAddress?.fullName},
                   {" "}
-                  {order.address?.address},
+                  {order.shippingAddress?.house},
                   {" "}
-                  {order.address?.city},
+                  {order.shippingAddress?.area},
                   {" "}
-                  {order.address?.state}
+                  {order.shippingAddress?.city},
+                  {" "}
+                  {order.shippingAddress?.state}
                   {" - "}
-                  {order.address?.pincode}
+                  {order.shippingAddress?.pincode}
                 </p>
 
               </div>

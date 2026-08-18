@@ -58,12 +58,27 @@ const storage = new CloudinaryStorage({
 // ======================================================
 
 const fileFilter = (req, file, cb) => {
+  const extension =
+    file.originalname
+      ?.split(".")
+      .pop()
+      ?.toLowerCase();
+
+  const allowedExtensions = [
+    "jpg",
+    "jpeg",
+    "png",
+    "webp",
+  ];
 
   if (
     !allowedMimeTypes.includes(
       file.mimetype
+    ) ||
+    !allowedExtensions.includes(
+      extension
     )
-  ) {
+  )  {
     return cb(
       new ApiError(
         400,

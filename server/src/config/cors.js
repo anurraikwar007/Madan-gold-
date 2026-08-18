@@ -2,15 +2,16 @@ import cors from "cors";
 import { env } from "./env.js";
 
 const whitelist = [
-
   env.CLIENT_URL,
 
-  "http://localhost:5173",
-
-  "http://127.0.0.1:5173",
+  ...(env.NODE_ENV !== "production"
+    ? [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+      ]
+    : []),
 
   "https://www.madangold.com",
-
   "https://madangold.com",
 ];
 

@@ -1,19 +1,27 @@
 import express from "express";
-
+import mongoose from "mongoose";
 import OrderController from "../controllers/order.controller.js";
 
 import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
+import validate from "../middleware/validate.js";
 import {
-  createOrder,
-  getCustomerOrders,
-  getOrderById,
-  getAdminOrders,
-  updateOrderStatus,
-  cancelOrder,
-} from "../services/order.service.js";
+  createOrderSchema,
+} from "../validators/order.validator.js";
+
 
 const router = express.Router();
+
+const validateObjectId = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid order id.",
+    });
+  }
+
+  next();
+};
 
 /*
 =========================================
@@ -25,15 +33,10 @@ router.post(
   "/",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate(createOrderSchema),
   OrderController.create
 );
 
-router.get(
-  "/",
-  authMiddleware,
-  roleMiddleware("Customer"),
-  OrderController.myOrders
-);
 
 router.get(
   "/my-orders",
@@ -59,6 +62,7 @@ router.patch(
     "Admin",
     "SuperAdmin"
   ),
+  validateObjectId,
   OrderController.updateStatus
 );
 
@@ -66,6 +70,7 @@ router.patch(
   "/:id/cancel",
   authMiddleware,
   roleMiddleware("Customer"),
+  validateObjectId,
   OrderController.cancel
 );
 
@@ -73,12 +78,19 @@ router.get(
   "/:id",
   authMiddleware,
   roleMiddleware("Customer"),
+  validateObjectId,
   OrderController.getOne
 );
 
 router.get(
   "/:id/invoice",
   authMiddleware,
+  roleMiddleware(
+    "Customer",
+    "Admin",
+    "SuperAdmin"
+  ),
+  validateObjectId,
   OrderController.downloadInvoice
 );
 
@@ -95,11 +107,15 @@ router.get(
   OrderController.getAll
 );
 
-router.put(
-  "/admin/:id/status",
-  authMiddleware,
-  roleMiddleware("Admin","SuperAdmin"),
-  OrderController.updateStatus
-);
+  router.put(
+    "/admin/:id/status",
+    authMiddleware,
+    roleMiddleware(
+      "Admin",
+      "SuperAdmin"
+    ),
+    validateObjectId,
+    OrderController.updateStatus
+  );
 
 export default router;

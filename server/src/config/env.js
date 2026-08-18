@@ -22,6 +22,16 @@ if (process.env.NODE_ENV !== "test") {
   );
 }
 
+if (process.env.NODE_ENV === "production") {
+  requiredEnv.push(
+    "PHONEPE_CLIENT_ID",
+    "PHONEPE_CLIENT_SECRET",
+    "PHONEPE_REDIRECT_URL",
+    "PHONEPE_CALLBACK_USERNAME",
+    "PHONEPE_CALLBACK_PASSWORD"
+  );
+}
+
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     throw new Error(

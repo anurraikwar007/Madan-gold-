@@ -16,6 +16,26 @@ export const verifyEmail = (email, otp) =>
 export const resendVerification = (email) =>
   api.post("/customers/resend-verification", { email });
 
+export const forgotCustomerPassword = (
+  email
+) =>
+  api.post(
+    "/customers/forgot-password",
+    { email }
+  );
+
+export const resetCustomerPassword = (
+  token,
+  password
+) =>
+  api.post(
+    "/customers/reset-password",
+    {
+      token,
+      password,
+    }
+  );
+
 export const getProfile = () =>
   api.get("/customers/profile");
 

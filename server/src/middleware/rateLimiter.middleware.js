@@ -36,8 +36,7 @@ const refreshLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-
-  max: 200,
+  max: 1000,
 
   message: {
     success: false,

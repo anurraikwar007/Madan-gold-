@@ -1,6 +1,9 @@
 import api from "../lib/axios";
 
+// =====================================================
 // Dashboard
+// =====================================================
+
 export const getAdminDashboard = (
   range = "all"
 ) =>
@@ -8,7 +11,10 @@ export const getAdminDashboard = (
     params: { range },
   });
 
+// =====================================================
 // Products
+// =====================================================
+
 export const getAdminProducts = (
   params = {}
 ) =>
@@ -33,10 +39,19 @@ export const updateAdminProduct = (
     data
   );
 
+export const toggleAdminProduct = (
+  id
+) =>
+  api.patch(
+    `/admin/products/${id}/toggle-active`
+  );
+
 export const deleteAdminProduct = (
   id
 ) =>
-  api.delete(`/admin/products/${id}`);
+  api.delete(
+    `/admin/products/${id}`
+  );
 
 export const uploadAdminProductImages = (
   files
@@ -59,7 +74,10 @@ export const uploadAdminProductImages = (
   );
 };
 
+// =====================================================
 // Categories
+// =====================================================
+
 export const getAdminCategories = (
   params = {}
 ) =>
@@ -87,6 +105,13 @@ export const updateAdminCategory = (
     data
   );
 
+export const toggleAdminCategory = (
+  id
+) =>
+  api.patch(
+    `/admin/categories/${id}/toggle-active`
+  );
+
 export const deleteAdminCategory = (
   id
 ) =>
@@ -94,7 +119,10 @@ export const deleteAdminCategory = (
     `/admin/categories/${id}`
   );
 
+// =====================================================
 // Coupons
+// =====================================================
+
 export const getAdminCoupons = (
   params = {}
 ) =>
@@ -126,7 +154,10 @@ export const deleteAdminCoupon = (
     `/admin/coupons/${id}`
   );
 
+// =====================================================
 // Orders
+// =====================================================
+
 export const getAdminOrders = (
   params = {}
 ) =>
@@ -146,7 +177,10 @@ export const updateAdminOrderStatus = (
     { status }
   );
 
+// =====================================================
 // Admin profile
+// =====================================================
+
 export const getAdminProfile = () =>
   api.get("/admin/me");
 

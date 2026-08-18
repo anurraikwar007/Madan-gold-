@@ -148,10 +148,11 @@ class CheckoutService {
         cartItem.quantity *
         sellingPrice;
         const itemMaking =
-          product.makingCharges || 0;
+          (product.makingCharges || 0) *
+          cartItem.quantity;
 
         const itemGST =
-           (
+          (
             itemSubtotal +
             itemMaking
           ) *
