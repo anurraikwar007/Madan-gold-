@@ -11,8 +11,9 @@ import {
   restoreProduct,
   toggleProductStatus,
   getCustomerProduct,
+  getCustomerProductBySlug,
   getRelatedProducts,
-  searchSuggestions,
+  searchSuggestions as getSearchSuggestions,
 } from "../services/product.service.js";
 
 import {
@@ -40,13 +41,13 @@ class ProductController {
   // Get All Products
   getAll = asyncHandler(async (req, res) => {
     const data = await getAllProducts(req.query);
-         console.log(data);
+     
     return res.status(200).json(
       apiResponse.success(
         "Products fetched successfully.",
         data
       )
-    );
+    ); 
   });
   
   //Get AdminAll Product
@@ -170,6 +171,26 @@ class ProductController {
     );
   });
 
+  // ======================================================
+// Customer Product By Slug
+// ======================================================
+
+customerProductBySlug = asyncHandler(
+  async (req, res) => {
+    const product =
+      await getCustomerProductBySlug(
+        req.params.slug
+      );
+
+    return res.status(200).json(
+      apiResponse.success(
+        "Product fetched successfully.",
+        product
+      )
+    );
+  }
+);
+
   // Related Products
   relatedProducts = asyncHandler(async (req, res) => {
     const products = await getRelatedProducts(req.params.id);
@@ -181,10 +202,12 @@ class ProductController {
       )
     );
   });
-
-  // Search Suggestions
+     
+     // Search Suggestions
   searchSuggestions = asyncHandler(async (req, res) => {
-    const data = await searchSuggestions(req.query.q);
+    const data = await getSearchSuggestions(
+      req.query.q
+    );
 
     return res.status(200).json(
       apiResponse.success(

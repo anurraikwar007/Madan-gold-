@@ -20,8 +20,46 @@ const ProductInfo = ({ product }) => {
       (product._id || product.id)
   );
 
+  const basePrice =
+    Number(product.price) || 0;
+
+  const discountPrice =
+    Number(product.discountPrice) || 0;
+
+  const finalPrice =
+    Number(product.finalPrice) ||
+    (
+      discountPrice > 0 &&
+      discountPrice < basePrice
+        ? discountPrice
+        : basePrice
+    );
+
+  const discountPercentage =
+    basePrice > finalPrice
+      ? Math.round(
+          ((basePrice - finalPrice) /
+            basePrice) *
+            100
+        )
+      : 0;
+
+  const availableStock =
+    Number(
+      product.inventory?.availableStock ??
+        product.availableStock ??
+        product.inventory?.stock ??
+        0
+    );
+
+  const isOutOfStock =
+    availableStock <= 0;
+
   return (
     <div className="flex flex-col justify-center">
+
+      {/* CATEGORY / METAL */}
+
       <p
         className="
           text-xs
@@ -31,10 +69,13 @@ const ProductInfo = ({ product }) => {
           font-semibold
         "
       >
-        {product.metal || "Gold"} •{" "}
+        {product.metal || "Silver"} •{" "}
         {product.category?.name ||
-          product.category}
+          product.category ||
+          "Jewellery"}
       </p>
+
+      {/* PRODUCT NAME */}
 
       <h1
         className="
@@ -48,35 +89,72 @@ const ProductInfo = ({ product }) => {
         {product.name}
       </h1>
 
+      {/* PRICE */}
+
       <div className="mt-6">
-        <p className="text-4xl font-bold">
-          ₹
-          {Number(
-            product.price || 0
-          ).toLocaleString()}
-        </p>
+
+        <div className="flex items-end gap-3 flex-wrap">
+
+          <p className="text-4xl font-bold">
+            ₹
+            {finalPrice.toLocaleString(
+              "en-IN"
+            )}
+          </p>
+
+          {discountPercentage > 0 && (
+            <>
+              <p className="text-lg text-gray-400 line-through">
+                ₹
+                {basePrice.toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+
+              <span className="text-sm font-semibold text-green-600">
+                {discountPercentage}% OFF
+              </span>
+            </>
+          )}
+
+        </div>
 
         <p className="text-sm text-gray-500 mt-2">
-          Inclusive of all taxes
+          Inclusive of all applicable taxes
         </p>
+
+        {Number(product.makingCharges) > 0 && (
+          <p className="text-xs text-gray-400 mt-1">
+            Making charges are included in the
+            checkout calculation.
+          </p>
+        )}
+
       </div>
 
       {/* DETAILS */}
 
       <div className="grid grid-cols-2 gap-4 mt-8">
 
+        {/* PURITY */}
+
         <div className="bg-white rounded-xl p-4">
+
           <p className="text-xs text-gray-500">
             Purity
           </p>
 
           <p className="font-semibold mt-1">
             {product.purity ||
-              "22K Gold"}
+              "925 Silver"}
           </p>
+
         </div>
 
+        {/* WEIGHT */}
+
         <div className="bg-white rounded-xl p-4">
+
           <p className="text-xs text-gray-500">
             Weight
           </p>
@@ -86,20 +164,35 @@ const ProductInfo = ({ product }) => {
               ? `${product.weight} g`
               : "Available"}
           </p>
+
         </div>
 
+        {/* STOCK */}
+
         <div className="bg-white rounded-xl p-4">
+
           <p className="text-xs text-gray-500">
             Stock
           </p>
 
-          <p className="font-semibold">
-            {product.stock ??
-              "Available"}
+          <p
+            className={`font-semibold ${
+              isOutOfStock
+                ? "text-red-600"
+                : "text-green-600"
+            }`}
+          >
+            {isOutOfStock
+              ? "Out of Stock"
+              : `${availableStock} Available`}
           </p>
+
         </div>
 
+        {/* GENDER */}
+
         <div className="bg-white rounded-xl p-4">
+
           <p className="text-xs text-gray-500">
             Designed For
           </p>
@@ -108,9 +201,12 @@ const ProductInfo = ({ product }) => {
             {product.gender ||
               "Unisex"}
           </p>
+
         </div>
 
       </div>
+
+      {/* DESCRIPTION */}
 
       <p
         className="
@@ -120,7 +216,7 @@ const ProductInfo = ({ product }) => {
         "
       >
         {product.description ||
-          "Premium handcrafted jewellery made with certified gold."}
+          "Premium handcrafted jewellery made with certified 925 sterling silver."}
       </p>
 
       {/* BUTTONS */}
@@ -128,6 +224,8 @@ const ProductInfo = ({ product }) => {
       <div className="flex gap-4 mt-10">
 
         <button
+          type="button"
+          disabled={isOutOfStock}
           onClick={() =>
             addToCart(product)
           }
@@ -144,15 +242,28 @@ const ProductInfo = ({ product }) => {
             hover:bg-[#D4AF37]
             hover:text-black
             transition
+            disabled:opacity-40
+            disabled:cursor-not-allowed
+            disabled:hover:bg-black
+            disabled:hover:text-white
           "
         >
           <ShoppingBag size={20} />
-          Add To Cart
+
+          {isOutOfStock
+            ? "Out of Stock"
+            : "Add To Cart"}
         </button>
 
         <button
+          type="button"
           onClick={() =>
             toggleWishlist(product)
+          }
+          aria-label={
+            isWishlisted
+              ? "Remove from wishlist"
+              : "Add to wishlist"
           }
           className="
             w-14
@@ -181,21 +292,25 @@ const ProductInfo = ({ product }) => {
 
       <div className="grid sm:grid-cols-2 gap-4 mt-10">
 
+        {/* DELIVERY */}
+
         <div className="bg-white rounded-2xl p-5 flex gap-3 items-center">
 
           <Truck className="text-[#D4AF37]" />
 
           <div>
             <h4 className="font-semibold">
-              Free Delivery
-            </h4>
+            Delivery Across India
+          </h4>
 
-            <p className="text-sm text-gray-500">
-              Across India
-            </p>
+          <p className="text-sm text-gray-500">
+            Free above ₹10,000
+          </p>
           </div>
 
         </div>
+
+        {/* CERTIFICATION */}
 
         <div className="bg-white rounded-2xl p-5 flex gap-3 items-center">
 
@@ -203,11 +318,11 @@ const ProductInfo = ({ product }) => {
 
           <div>
             <h4 className="font-semibold">
-              BIS Certified
+              925 Silver
             </h4>
 
             <p className="text-sm text-gray-500">
-              Genuine Jewellery
+              Genuine Sterling Silver
             </p>
           </div>
 

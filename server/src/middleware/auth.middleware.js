@@ -30,8 +30,9 @@ let decoded;
 
 try {
 
-    decoded = jwt.verify(token, env.JWT_SECRET);
-
+   decoded = jwt.verify(token, env.JWT_SECRET, {
+  algorithms: ["HS256"],
+ });
 } catch {
 
     return res
@@ -42,12 +43,18 @@ try {
 
 // Validate Payload
 
-if (!decoded.id || !decoded.role) {
-
-    return res
-        .status(401)
-        .json(apiResponse.error("Invalid token."));
-
+if (
+  !decoded.id ||
+  !decoded.role ||
+  decoded.type !== "access"
+) {
+  return res
+    .status(401)
+    .json(
+      apiResponse.error(
+        "Invalid access token."
+      )
+    );
 }
 
 // Validate Role

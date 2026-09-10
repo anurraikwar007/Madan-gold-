@@ -1,15 +1,37 @@
 const ORDER_STATUS = Object.freeze({
-  PENDING: "Pending",
+  Pending: [
+    "Confirmed",
+    "Cancelled",
+  ],
 
-  CONFIRMED: "Confirmed",
+  Confirmed: [
+    "Processing",
+    "Cancelled",
+  ],
 
-  PROCESSING: "Processing",
+  Processing: [
+    "Packed",
+    "Cancelled",
+  ],
 
-  SHIPPED: "Shipped",
+  Packed: [
+    "Shipped",
+    "Cancelled",
+  ],
 
-  DELIVERED: "Delivered",
+  Shipped: [
+    "Out For Delivery",
+  ],
 
-  CANCELLED: "Cancelled",
+  "Out For Delivery": [
+    "Delivered",
+  ],
+
+  Delivered: [],
+
+  Cancelled: [],
+
+  Returned: [],
 });
 
 export default ORDER_STATUS;

@@ -10,6 +10,8 @@
     "dev:watch": "nodemon --watch src src/server.js",
     "seed": "node src/seeders/admin.seeder.js",
     "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles",
+    "test:ci": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage --detectOpenHandles",
+    "check": "node --check src/server.js",
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch"
   },
   "dependencies": {

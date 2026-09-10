@@ -127,7 +127,8 @@ Routes
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Madan Gold Backend Running",
+    service: "Madan 925 Silver Jewellery API",
+    message: "API is running.",
     version: "1.0.0",
   });
 });

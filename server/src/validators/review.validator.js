@@ -35,8 +35,9 @@ export const createReviewValidator = {
       .max(2000)
       .required(),
 
-    images: Joi.array()
+     images: Joi.array()
       .items(imageSchema)
+      .max(5)
       .default([]),
   }),
 };

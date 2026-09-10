@@ -32,7 +32,12 @@ describe("Create Order", () => {
         `Bearer ${customerToken}`
       )
       .send({
-        paymentMethod: "COD",
+       paymentMethod: "COD",
+
+       idempotencyKey: `jest-order-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 10)}`,
+
 
         shippingAddress: {
           fullName: "Test User",

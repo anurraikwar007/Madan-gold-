@@ -128,3 +128,152 @@ export const resendVerificationSchema = {
       .required(),
   }),
 };
+
+export const forgotPasswordSchema = {
+  body: Joi.object({
+    email: Joi.string()
+      .email()
+      .lowercase()
+      .required(),
+  }),
+};
+
+export const resetPasswordSchema = {
+  body: Joi.object({
+    token: Joi.string()
+      .min(32)
+      .required(),
+
+    password: Joi.string()
+      .min(6)
+      .max(20)
+      .required(),
+  }),
+};
+
+export const addressSchema = {
+  body: Joi.object({
+    type: Joi.string()
+      .valid(
+        "Home",
+        "Work",
+        "Other"
+      )
+      .default("Home"),
+
+    fullName: Joi.string()
+      .trim()
+      .min(2)
+      .max(100)
+      .required(),
+
+    phone: Joi.string()
+      .trim()
+      .pattern(/^[6-9]\d{9}$/)
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Phone number must be a valid 10 digit Indian mobile number",
+      }),
+
+    pincode: Joi.string()
+      .pattern(/^\d{6}$/)
+      .required(),
+
+    house: Joi.string()
+      .trim()
+      .min(1)
+      .max(200)
+      .required(),
+
+    area: Joi.string()
+      .trim()
+      .min(2)
+      .max(200)
+      .required(),
+
+    landmark: Joi.string()
+      .trim()
+      .max(200)
+      .allow(""),
+
+    city: Joi.string()
+      .trim()
+      .min(2)
+      .max(100)
+      .required(),
+
+    state: Joi.string()
+      .trim()
+      .min(2)
+      .max(100)
+      .required(),
+
+    country: Joi.string()
+      .trim()
+      .default("India"),
+
+    isDefault: Joi.boolean()
+      .default(false),
+  }),
+};
+
+export const updateAddressSchema = {
+  params: Joi.object({
+    id: Joi.string()
+      .length(24)
+      .hex()
+      .required(),
+  }),
+
+  body: Joi.object({
+    type: Joi.string()
+      .valid(
+        "Home",
+        "Work",
+        "Other"
+      ),
+
+    fullName: Joi.string()
+      .trim()
+      .min(2)
+      .max(100),
+
+    phone: Joi.string()
+      .trim()
+      .pattern(/^[6-9]\d{9}$/),
+
+    pincode: Joi.string()
+      .pattern(/^\d{6}$/),
+
+    house: Joi.string()
+      .trim()
+      .min(1)
+      .max(200),
+
+    area: Joi.string()
+      .trim()
+      .min(2)
+      .max(200),
+
+    landmark: Joi.string()
+      .trim()
+      .max(200)
+      .allow(""),
+
+    city: Joi.string()
+      .trim()
+      .min(2)
+      .max(100),
+
+    state: Joi.string()
+      .trim()
+      .min(2)
+      .max(100),
+
+    country: Joi.string()
+      .trim(),
+
+    isDefault: Joi.boolean(),
+  }).min(1),
+};

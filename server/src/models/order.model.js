@@ -124,6 +124,13 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
 
+    idempotencyKey: {
+      type: String,
+      trim: true,
+      default: null,
+      maxlength: 100,
+    },
+
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
@@ -374,26 +381,54 @@ invoiceUrl: {
   }
 );
 
-orderSchema.pre("save", function () {
-  if (!this.orderNumber) {
-    this.orderNumber =
-      "MG" +
-      Date.now() +
-      Math.floor(Math.random() * 1000);
+orderSchema.pre(
+  "validate",
+  function () {
+    if (!this.orderNumber) {
+      this.orderNumber =
+        "MG-" +
+        Date.now().toString(36).toUpperCase() +
+        "-" +
+        Math.random()
+          .toString(36)
+          .slice(2, 8)
+          .toUpperCase();
+    }
   }
+);
 
+  orderSchema.index({
+    customer: 1,
+    createdAt: -1,
+    _id: -1,
+  });
+
+  orderSchema.index({
+    orderStatus: 1,
+    createdAt: -1,
+  });
+
+  orderSchema.index({
+    paymentStatus: 1,
+    createdAt: -1,
+  });
+
+  orderSchema.index({
+    paymentMethod: 1,
+    createdAt: -1,
+  });
   
-});
-
-orderSchema.index({ customer: 1, createdAt: -1 });
-
-orderSchema.index({ orderStatus: 1 });
-
-orderSchema.index({ paymentStatus: 1 });
-
-
-
-
+  orderSchema.index(
+  {
+    customer: 1,
+    idempotencyKey: 1,
+  },
+  {
+    unique: true,
+    sparse: true,
+    name: "customer_order_idempotency",
+  }
+);
 
 const Order = mongoose.model("Order", orderSchema);
 

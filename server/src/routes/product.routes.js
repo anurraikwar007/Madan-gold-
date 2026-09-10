@@ -9,6 +9,7 @@ import validate from "../middleware/validate.js";
 import {
   createProductSchema,
   updateProductSchema,
+  getProductsQuerySchema,
 } from "../validators/product.validator.js";
 
 import {
@@ -18,25 +19,36 @@ import {
 
 const router = express.Router();
 
-/*
-=====================================
-Public Routes
-=====================================
-*/
+// =====================================
+// Public Routes
+// =====================================
 
 // Get All Products
 router.get(
   "/",
+  validate(getProductsQuerySchema),
   ProductController.getAll
 );
- 
- //
-  router.get(
-    "/:id/related",
-    ProductController.relatedProducts
-  );
 
- // Get Single Product
+// Search Suggestions
+router.get(
+  "/suggestions",
+  ProductController.searchSuggestions
+);
+
+// Product By Slug
+router.get(
+  "/slug/:slug",
+  ProductController.customerProductBySlug
+);
+
+// Related Products
+router.get(
+  "/:id/related",
+  ProductController.relatedProducts
+);
+
+// Single Product
 router.get(
   "/:id",
   ProductController.getOne

@@ -11,6 +11,7 @@ import {
   createAdminCoupon,
   updateAdminCoupon,
   deleteAdminCoupon,
+  uploadAdminCouponImage,
 } from "../../api/admin.api";
 
 import {
@@ -25,7 +26,12 @@ import {
 const initialForm = {
   code: "",
   description: "",
-  discountType: "percentage",
+  image: {
+    public_id: "",
+    url: "",
+    alt: "",
+  },
+  discountType: "Percentage",
   discountValue: "",
   minimumOrderAmount: "0",
   maximumDiscount: "0",
@@ -110,6 +116,59 @@ export default function AdminCoupons() {
     }));
   };
 
+  const handleCouponImage = async (
+  event
+) => {
+  const file =
+    event.target.files?.[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please select an image file.");
+    return;
+  }
+
+  if (file.size > 1024 * 1024) {
+    alert("Maximum image size is 1 MB.");
+    return;
+  }
+
+  setSelectedImage(file);
+  setImageUploading(true);
+
+  try {
+    const response =
+      await uploadAdminCouponImage(file);
+
+    const image =
+      response?.data?.data;
+
+    if (!image?.url) {
+      throw new Error(
+        "Image upload failed."
+      );
+    }
+
+    updateField("image", image);
+  } catch (error) {
+    console.error(
+      "Coupon image upload failed:",
+      error
+    );
+
+    alert(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Coupon image upload failed."
+    );
+
+    setSelectedImage(null);
+  } finally {
+    setImageUploading(false);
+  }
+};
+
   const openCreate = () => {
     setEditing(null);
     setForm(initialForm);
@@ -143,11 +202,16 @@ export default function AdminCoupons() {
 
     setForm({
       code: coupon.code || "",
-      description:
-        coupon.description || "",
-      discountType:
+      description: coupon.description || "",
+      image: coupon.image || {
+        public_id: "",
+        url: "",
+        alt: "",
+      },
+        
+       discountType:
         coupon.discountType ||
-        "percentage",
+        "Percentage",
       discountValue:
         coupon.discountValue ?? "",
       minimumOrderAmount:
@@ -186,6 +250,24 @@ export default function AdminCoupons() {
 
         description:
           form.description.trim(),
+
+          image: form.image?.url
+  ? {
+      public_id:
+        form.image.public_id || "",
+
+      url:
+        form.image.url,
+
+      alt:
+        form.image.alt ||
+        "Coupon offer",
+        }
+      : {
+          public_id: "",
+          url: "",
+          alt: "",
+        },
 
         discountType:
           form.discountType,
@@ -370,7 +452,7 @@ export default function AdminCoupons() {
 
                   <td className="px-5 py-4 font-semibold text-[#B88A44]">
                     {coupon.discountType ===
-                    "percentage"
+                    "Percentage"
                       ? `${coupon.discountValue}%`
                       : `₹${Number(
                           coupon.discountValue ||
@@ -524,7 +606,7 @@ export default function AdminCoupons() {
                 )
               }
             >
-              <option value="percentage">
+              <option value="Percentage">
                 Percentage
               </option>
 
@@ -538,7 +620,7 @@ export default function AdminCoupons() {
             <AdminInput
               label={
                 form.discountType ===
-                "percentage"
+                "Percentage"
                   ? "Discount %"
                   : "Discount Amount"
               }

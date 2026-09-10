@@ -1,4 +1,4 @@
-import {  
+import {
   useCallback,
   useEffect,
   useState,
@@ -17,65 +17,96 @@ const CategorySlider = () => {
   const [loading, setLoading] =
     useState(true);
 
-  const loadCategories = useCallback(async () => {
-    try {
-      setLoading(true);
+  const [error, setError] =
+    useState("");
 
-      const response =
-        await getCategories();
+  const loadCategories =
+    useCallback(async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-      const data =
-        response?.data?.data;
+        const response =
+          await getCategories();
 
-      const list =
-        data?.docs ||
-        data?.categories ||
-        (Array.isArray(data)
-          ? data
-          : []);
+        const data =
+          response?.data?.data;
 
-      setCategories(
-        list.filter(
-          (category) =>
-            category?.isActive !==
-            false
-        )
-      );
-    } catch (error) {
-      console.error(
-        "Categories load failed:",
-        error
-      );
+        const list =
+          Array.isArray(data)
+            ? data
+            : Array.isArray(
+                data?.categories
+              )
+              ? data.categories
+              : Array.isArray(
+                  data?.docs
+                )
+                ? data.docs
+                : [];
 
-      setCategories([]);
-    } finally {
-      setLoading(false);
-    }
-  } ,[]);
+        const activeCategories =
+          list.filter(
+            (category) =>
+              category &&
+              category.isDeleted !== true &&
+              category.isActive !== false
+          );
+
+        setCategories(
+          activeCategories
+        );
+      } catch (err) {
+        console.error(
+          "Categories load failed:",
+          err
+        );
+
+        setCategories([]);
+
+        setError(
+          "Unable to load categories."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
   useEffect(() => {
-  const timer = setTimeout(() => {
     loadCategories();
-  }, 0);
+  }, [loadCategories]);
 
-  return () => clearTimeout(timer);
-}, [loadCategories]);
+  if (loading) {
+    return (
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="mb-8 h-8 w-64 animate-pulse rounded bg-gray-200" />
 
- 
+          <div className="flex gap-4 overflow-hidden">
+            {Array.from({
+              length: 6,
+            }).map((_, index) => (
+              <div
+                key={index}
+                className="h-14 w-36 flex-shrink-0 animate-pulse rounded-full bg-gray-200"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  if (
-    loading ||
-    !categories.length
-  ) {
+  if (!categories.length) {
     return null;
   }
 
   return (
-    <section className="py-12 sm:py-16">
-      <div className="mx-auto max-w-7xl">
+    <section className="bg-white py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4">
 
-        <div className="mb-10 px-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#C9A227]">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#6594B1]">
             Browse Jewellery
           </p>
 
@@ -84,69 +115,49 @@ const CategorySlider = () => {
           </h2>
 
           <p className="mx-auto mt-3 max-w-xl text-sm text-gray-500">
-            Explore every jewellery category crafted
-            with premium quality.
+            Explore our 925 sterling silver jewellery
+            collections.
           </p>
         </div>
 
-        <div
-          className="
-            flex
-            gap-4
-            overflow-x-auto
-            px-4
-            pb-3
-            scrollbar-hide
-            md:flex-wrap
-            md:justify-center
-          "
-        >
-          {categories.map(
-            (category) => {
-              const name =
-                category?.name || "";
+        <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide md:flex-wrap md:justify-center">
+          {categories.map((category) => {
+            const id =
+              category?._id ||
+              category?.id;
 
-              return (
-                <Link
-                  key={
-                    category?._id ||
-                    name
-                  }
-                  to={`/shop?category=${encodeURIComponent(
-                    name.toLowerCase()
-                  )}`}
-                  className="
-                    group
-                    relative
-                    flex
-                    h-14
-                    flex-shrink-0
-                    items-center
-                    justify-center
-                    rounded-full
-                    border
-                    border-[#D4AF37]/30
-                    bg-white
-                    px-7
-                    font-medium
-                    text-[#111]
-                    shadow-sm
-                    transition-all
-                    duration-300
-                    hover:-translate-y-1
-                    hover:bg-gradient-to-r
-                    hover:from-[#D4AF37]
-                    hover:to-[#F6D365]
-                    hover:text-black
-                    hover:shadow-xl
-                  "
-                >
-                  {name}
-                </Link>
-              );
+            const name =
+              String(
+                category?.name || ""
+              ).trim();
+
+            const slug =
+              category?.slug ||
+              name.toLowerCase();
+
+            if (!id || !name) {
+              return null;
             }
-          )}
+
+            return (
+              <Link
+                key={id}
+                to={`/shop?category=${encodeURIComponent(
+                  slug
+                )}`}
+                className="group flex h-14 flex-shrink-0 items-center justify-center rounded-full border border-[#213C51]/15 bg-white px-7 font-medium text-[#213C51] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-[#213C51] hover:text-white hover:shadow-xl"
+              >
+                {name}
+              </Link>
+            );
+          })}
         </div>
+
+        {error && (
+          <p className="mt-5 text-center text-sm text-red-500">
+            {error}
+          </p>
+        )}
       </div>
     </section>
   );

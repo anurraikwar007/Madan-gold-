@@ -10,7 +10,7 @@ describe("Get Orders", () => {
     const token = await customerLogin();
 
     const response = await request(app)
-      .get("/api/v1/orders")
+      .get("/api/v1/orders/my-orders")
       .set("Authorization", `Bearer ${token}`);
 
     console.log(response.body);

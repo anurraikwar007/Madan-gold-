@@ -113,112 +113,110 @@ export const createCustomer = async (
 // Get Customers
 // ======================================================
 
-export const getAllCustomers =
-async ({
-
+export const getAllCustomers = async ({
   page = 1,
-
-  limit = 10,
-
+  limit = 20,
   search = "",
-
 }) => {
+  page = Math.max(
+    Number(page) || 1,
+    1
+  );
+
+  limit = Math.min(
+    Math.max(
+      Number(limit) || 20,
+      1
+    ),
+    50
+  );
 
   const filter = {
-
     isDeleted: false,
-
   };
 
-  if (search) {
+  const normalizedSearch =
+    String(search || "")
+      .trim()
+      .slice(0, 100);
+
+  if (normalizedSearch) {
+    const escaped =
+      normalizedSearch.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
 
     filter.$or = [
-
       {
-
         name: {
-
-          $regex: search,
-
+          $regex: escaped,
           $options: "i",
-
         },
-
       },
-
       {
-
         email: {
-
-          $regex: search,
-
+          $regex: escaped,
           $options: "i",
-
         },
-
       },
-
       {
-
         phone: {
-
-          $regex: search,
-
+          $regex: escaped,
           $options: "i",
-
         },
-
       },
-
     ];
-
   }
 
   const skip =
     (page - 1) * limit;
 
-   const [
+  const [
     customers,
     totalCustomers,
   ] = await Promise.all([
-
     CustomerRepository.find(
       filter,
       {
+        select:
+          "-password -refreshTokens",
         skip,
         limit,
         sort: {
           createdAt: -1,
+          _id: -1,
         },
       }
     ),
 
-    CustomerRepository.count(filter),
-
+    CustomerRepository.count(
+      filter
+    ),
   ]);
 
-  return {
+  const totalPages =
+    Math.ceil(
+      totalCustomers / limit
+    );
 
+  return {
     customers,
 
     pagination: {
-
       total: totalCustomers,
+      page,
+      limit,
+      totalPages,
 
-      page: Number(page),
+      hasNextPage:
+        page < totalPages,
 
-      limit: Number(limit),
-
-      totalPages: Math.ceil(
-        totalCustomers / limit
-      ),
-
+      hasPrevPage:
+        page > 1,
     },
-
   };
-
 };
-
 // ======================================================
 // Get Customer By Id
 // ======================================================

@@ -38,18 +38,21 @@ class CategoryService {
     });
 
     return CategoryRepository.create({
-      name,
-      slug,
-      description,
-      image,
-      featured,
-      displayOrder,
-
-      metaTitle,
-      metaDescription,
-      metaKeywords,
+    name,
+    slug,
+    description,
+    image,
+    featured,
+    displayOrder,
+    seo: {
+      metaTitle: metaTitle || "",
+      metaDescription: metaDescription || "",
+      keywords: Array.isArray(metaKeywords)
+        ? metaKeywords
+        : [],
+     },
     });
-  }
+   }
 
   // =====================================================
   // Update Category
@@ -253,22 +256,27 @@ class CategoryService {
       isDeleted: false,
     };
 
-    if (search) {
-      filter.$or = [
-        {
-          name: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          description: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+   if (search) {
+  const escapedSearch = String(search).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
+  filter.$or = [
+    {
+      name: {
+        $regex: escapedSearch,
+        $options: "i",
+      },
+    },
+    {
+      description: {
+        $regex: escapedSearch,
+        $options: "i",
+      },
+    },
+  ];
+}
 
     if (typeof isActive !== "undefined") {
       filter.isActive =
@@ -305,36 +313,26 @@ class CategoryService {
   // Update Display Order
   // =====================================================
 
-  async updateDisplayOrder(
-    categoryId,
-    displayOrder
-  ) {
-    const category =
-      await CategoryRepository.findById(
-        categoryId
-      );
+  async updateDisplayOrder(categoryId, displayOrder) {
+  const category =
+    await CategoryRepository.findById(
+      categoryId,
+      { lean: false }
+    );
 
-    if (!category) {
-      throw new apiError(
-        404,
-        "Category not found."
-      );
-    }
-
-    return CategoryRepository.findOneAndUpdate(
-      {
-        _id: categoryId,
-      },
-      {
-        $set: {
-          displayOrder,
-        },
-      },
-      {
-        returnDocument: "after",
-      }
+  if (!category) {
+    throw new apiError(
+      404,
+      "Category not found."
     );
   }
+
+  category.displayOrder = displayOrder;
+
+  await category.save();
+
+  return category;
+}
 
   // =====================================================
   // Bulk Reorder Categories

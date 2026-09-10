@@ -9,27 +9,22 @@ import { CartProvider } from "./context/CartContext";
 import { SearchProvider } from "./context/SearchContext";
 import { ProductProvider } from "./context/ProductContext";
 import { AuthProvider } from "./context/AuthContext";
+import { HelmetProvider } from "react-helmet-async";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(
+  document.getElementById("root")
+).render(
   <React.StrictMode>
-
-    <AuthProvider>
-
-      <ProductProvider>
-
-        <SearchProvider>
-
-          <CartProvider>
-
-            <App />
-
-          </CartProvider>
-
-        </SearchProvider>
-
-      </ProductProvider>
-
-    </AuthProvider>
-
+    <HelmetProvider>
+      <AuthProvider>
+        <ProductProvider>
+          <SearchProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </SearchProvider>
+        </ProductProvider>
+      </AuthProvider>
+    </HelmetProvider>
   </React.StrictMode>
 );

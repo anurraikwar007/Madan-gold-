@@ -28,7 +28,7 @@ export default function AdminHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-slate-800 bg-[#080A0F]/85 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-slate-800 bg-[#213C51]/95 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
 
         <div className="flex items-center gap-4">
           <button

@@ -20,18 +20,22 @@ export const createOrderDTO = (body = {}) => {
   }
 
   return {
-    shippingAddress:
-      body.shippingAddress,
+  shippingAddress:
+    body.shippingAddress,
 
-    paymentMethod,
+      paymentMethod,
 
-    couponCode:
-      body.couponCode
-        ?.trim()
-        .toUpperCase() || null,
+      idempotencyKey:
+        String(body.idempotencyKey)
+          .trim(),
 
-    shippingCharge: 0,
+      couponCode:
+        body.couponCode
+          ?.trim()
+          .toUpperCase() || null,
 
-    gst: 0,
-  };
+      shippingCharge: 0,
+
+      gst: 0,
+    };
 };

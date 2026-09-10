@@ -19,11 +19,9 @@ const Cart = () => {
     cartCount,
   } = useCart();
 
-  const shipping = subtotal > 5000 ? 0 : 199;
-
-  const tax = Math.floor(subtotal * 0.03);
-
-  const total = subtotal + shipping + tax;
+    const shipping = null;
+    const tax = null;
+    const total = subtotal;
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] pt-28 pb-20 px-4">
@@ -96,7 +94,7 @@ const Cart = () => {
 
               {cart.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.productId || item.id}
                   className="
                     bg-white
                     rounded-[2rem]
@@ -114,8 +112,11 @@ const Cart = () => {
                   <div className="relative shrink-0">
 
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={
+                        item.image ||
+                        "/placeholder.png"
+                      }
+                      alt={item.name || "Product"}
                       className="
                         w-full
                         sm:w-[160px]
@@ -155,8 +156,14 @@ const Cart = () => {
 
                         <button
                           onClick={() =>
-                            updateQty(item.id, "dec")
-                          }
+                              updateQty(
+                                item.productId || item.id,
+                                Math.max(
+                                  1,
+                                  Number(item.quantity || 1) - 1
+                                )
+                              )
+                            }
                           className="
                             w-10
                             h-10
@@ -175,12 +182,15 @@ const Cart = () => {
                         </button>
 
                         <span className="font-semibold min-w-[20px] text-center">
-                          {item.qty}
+                          {item.quantity}
                         </span>
 
                         <button
-                          onClick={() =>
-                            updateQty(item.id, "inc")
+                         onClick={() =>
+                            updateQty(
+                              item.productId || item.id,
+                              Number(item.quantity || 1) + 1
+                            )
                           }
                           className="
                             w-10
@@ -203,7 +213,11 @@ const Cart = () => {
 
                       {/* REMOVE */}
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                       onClick={() =>
+                              removeFromCart(
+                                item.productId || item.id
+                              )
+                            }
                         className="
                           text-red-500
                           hover:bg-red-50
@@ -257,34 +271,32 @@ const Cart = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-gray-600">
-                  <span>Shipping</span>
+                      <span>Shipping</span>
 
-                  <span>
-                    {shipping === 0
-                      ? "Free"
-                      : `₹${shipping}`}
-                  </span>
-                </div>
+                      <span className="text-sm">
+                        Calculated at checkout
+                      </span>
+                    </div>
 
-                <div className="flex items-center justify-between text-gray-600">
-                  <span>Luxury Tax</span>
+                    <div className="flex items-center justify-between text-gray-600">
+                      <span>Tax & Making Charges</span>
 
-                  <span>
-                    ₹{tax.toLocaleString()}
-                  </span>
-                </div>
+                      <span className="text-sm">
+                        Calculated at checkout
+                      </span>
+                    </div>
 
-                <div className="border-t border-black/10 pt-5 flex items-center justify-between">
+                    <div className="border-t border-black/10 pt-5 flex items-center justify-between">
 
-                  <span className="text-lg font-semibold">
-                    Total
-                  </span>
+                      <span className="text-lg font-semibold">
+                        Cart Subtotal
+                      </span>
 
-                  <span className="text-2xl font-bold text-[#D4AF37]">
-                    ₹{total.toLocaleString()}
-                  </span>
+                      <span className="text-2xl font-bold text-[#D4AF37]">
+                        ₹{subtotal.toLocaleString()}
+                      </span>
 
-                </div>
+                    </div>
 
               </div>
 

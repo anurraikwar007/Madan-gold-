@@ -11,408 +11,121 @@ import unisex from "../../assets/category/unisex.png";
 const categories = [
   {
     id: 1,
-    title: "Mother",
-    image: mother,
-    slug: "/shop?gender=mother",
+    title: "Men",
+    image: father,
+    slug: "/shop?gender=men",
+    label: "For Him",
   },
   {
     id: 2,
-    title: "Father",
-    image: father,
-    slug: "/shop?gender=father",
+    title: "Women",
+    image: mother,
+    slug: "/shop?gender=women",
+    label: "For Her",
   },
   {
     id: 3,
-    title: "Brother",
-    image: brother,
-    slug: "/shop?gender=brother",
+    title: "Girls",
+    image: sister,
+    slug: "/shop?gender=girls",
+    label: "For Girls",
   },
   {
     id: 4,
-    title: "Sister",
-    image: sister,
-    slug: "/shop?gender=sister",
+    title: "Boys",
+    image: brother,
+    slug: "/shop?gender=boys",
+    label: "For Boys",
   },
   {
     id: 5,
-    title: "Kids",
+    title: "Child",
     image: kid,
-    slug: "/shop?gender=kids",
+    slug: "/shop?gender=child",
+    label: "Little Ones",
   },
   {
     id: 6,
     title: "Unisex",
     image: unisex,
     slug: "/shop?gender=unisex",
+    label: "For Everyone",
   },
 ];
 
 const GenderCategories = () => {
   return (
-    <section
-      className="
-      relative
-      py-20
-      overflow-hidden
-      bg-gradient-to-b
-      from-[#FFF5F8]
-      via-[#FFF9FB]
-      to-white
-      "
-    >
+    <section className="relative overflow-hidden bg-[#EEEEEE] py-20 sm:py-24">
 
-      {/* Background Glow */}
+      <div className="absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-[#DDAED3]/30 blur-[120px]" />
 
-      <div
-        className="
-        absolute
-        -top-40
-        -left-32
-        w-[450px]
-        h-[450px]
-        rounded-full
-        bg-[#F8D7E6]/70
-        blur-[130px]
-        "
-      />
+      <div className="absolute -bottom-40 -right-20 h-[420px] w-[420px] rounded-full bg-[#6594B1]/20 blur-[130px]" />
 
-      <div
-        className="
-        absolute
-        -bottom-44
-        right-0
-        w-[420px]
-        h-[420px]
-        rounded-full
-        bg-[#E9F0FF]
-        blur-[130px]
-        "
-      />
+      <div className="relative mx-auto max-w-7xl px-5">
 
-      <div className="relative max-w-7xl mx-auto px-5">
+        <div className="mx-auto max-w-2xl text-center">
 
-        {/* Badge */}
-
-        <div className="flex justify-center">
-
-          <span
-            className="
-            px-5
-            py-2
-
-            rounded-full
-
-            bg-gradient-to-r
-            from-[#F8D7E6]
-            to-[#FFEAF3]
-
-            border
-            border-pink-200
-
-            text-[#2E5BBA]
-
-            text-xs
-            font-bold
-            uppercase
-            tracking-[0.25em]
-
-            shadow-sm
-            "
-          >
+          <span className="inline-flex rounded-full border border-[#DDAED3] bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.28em] text-[#213C51]">
             Shop By Relation
           </span>
 
+          <h2 className="mt-6 text-4xl text-[#213C51] sm:text-5xl">
+            Jewellery for every
+            <span className="text-[#6594B1]">
+              {" "}relationship
+            </span>
+          </h2>
+
+          <p className="mt-4 text-sm leading-7 text-[#536878] sm:text-base">
+            Find something meaningful for everyone
+            who makes your world special.
+          </p>
+
         </div>
 
-        {/* Heading */}
+        <div className="mt-14 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
 
-        <h2
-          className="
-          mt-6
-          text-center
-
-          heading
-
-          text-3xl
-          md:text-5xl
-
-          font-bold
-
-          text-[#1B1B1B]
-          "
-        >
-          Jewellery For Every
-          <span className="text-[#2E5BBA]"> Relationship</span>
-        </h2>
-
-        <p
-          className="
-          mt-4
-
-          max-w-2xl
-
-          mx-auto
-
-          text-center
-
-          text-gray-500
-
-          leading-7
-          "
-        >
-          Celebrate every special bond with handcrafted jewellery
-          designed for every member of your family.
-        </p>
-
-        {/* Premium Cards */}
-
-        <div
-          className="
-          mt-14
-
-          grid
-          grid-cols-2
-          md:grid-cols-3
-          xl:grid-cols-6
-
-          gap-6
-          "
-        >
-                    {categories.map((item) => (
+          {categories.map((item) => (
             <Link
               key={item.id}
               to={item.slug}
-              className="
-              group
-              relative
-
-              overflow-hidden
-
-              rounded-[28px]
-
-              bg-white/90
-              backdrop-blur-xl
-
-              border
-              border-pink-100
-
-              p-6
-
-              transition-all
-              duration-500
-
-              hover:-translate-y-3
-              hover:border-[#2E5BBA]
-              hover:shadow-[0_25px_60px_rgba(46,91,186,.14)]
-              "
+              className="group rounded-[28px] border border-[#213C51]/10 bg-white p-5 text-center shadow-[0_12px_35px_rgba(33,60,81,.06)] transition-all duration-500 hover:-translate-y-2 hover:border-[#DDAED3] hover:shadow-[0_25px_60px_rgba(33,60,81,.12)]"
             >
 
-              {/* Premium Glow */}
+              <div className="mx-auto flex aspect-square max-w-[145px] items-center justify-center rounded-full bg-gradient-to-br from-[#DDAED3] via-white to-[#6594B1] p-[5px] transition-transform duration-500 group-hover:scale-105">
 
-              <div
-                className="
-                absolute
-                -top-24
-                left-1/2
-                -translate-x-1/2
-
-                w-40
-                h-40
-
-                rounded-full
-
-                bg-gradient-to-br
-                from-[#F8D7E6]
-                via-[#FFEAF3]
-                to-[#EAF1FF]
-
-                blur-3xl
-
-                opacity-0
-
-                transition-all
-                duration-500
-
-                group-hover:opacity-100
-                "
-              />
-
-              {/* Icon Circle */}
-
-              <div
-                className="
-                relative
-                z-20
-
-                mx-auto
-
-                w-32
-                h-32
-
-                rounded-full
-
-                bg-gradient-to-br
-                from-[#FFEAF3]
-                via-[#FFF5F8]
-                to-[#F8D7E6]
-
-                p-[6px]
-
-                shadow-[0_15px_40px_rgba(248,215,230,.55)]
-
-                transition-all
-                duration-500
-
-                group-hover:scale-110
-                group-hover:rotate-3
-                "
-              >
-
-                {/* White Circle */}
-
-                <div
-                  className="
-                  w-full
-                  h-full
-
-                  rounded-full
-
-                  bg-white
-
-                  flex
-                  items-center
-                  justify-center
-
-                  overflow-hidden
-                  "
-                >
+                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#EEEEEE]">
 
                   <img
                     src={item.image}
                     alt={item.title}
-                    className="
-                    w-full
-                    h-full
-
-                    object-cover
-
-                    transition-all
-                    duration-500
-
-                    group-hover:scale-110
-                    "
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
 
                 </div>
 
               </div>
 
-              {/* Title */}
+              <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6594B1]">
+                {item.label}
+              </p>
 
-              <h3
-                className="
-                relative
-                z-20
-
-                mt-6
-
-                text-center
-
-                text-lg
-
-                font-bold
-
-                text-gray-900
-
-                transition-colors
-                duration-300
-
-                group-hover:text-[#2E5BBA]
-                "
-              >
+              <h3 className="mt-1 text-xl text-[#213C51]">
                 {item.title}
               </h3>
 
-              {/* Count */}
-
-              <p
-                className="
-                relative
-                z-20
-
-                mt-2
-
-                text-center
-
-                text-sm
-
-                text-gray-500
-                "
-              >
-                {item.count}
-              </p>
-
-              {/* Explore */}
-
-              <div
-                className="
-                relative
-                z-20
-
-                mt-5
-
-                flex
-                items-center
-                justify-center
-                gap-2
-
-                text-[#2E5BBA]
-
-                font-semibold
-                text-sm
-
-                transition-all
-                duration-300
-
-                group-hover:gap-3
-                "
-              >
+              <div className="mt-4 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#213C51] transition-all group-hover:gap-3">
                 Explore
-
-                <ArrowRight
-                  size={16}
-                  className="
-                  transition-transform
-                  duration-300
-                  group-hover:translate-x-1
-                  "
-                />
+                <ArrowRight size={14} />
               </div>
+
             </Link>
           ))}
-                  </div>
+
+        </div>
 
       </div>
-
-      {/* Bottom Decoration */}
-
-      <div
-        className="
-        absolute
-        bottom-0
-        left-0
-
-        w-full
-        h-24
-
-        bg-gradient-to-t
-        from-[#FFF5F8]
-        to-transparent
-
-        pointer-events-none
-        "
-      />
-
     </section>
   );
 };

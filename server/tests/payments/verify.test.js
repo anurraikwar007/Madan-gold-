@@ -36,6 +36,11 @@ describe("Verify Payment", () => {
       )
       .send({
         paymentMethod: "UPI",
+
+        idempotencyKey: `jest-verify-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 10)}`,
+
         shippingAddress: {
           fullName: "Test User",
           phone: "9999999999",
@@ -77,7 +82,9 @@ describe("Verify Payment", () => {
         `Bearer ${adminToken}`
       )
       .send({
-        remark: "Payment Verified",
+        razorpayOrderId: order._id.toString(),
+        razorpayPaymentId: "PAY_TEST_123456789",
+        razorpaySignature: "TEST_SIGNATURE",
       });
 
     console.log(verifyResponse.body);

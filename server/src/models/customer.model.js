@@ -53,10 +53,21 @@ const customerSchema = new mongoose.Schema(
       default: null,
     },
 
-    addresses: [
-      {
-        fullName: String,
-        phone: String,
+   addresses: [
+  {
+    type: {
+      type: String,
+      enum: [
+        "Home",
+        "Work",
+        "Other",
+      ],
+      default: "Home",
+    },
+
+    fullName: String,
+
+    phone: String,
         pincode: String,
         house: String,
         area: String,
@@ -103,11 +114,22 @@ const customerSchema = new mongoose.Schema(
       select: false,
     },
 
+    passwordResetToken: {
+      type: String,
+      select: false,
+      default: null,
+    },
+
+    passwordResetTokenExpiresAt: {
+      type: Date,
+      select: false,
+      default: null,
+    },
+
     isActive: {
       type: Boolean,
       default: true,
     },
-
     isDeleted: { 
       type: Boolean,
      default: false,

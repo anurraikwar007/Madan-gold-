@@ -5,6 +5,8 @@ import {
   register,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  resetPassword,
   login,
   logout,
   logoutAll,
@@ -27,9 +29,13 @@ import {
   registerSchema,
   verifyEmailSchema,
   loginSchema,
+  addressSchema,
+  updateAddressSchema,
   updateProfileSchema,
   changePasswordSchema,
   resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "../validators/auth.validator.js";
 
 
@@ -86,13 +92,26 @@ router.post(
  * @desc    Customer login
  * @access  Public
  */
-router.post(
-  "/login",
-  rateLimiter.authLimiter,
-  validate(loginSchema),
-  login
-);
+  router.post(
+    "/login",
+    rateLimiter.authLimiter,
+    validate(loginSchema),
+    login
+  );
 
+  router.post(
+    "/forgot-password",
+    rateLimiter.authLimiter,
+    validate(forgotPasswordSchema),
+    forgotPassword
+  );
+
+  router.post(
+    "/reset-password",
+    rateLimiter.authLimiter,
+    validate(resetPasswordSchema),
+    resetPassword
+  );
 
 /**
  * @route   POST /api/v1/customers/logout
@@ -201,6 +220,7 @@ router.post(
   "/addresses",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate(addressSchema),
   addCustomerAddress
 );
 
@@ -213,6 +233,7 @@ router.put(
   "/addresses/:id",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate(updateAddressSchema),
   updateCustomerAddress
 );
 

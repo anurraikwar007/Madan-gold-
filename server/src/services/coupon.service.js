@@ -1,4 +1,5 @@
 import CouponRepository from "../repositories/coupon.repository.js";
+import CartRepository from "../repositories/cart.repository.js";
 
 // ======================================================
 // Create Coupon
@@ -135,98 +136,112 @@ async (code) => {
 // Get All Coupons
 // ======================================================
 
-export const getAllCoupons = async ({
-  page = 1,
-  limit = 10,
-} = {}) => {
+  export const getAllCoupons = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    isActive,
+  } = {}) => {
 
-  return CouponRepository.paginate({
-    filter: {
+    const filter = {
       isDeleted: false,
-    },
+    };
 
-    page,
+    if (search?.trim()) {
+      const escapedSearch =
+        search
+          .trim()
+          .replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+          );
 
-    limit,
+      filter.code = {
+        $regex: escapedSearch,
+        $options: "i",
+      };
+    }
 
-    sort: {
-      createdAt: -1,
-    },
+    if (
+      isActive !== undefined &&
+      isActive !== ""
+    ) {
+      filter.isActive =
+        isActive === true ||
+        isActive === "true";
+    }
 
-    lean: true,
-  });
+    return CouponRepository.paginate({
+      filter,
 
-};
+      page: Number(page),
 
-// ======================================================
-// Validate Coupon
-// ======================================================
+      limit: Number(limit),
 
-export const validateCoupon =
-async (
-  code,
-  cartTotal
-) => {
+      sort: {
+        createdAt: -1,
+      },
 
-  const coupon =
-    await CouponRepository.findByCode(
-      code
-    );
+      lean: true,
+    });
+  };
+
+  // ======================================================
+  // Validate Coupon
+  // ======================================================
+    export const validateCoupon = async (customerId, code) => {
+  const cart = await CartRepository.findByCustomer(customerId);
+
+  if (!cart) {
+    throw new Error("Cart not found.");
+  }
+
+  const cartTotal = cart.items.reduce((total, item) => {
+    const product = item.product;
+
+    if (!product) {
+      return total;
+    }
+
+    const price =
+      product.discountPrice > 0 &&
+      product.discountPrice < product.price
+        ? product.discountPrice
+        : product.price;
+
+    return total + price * item.quantity;
+  }, 0);
+
+  const coupon = await CouponRepository.findByCode(code);
 
   if (!coupon) {
-    throw new Error(
-      "Invalid coupon."
-    );
+    throw new Error("Invalid coupon.");
   }
 
   const now = new Date();
 
-  // ----------------------------------
-  // Active Check
-  // ----------------------------------
-
   if (!coupon.isActive) {
-    throw new Error(
-      "Coupon is inactive."
-    );
+    throw new Error("Coupon is inactive.");
   }
 
-  // ----------------------------------
-  // Date Validation
-  // ----------------------------------
-
-  if (coupon.validFrom > now) {
-    throw new Error(
-      "Coupon is not active yet."
-    );
+  if (coupon.validFrom && coupon.validFrom > now) {
+    throw new Error("Coupon is not active yet.");
   }
 
-  if (coupon.validTill < now) {
-    throw new Error(
-      "Coupon has expired."
-    );
+  if (coupon.validTill && coupon.validTill < now) {
+    throw new Error("Coupon has expired.");
   }
-
-  // ----------------------------------
-  // Usage Limit
-  // ----------------------------------
 
   if (
-    coupon.usedCount >=
-    coupon.usageLimit
+    coupon.usageLimit > 0 &&
+    coupon.usedCount >= coupon.usageLimit
   ) {
-    throw new Error(
-      "Coupon usage limit exceeded."
-    );
+    throw new Error("Coupon usage limit exceeded.");
   }
 
-  // ----------------------------------
-  // Minimum Order
-  // ----------------------------------
-
   if (
-    cartTotal <
-    coupon.minimumOrderAmount
+    coupon.minimumOrderAmount > 0 &&
+    cartTotal < coupon.minimumOrderAmount
   ) {
     throw new Error(
       `Minimum order amount should be ₹${coupon.minimumOrderAmount}.`
@@ -234,9 +249,8 @@ async (
   }
 
   return coupon;
-
 };
-
+  
 // ======================================================
 // Update Coupon
 // ======================================================
@@ -308,6 +322,8 @@ async (
 
   const allowedFields = [
     "code",
+    "description",
+    "image",
     "discountType",
     "discountValue",
     "minimumOrderAmount",

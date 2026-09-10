@@ -35,44 +35,44 @@ class CouponRepository extends BaseRepository {
   // =====================================================
 
   async increaseUsage(
-    couponId,
-    session = null
+  couponId,
+  session = null
   ) {
-   return Coupon.findOneAndUpdate(
-  {
-    _id: couponId,
-    isActive: true,
-    isDeleted: false,
-    $or: [
-      {
-        usageLimit: {
-          $exists: false,
-        },
+  const now = new Date();
+
+  return Coupon.findOneAndUpdate(
+    {
+      _id: couponId,
+
+      isActive: true,
+      isDeleted: false,
+
+      validFrom: {
+        $lte: now,
       },
-      {
-        usageLimit: 0,
+
+      validTill: {
+        $gte: now,
       },
-      {
-        $expr: {
-          $lt: [
-            "$usedCount",
-            "$usageLimit",
-          ],
-        },
+
+      $expr: {
+        $lt: [
+          "$usedCount",
+          "$usageLimit",
+        ],
       },
-    ],
-  },
-  {
-    $inc: {
-      usedCount: 1,
     },
-  },
-  {
-    returnDocument: "after",
-    session,
-  }
-);
-  }
+    {
+      $inc: {
+        usedCount: 1,
+      },
+    },
+    {
+      returnDocument: "after",
+      session,
+    }
+   );
+ }
 
   // =====================================================
   // Decrease Usage
@@ -81,7 +81,7 @@ class CouponRepository extends BaseRepository {
   async decreaseUsage(
   couponId,
   session = null
-  ) {
+ ) {
   return Coupon.findOneAndUpdate(
     {
       _id: couponId,
@@ -98,8 +98,8 @@ class CouponRepository extends BaseRepository {
       returnDocument: "after",
       session,
     }
-  );
-}
+   );
+ }
   // =====================================================
   // Get Active Coupons
   // =====================================================

@@ -22,9 +22,12 @@ const orderStatuses = [
   "Pending",
   "Confirmed",
   "Processing",
+  "Packed",
   "Shipped",
+  "Out For Delivery",
   "Delivered",
   "Cancelled",
+  "Returned",
 ];
 
 export default function AdminOrders() {

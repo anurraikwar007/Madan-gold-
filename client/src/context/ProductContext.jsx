@@ -14,37 +14,42 @@ export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadProducts = useCallback(async () => {
+  const loadProducts =
+  useCallback(async () => {
     try {
       setLoading(true);
 
-      const { data } =
+      const response =
         await ProductAPI.getProducts({
           page: 1,
-          limit: 100,
+          limit: 50,
         });
 
-      const responseData =
-        data?.data;
+      const data =
+        response?.data?.data;
 
       const list =
-        responseData?.products ||
-        (Array.isArray(responseData)
-          ? responseData
-          : []);
+        Array.isArray(
+          data?.products
+        )
+          ? data.products
+          : Array.isArray(data)
+            ? data
+            : [];
 
       setProducts(list);
     } catch (err) {
       console.error(
         "Failed to load products:",
-        err
+        err?.response?.data || err
       );
-
+      
       setProducts([]);
+
     } finally {
       setLoading(false);
     }
-  },[]);
+  }, []);
 
   useEffect(() => {
     loadProducts();

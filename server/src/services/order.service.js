@@ -14,8 +14,8 @@ import { getObjectDiff } from "../utils/diff.util.js";
 
 import ApiError from "../utils/apiError.js";
 import { ORDER_STATUS } from "../constants/order.constant.js";
-import { orderQueryDTO }
-from "../dto/orderQuery.dto.js";
+import { orderQueryDTO }from "../dto/orderQuery.dto.js";
+import {calculateItemPricing,calculateShipping,calculateGrandTotal,} from "../utils/pricing.util.js";
 
 // ======================================================
 // Private Helpers
@@ -69,7 +69,7 @@ const validateShippingAddress = (address) => {
 
 const applyCoupon = async (
   couponCode,
-  cartTotal
+ subtotal
 ) => {
   if (!couponCode) {
     return {
@@ -111,7 +111,7 @@ const applyCoupon = async (
 
   if (
     coupon.minimumOrderAmount &&
-    cartTotal <
+    subtotal <
       coupon.minimumOrderAmount
   ) {
     throw new ApiError(
@@ -138,7 +138,7 @@ const applyCoupon = async (
     "Percentage"
   ) {
     discount =
-      (cartTotal *
+      (subtotal *
         coupon.discountValue) /
       100;
 
@@ -170,7 +170,6 @@ const validateInventory = async (
   session
 ) => {
   for (const item of cart.items) {
-
     const product =
       await ProductRepository.findById(
         item.product._id,
@@ -189,7 +188,9 @@ const validateInventory = async (
 
     if (
       !product.isActive ||
-      product.isDeleted
+      product.isDeleted ||
+      product.metal !== "Silver" ||
+      product.purity !== "925 Silver"
     ) {
       throw new ApiError(
         400,
@@ -202,18 +203,11 @@ const validateInventory = async (
         product.inventory?.availableStock || 0
       );
 
-    if (availableStock <= 0) {
-      throw new ApiError(
-        400,
-        `${product.name} is unavailable.`
-      );
-    }
-
     if (
       availableStock < item.quantity
     ) {
       throw new ApiError(
-        400,
+        409,
         `${product.name} has only ${availableStock} item(s) available.`
       );
     }
@@ -235,11 +229,21 @@ export const createOrder = async (
     createOrderDTO(payload);
 
   const session =
-    await mongoose.startSession();
+  await mongoose.startSession();
 
-  session.startTransaction();
+session.startTransaction();
 
-  try {
+try {
+  const existingOrder =
+    await OrderRepository.findOne({
+      customer: customerId,
+      idempotencyKey: dto.idempotencyKey,
+    });
+
+  if (existingOrder) {
+    await session.abortTransaction();
+    return existingOrder;
+  }
 
     // =====================================
     // Load Cart
@@ -282,100 +286,86 @@ export const createOrder = async (
 
   quantity: item.quantity,
 
-    price:
-    item.product.discountPrice > 0 &&
-    item.product.discountPrice <
-    item.product.price
-    ? item.product.discountPrice
-    : item.product.price,
+   price:
+        calculateItemPricing(
+          item.product,
+          item.quantity
+        ).sellingPrice,
+        metal: item.product.metal,
 
-  metal: item.product.metal,
+        purity: item.product.purity,
 
-  purity: item.product.purity,
-
-  weight: item.product.weight,
-   }));
+        weight: item.product.weight,
+        }));
 
     // =====================================
     // Coupon Validation
     // =====================================
 
    const cartTotal =
-  orderItems.reduce(
+   orderItems.reduce(
     (total, item) =>
       total +
-      item.price * item.quantity,
+      Number(item.price) *
+        Number(item.quantity),
     0
   );
+
+   const subtotal =
+    Math.round(
+    cartTotal * 100
+   ) / 100;
 
       const {
         coupon,
         discount,
       } = await applyCoupon(
         dto.couponCode,
-        cartTotal
+        subtotal
       );
 
-   const shippingCharge =
-    cartTotal < 1000
-    ? 100
-    : 0;
+      const shippingCharge =
+      calculateShipping(subtotal);
 
-  const gst =
-    cart.items.reduce(
-      (total, item) => {
-
-        const itemProduct =
-          item.product;
-
-        const itemPrice =
-        item.product.discountPrice > 0 &&
-        item.product.discountPrice <
-          item.product.price
-          ? item.product.discountPrice
-          : item.product.price;
-
-          const itemMakingCharges =
-          (itemProduct.makingCharges || 0) *
-          item.quantity;
-
-        const itemTaxableAmount =
-          (
-            itemPrice *
-            item.quantity
-          ) +
-          itemMakingCharges;
-
-      const itemGST =
-        itemTaxableAmount *
-        (
-          (itemProduct.gst ?? 0) /
-          100
+  const pricing =
+  cart.items.reduce(
+    (totals, item) => {
+      const itemPricing =
+        calculateItemPricing(
+          item.product,
+          item.quantity
         );
 
-      return total + itemGST;
+      return {
+        makingCharge:
+          totals.makingCharge +
+          itemPricing.makingCharge,
 
+        gst:
+          totals.gst +
+          itemPricing.gst,
+      };
     },
-    0
+    {
+      makingCharge: 0,
+      gst: 0,
+    }
   );
 
-    const makingCharge =
-  cart.items.reduce(
-    (total, item) =>
-      total +
-      (item.product.makingCharges || 0) *
-        item.quantity,
-    0
-  );
+const makingCharge =
+  pricing.makingCharge;
 
-    const finalAmount = Math.max(
-      0,
-      cartTotal +
-        makingCharge -
-        discount +
-        shippingCharge +
-        gst
-    );
+const gst =
+  pricing.gst;
+
+    const finalAmount =
+    calculateGrandTotal({
+      subtotal: subtotal,
+      makingCharge,
+      gst,
+      shippingCharge,
+      discount,
+    });
     // =====================================
     // Order Number
     // =====================================
@@ -452,12 +442,14 @@ export const createOrder = async (
 
         {
 
-          orderNumber,
+         orderNumber,
 
           customer: customerId,
 
-          items: orderItems,
+          idempotencyKey:
+            dto.idempotencyKey,
 
+          items: orderItems,
           shippingAddress:
             dto.shippingAddress,
 
@@ -609,29 +601,48 @@ export const createOrder = async (
 // Customer Orders
 // ======================================================
 
-export const getCustomerOrders =
-async (customerId) => {
-
-  return  OrderRepository.find(
-
-    {
-      customer: customerId,
-    },
-
-    {
-      populate: [
-        "customer",
-        "items.product",
-      ],
-
-      sort: {
-        createdAt: -1,
-      },
-
-    }
-
+ export const getCustomerOrders = async (
+  customerId,
+  query = {}
+) => {
+  const page = Math.max(
+    Number(query.page) || 1,
+    1
   );
 
+  const limit = Math.min(
+    Math.max(
+      Number(query.limit) || 10,
+      1
+    ),
+    50
+  );
+
+  const filter = {
+    customer: customerId,
+  };
+
+  return OrderRepository.paginate(
+    filter,
+    {
+      page,
+      limit,
+      sort: {
+        createdAt: -1,
+        _id: -1,
+      },
+      populate: [
+        {
+          path: "items.product",
+          select:
+            "name slug images metal purity",
+        },
+      ],
+    }
+  ).then((result) => ({
+    orders: result.items,
+    pagination: result.pagination,
+  }));
 };
 
 // ======================================================
@@ -717,53 +728,128 @@ async (
 // Admin Orders
 // ======================================================
 
-export const getAdminOrders = async (query) => {
+export const getAdminOrders = async (
+  query
+) => {
+  const dto =
+    orderQueryDTO(query);
 
-    const dto = orderQueryDTO(query);
+  const filter = {};
 
-    const filter = {};
+  if (dto.status) {
+    filter.orderStatus =
+      dto.status;
+  }
 
-    if (dto.status) {
-        filter.orderStatus = dto.status;
+  if (dto.paymentStatus) {
+    filter.paymentStatus =
+      dto.paymentStatus;
+  }
+
+  if (dto.paymentMethod) {
+    filter.paymentMethod =
+      dto.paymentMethod;
+  }
+
+  if (dto.customerId) {
+    filter.customer =
+      dto.customerId;
+  }
+
+  if (dto.fromDate || dto.toDate) {
+    filter.createdAt = {};
+
+    if (dto.fromDate) {
+      const from =
+        new Date(dto.fromDate);
+
+      if (!Number.isNaN(from.getTime())) {
+        filter.createdAt.$gte = from;
+      }
     }
 
-    if (dto.paymentStatus) {
-        filter.paymentStatus = dto.paymentStatus;
+    if (dto.toDate) {
+      const to =
+        new Date(dto.toDate);
+
+      if (!Number.isNaN(to.getTime())) {
+        to.setHours(
+          23,
+          59,
+          59,
+          999
+        );
+
+        filter.createdAt.$lte = to;
+      }
     }
 
-    if (dto.customerId) {
-        filter.customer = dto.customerId;
+    if (
+      Object.keys(filter.createdAt).length === 0
+    ) {
+      delete filter.createdAt;
     }
+  }
 
-    if (dto.search) {
-        filter.$or = [
-            {
-                orderNumber: {
-                    $regex: dto.search,
-                    $options: "i",
-                },
-            },
-            {
-                transactionId: {
-                    $regex: dto.search,
-                    $options: "i",
-                },
-            },
-        ];
-    }
+  if (dto.search) {
+    const escapedSearch =
+      dto.search.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
 
-    return OrderRepository.paginate(filter, {
-        page: dto.page,
-        limit: dto.limit,
-        sort: {
-            createdAt: -1,
+    filter.$or = [
+      {
+        orderNumber: {
+          $regex: escapedSearch,
+          $options: "i",
         },
-        populate: [
-            "customer",
-            "items.product",
-        ],
-    });
+      },
+      {
+        transactionId: {
+          $regex: escapedSearch,
+          $options: "i",
+        },
+      },
+    ];
+  }
 
+  const allowedSortFields = {
+    createdAt: "createdAt",
+    totalAmount: "totalAmount",
+    orderStatus: "orderStatus",
+    paymentStatus: "paymentStatus",
+  };
+
+  const sortField =
+    allowedSortFields[dto.sortBy] ||
+    "createdAt";
+
+  return OrderRepository.paginate(
+    filter,
+    {
+      page: dto.page,
+      limit: dto.limit,
+
+      sort: {
+        [sortField]: dto.order,
+        _id: dto.order,
+      },
+
+      populate: [
+        {
+          path: "customer",
+          select:
+            "name email phone",
+        },
+        {
+          path: "items.product",
+          select:
+            "name slug images metal purity",
+        },
+      ],
+    }
+  );
 };
 
 // ======================================================
@@ -902,35 +988,35 @@ async (
 
           for (const item of order.items) {
 
+            const restored =
             await ProductRepository.findOneAndUpdate(
-
               {
-
                 _id: item.product,
-
+                isDeleted: false,
+                "inventory.reservedStock": {
+                  $gte: item.quantity,
+                },
               },
-
               {
-
                 $inc: {
-
                   "inventory.reservedStock":
                     -item.quantity,
 
                   "inventory.availableStock":
                     item.quantity,
-
                 },
-
               },
-
               {
-
                 session,
-
               }
-
             );
+
+          if (!restored) {
+            throw new ApiError(
+              409,
+              `Inventory mismatch for ${item.name}.`
+            );
+          }
 
           }
 
@@ -938,24 +1024,20 @@ async (
       // Coupon Rollback
       // =====================================
 
-      if (order.coupon) {
+     if (order.coupon) {
+      const updatedCoupon =
+        await CouponRepository.decreaseUsage(
+          order.coupon,
+          session
+        );
 
-        const coupon =
-          await CouponRepository.findById(
-            order.coupon
-          );
-
-        if (coupon && coupon.usedCount > 0) {
-
-          coupon.usedCount -= 1;
-
-          await coupon.save({
-            session,
-          });
-
-        }
-
+      if (!updatedCoupon) {
+        throw new ApiError(
+          409,
+          "Coupon usage rollback failed."
+        );
       }
+    }
 
       order.cancelledAt =
         new Date();
@@ -1083,14 +1165,18 @@ export const updateTracking = async (
     }
 
     if (
-      order.orderStatus !==
-      "Processing"
-    ) {
-      throw new ApiError(
-        400,
-        "Tracking can only be updated for Processing orders."
-      );
-    }
+  ![
+    "Processing",
+    "Packed",
+    "Shipped",
+    "Out For Delivery",
+    ].includes(order.orderStatus)
+   ) {
+   throw new ApiError(
+    400,
+    "Tracking cannot be updated for this order status."
+   );
+ }
 
     const oldOrder =
       order.toObject();
@@ -1104,8 +1190,7 @@ export const updateTracking = async (
     order.estimatedDeliveryDate =
       estimatedDeliveryDate;
 
-    order.orderStatus =
-      "Shipped";
+    
 
     await order.save({
       session,

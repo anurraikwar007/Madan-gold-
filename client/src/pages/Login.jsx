@@ -63,6 +63,35 @@ const Login = () => {
     });
   };
 
+  /* HANDLE FORGOT PASSWORD */
+const handleForgotPassword = async () => {
+  if (!forgotEmail.trim()) {
+    setError("Enter your email address.");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+  setForgotMessage("");
+
+  try {
+    await forgotCustomerPassword(
+      forgotEmail.trim().toLowerCase()
+    );
+
+    setForgotMessage(
+      "If this email is registered, a password reset link has been sent."
+    );
+  } catch (err) {
+    setError(
+      err.response?.data?.message ||
+        "Unable to process request."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
   /* HANDLE LOGIN */
   const handleSubmit = async (e) => {
 
@@ -89,33 +118,7 @@ const Login = () => {
         });
       }
 
-      const handleForgotPassword = async () => {
-  if (!forgotEmail.trim()) {
-    setError("Enter your email address.");
-    return;
-  }
-
-  setLoading(true);
-  setError("");
-  setForgotMessage("");
-
-  try {
-    await forgotCustomerPassword(
-      forgotEmail.trim()
-    );
-
-    setForgotMessage(
-      "If this email is registered, a password reset link has been sent."
-    );
-  } catch (err) {
-    setError(
-      err.response?.data?.message ||
-        "Unable to process request."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+    
 
       return;
     }

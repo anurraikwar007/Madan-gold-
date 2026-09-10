@@ -5,6 +5,8 @@ import {
   registerCustomer,
   loginCustomer,
   verifyCustomerEmail,
+  forgotCustomerPassword,
+  resetCustomerPassword,
   resendCustomerVerificationOtp,
   updateProfile,
   updateAvatar,
@@ -96,6 +98,46 @@ export const resendVerification = asyncHandler(
     );
   }
 );
+
+ // =========================
+// Forgot Password
+// =========================
+
+export const forgotPassword =
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    await forgotCustomerPassword(email);
+
+    return res.status(200).json(
+      apiResponse.success(
+        "If this email is registered, a password reset link has been sent."
+      )
+    );
+  });
+
+  // =========================
+  // Reset Password
+  // =========================
+
+  export const resetPassword =
+    asyncHandler(async (req, res) => {
+      const {
+        token,
+        password,
+      } = req.body;
+
+      await resetCustomerPassword(
+        token,
+        password
+      );
+
+      return res.status(200).json(
+        apiResponse.success(
+          "Password reset successfully. Please login again."
+        )
+      );
+    });
 
 // =========================
 // Customer Login

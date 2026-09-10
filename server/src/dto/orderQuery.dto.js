@@ -1,40 +1,53 @@
-export const orderQueryDTO = (query) => {
+export const orderQueryDTO = (query = {}) => {
+  const page = Math.max(
+    Number(query.page) || 1,
+    1
+  );
 
-    return {
+  const limit = Math.min(
+    Math.max(
+      Number(query.limit) || 20,
+      1
+    ),
+    50
+  );
 
-        page: Math.max(Number(query.page) || 1, 1),
+  return {
+    page,
 
-        limit: Math.min(
-            Number(query.limit) || 20,
-            100
-        ),
+    limit,
 
-        search: query.search?.trim() || "",
+    search:
+      String(query.search || "")
+        .trim()
+        .slice(0, 100),
 
-        status:
-                query.status ||
-                query.orderStatus ||
-                "",
-        paymentStatus:
-            query.paymentStatus || "",
+    status:
+      query.status ||
+      query.orderStatus ||
+      "",
 
-        paymentMethod:
-            query.paymentMethod || "",
+    paymentStatus:
+      query.paymentStatus || "",
 
-        fromDate:
-            query.fromDate || null,
+    paymentMethod:
+      query.paymentMethod || "",
 
-        toDate:
-            query.toDate || null,
+    customerId:
+      query.customerId || "",
 
-        sortBy:
-            query.sortBy || "createdAt",
+    fromDate:
+      query.fromDate || null,
 
-        order:
-            query.order === "asc"
-                ? 1
-                : -1,
+    toDate:
+      query.toDate || null,
 
-    };
+    sortBy:
+      query.sortBy || "createdAt",
 
+    order:
+      query.order === "asc"
+        ? 1
+        : -1,
+  };
 };

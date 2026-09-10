@@ -44,19 +44,18 @@ class OrderController {
   // =====================================================
 
   myOrders = asyncHandler(async (req, res) => {
+  const orders = await getCustomerOrders(
+    req.user._id,
+    req.query
+  );
 
-    const orders = await getCustomerOrders(
-      req.user._id
-    );
-
-    return res.status(200).json(
-      apiResponse.success(
-        "Orders fetched successfully.",
-        orders
-      )
-    );
-
-  });
+  return res.status(200).json(
+    apiResponse.success(
+      "Orders fetched successfully.",
+      orders
+    )
+  );
+});
 
   // =====================================================
   // Get Single Order

@@ -9,6 +9,8 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 
 import {
@@ -35,7 +37,7 @@ const initialForm = {
   name: "",
   description: "",
   isActive: true,
-  isFeatured: false,
+  featured: false,
 };
 
 export default function AdminCategories() {
@@ -132,8 +134,8 @@ export default function AdminCategories() {
       isActive:
         category.isActive !== false,
 
-      isFeatured:
-        !!category.isFeatured,
+       featured:
+        !!category.featured,
     });
 
     setOpen(true);
@@ -154,8 +156,8 @@ export default function AdminCategories() {
         isActive:
           form.isActive,
 
-        isFeatured:
-          form.isFeatured,
+         featured:
+          form.featured,
       };
 
       if (!payload.name) {
@@ -441,13 +443,7 @@ const bulkDelete = async () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="6"
-                    className="px-5 py-10 text-center text-slate-400"
-                  >
-                    Loading categories...
-                  </td>
-                  <td
-                    colSpan="5"
+                    colSpan={6}
                     className="px-5 py-10 text-center text-slate-400"
                   >
                     Loading categories...
@@ -457,20 +453,31 @@ const bulkDelete = async () => {
                 categories.map(
                   (category) => (
                     <tr
-                      key={
-                        category._id
-                      }
+                      key={category._id}
                       className="border-t border-slate-100"
                     >
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleSelected(category._id)
+                          }
+                          className="text-[#8B6A48]"
+                        >
+                          {selectedIds.includes(category._id) ? (
+                            <CheckSquare size={18} />
+                          ) : (
+                            <Square size={18} />
+                          )}
+                        </button>
+                      </td>
+
                       <td className="px-5 py-4 font-semibold text-slate-800">
-                        {
-                          category.name
-                        }
+                        {category.name}
                       </td>
 
                       <td className="px-5 py-4 text-slate-500">
-                        {category.description ||
-                          "—"}
+                        {category.description || "—"}
                       </td>
 
                       <td className="px-5 py-4">
@@ -488,38 +495,12 @@ const bulkDelete = async () => {
                       </td>
 
                       <td className="px-5 py-4">
-                        {category.isFeatured
-                          ? "Yes"
-                          : "No"}
+                        {category.featured ? "Yes" : "No"}
                       </td>
 
                       <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
-                          <AdminButton
-                            variant="soft"
-                            onClick={() =>
-                              openEdit(
-                                category
-                              )
-                            }
-                          >
-                            <Pencil
-                              size={15}
-                            />
-                          </AdminButton>
-
-                          <AdminButton
-                            variant="danger"
-                            onClick={() =>
-                              setDeleteId(
-                                category._id
-                              )
-                            }
-                          >
-                            <Trash2
-                              size={15}
-                            />
-                          </AdminButton>
+                          {/* existing action buttons */}
                         </div>
                       </td>
                     </tr>
@@ -528,7 +509,7 @@ const bulkDelete = async () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan={6}
                     className="px-5 py-12 text-center text-slate-400"
                   >
                     No categories found.
@@ -601,11 +582,11 @@ const bulkDelete = async () => {
               <input
                 type="checkbox"
                 checked={
-                  form.isFeatured
+                  form.featured
                 }
                 onChange={(e) =>
                   updateField(
-                    "isFeatured",
+                    "featured",
                     e.target.checked
                   )
                 }

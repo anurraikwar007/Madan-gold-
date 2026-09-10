@@ -70,7 +70,7 @@ export default function AdminSidebar({
           overflow-hidden
           border-r
           border-slate-800
-          bg-[#0D1017]
+          bg-[#213C51]
           text-white
           shadow-[20px_0_80px_rgba(0,0,0,.25)]
           ${
@@ -82,9 +82,9 @@ export default function AdminSidebar({
       >
         <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
 
-        <div className="relative flex h-[88px] items-center justify-between border-b border-slate-800 px-5">
+        <div className="relative flex h-[88px] items-center justify-between border-b border-white/10 px-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 shadow-lg shadow-violet-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DDAED3] text-[#213C51] shadow-lg shadow-violet-500/20">
               <Gem size={20} />
             </div>
 
@@ -149,8 +149,8 @@ export default function AdminSidebar({
                     transition-all
                     ${
                       isActive
-                        ? "bg-gradient-to-r from-violet-600/20 to-cyan-500/10 text-white ring-1 ring-violet-500/30"
-                        : "text-slate-500 hover:bg-slate-800/60 hover:text-slate-200"
+                        ? "bg-[#DDAED3]/15 text-white ring-1 ring-[#DDAED3]/30"
+                        : "text-white/55 hover:bg-white/10 hover:text-white"
                     }
                   `
                   }

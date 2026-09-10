@@ -17,20 +17,26 @@ const connectDatabase = async () => {
     serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
     socketTimeoutMS: 20000,
+    waitQueueTimeoutMS: 10000,
+    heartbeatFrequencyMS: 10000,
 
-    maxPoolSize:
-      env.NODE_ENV === "test"
-        ? 5
-        : 10,
+   maxPoolSize:
+    env.NODE_ENV === "test"
+    ? 5
+    : Number(env.MONGO_MAX_POOL_SIZE || 20),
 
-    minPoolSize:
-      env.NODE_ENV === "test"
-        ? 0
-        : 2,
+   minPoolSize:
+    env.NODE_ENV === "test"
+    ? 0
+    : Number(env.MONGO_MIN_POOL_SIZE || 2),
 
     maxIdleTimeMS: 30000,
 
+    
+
     retryWrites: true,
+
+    
   });
 
   console.log("====================================");

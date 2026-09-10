@@ -13,12 +13,14 @@ class ProductRepository extends BaseRepository {
   // =====================================================
 
   async findActiveById(productId) {
-    return this.findOne({
-      _id: productId,
-      isDeleted: false,
-      isActive: true,
-    });
-  }
+  return this.findOne({
+    _id: productId,
+    isDeleted: false,
+    isActive: true,
+    metal: "Silver",
+    purity: "925 Silver",
+  });
+}
 
   // =====================================================
   // Find By Slug
@@ -29,6 +31,8 @@ class ProductRepository extends BaseRepository {
       slug,
       isDeleted: false,
       isActive: true,
+      metal: "Silver",
+      purity: "925 Silver",
     });
   }
 
@@ -75,251 +79,212 @@ class ProductRepository extends BaseRepository {
   // Customer Catalog
   // =====================================================
 
-  async getCatalog({
-    filter = {},
-    page = 1,
-    limit = 10,
-    sort = {
-      createdAt: -1,
-    },
-  }) {
-    
-    return this.paginate(
-  filter,
-  {
+ async getCatalog({
+  filter = {},
+  page = 1,
+  limit = 10,
+  sort = {
+    createdAt: -1,
+    _id: -1,
+  },
+}) {
+  return this.paginate(filter, {
     page,
     limit,
     sort,
+    select: "-__v",
     lean: true,
-  }
-  );
-   }
+  });
+}
 
   // =====================================================
   // Featured Products
   // =====================================================
 
   async getFeatured(limit = 10) {
-    return Product.find({
-      featured: true,
-      isDeleted: false,
-      isActive: true,
+  return Product.find({
+    featured: true,
+    isDeleted: false,
+    isActive: true,
+    metal: "Silver",
+    purity: "925 Silver",
+  })
+    .sort({
+      createdAt: -1,
+      _id: -1,
     })
-      .sort({
-        createdAt: -1,
-      })
-      .limit(limit)
-      .lean();
-  }
+    .limit(Math.min(Number(limit) || 10, 50))
+    .lean();
+}
     // =====================================================
   // Bestseller Products
   // =====================================================
 
   async getBestSeller(limit = 10) {
-    return Product.find({
-      bestseller: true,
-      isDeleted: false,
-      isActive: true,
+  return Product.find({
+    bestseller: true,
+    isDeleted: false,
+    isActive: true,
+    metal: "Silver",
+    purity: "925 Silver",
+  })
+    .sort({
+      averageRating: -1,
+      totalReviews: -1,
+      createdAt: -1,
+      _id: -1,
     })
-      .sort({
-        averageRating: -1,
-        totalReviews: -1,
-      })
-      .limit(limit)
-      .lean();
-  }
-
+    .limit(Math.min(Number(limit) || 10, 50))
+    .lean();
+}
   // =====================================================
   // Low Stock Products
   // =====================================================
 
-  async getLowStock() {
+   async getLowStock() {
     return Product.find({
-      isDeleted: false,
-      isActive: true,
+    isDeleted: false,
+    isActive: true,
+    metal: "Silver",
+    purity: "925 Silver",
 
-      $expr: {
-        $lte: [
-          "$inventory.availableStock",
-          "$inventory.lowStockThreshold",
-        ],
-      },
+    $expr: {
+      $lte: [
+        "$inventory.availableStock",
+        "$inventory.lowStockThreshold",
+      ],
+    },
+  })
+    .sort({
+      "inventory.availableStock": 1,
+      _id: 1,
     })
-      .sort({
-        "inventory.availableStock": 1,
-      })
-      .lean();
-  }  
+    .lean();
+}
 
    // =====================================================
   // Related Products
   // =====================================================
 
   async relatedProducts(category, excludeId, limit = 8) {
-
-    return this.model.find({
-
+  return this.model
+    .find({
       category,
-
       _id: { $ne: excludeId },
-
+      metal: "Silver",
+      purity: "925 Silver",
       isDeleted: false,
-
       isActive: true,
-
     })
-
-    .limit(limit)
-
     .sort({
+      bestseller: -1,
+      averageRating: -1,
+      totalReviews: -1,
       createdAt: -1,
-    });
-
-  }
+      _id: -1,
+    })
+    .limit(Math.min(Number(limit) || 8, 20))
+    .lean();
+}
 
 // =====================================================
 // Search Suggestions
 // =====================================================
 
     async searchSuggestions(keyword) {
+  const value = String(keyword || "").trim();
 
-      return this.model.find({
+  if (!value) {
+    return [];
+  }
 
-        name: {
+  const escaped = value.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
 
-          $regex: keyword,
+  return this.model
+    .find({
+      name: {
+        $regex: escaped,
+        $options: "i",
+      },
 
-          $options: "i",
+      metal: "Silver",
+      purity: "925 Silver",
 
-        },
-
-        isDeleted: false,
-
-        isActive: true,
-
-      })
-
-      .select("name slug")
-
-      .limit(10);
-
-    }
+      isDeleted: false,
+      isActive: true,
+    })
+    .select("name slug images")
+    .sort({
+      bestseller: -1,
+      averageRating: -1,
+      totalReviews: -1,
+    })
+    .limit(10)
+    .lean();
+}
 
   // =====================================================
   // Out Of Stock Products
   // =====================================================
 
   async getOutOfStock() {
-    return Product.find({
-      isDeleted: false,
-      isActive: true,
+  return Product.find({
+    isDeleted: false,
+    isActive: true,
+    metal: "Silver",
+    purity: "925 Silver",
 
-      "inventory.availableStock": 0,
-    }).lean();
-  }
+    "inventory.availableStock": 0,
+  })
+    .sort({
+      createdAt: -1,
+      _id: -1,
+    })
+    .lean();
+}
 
   // =====================================================
   // Reserve Inventory (Atomic)
   // =====================================================
 
-  async reserveInventory(
-    productId,
-    quantity,
-    session = null
-  ) {
-    return Product.findOneAndUpdate(
-      {
-        _id: productId,
+async confirmInventory(
+  productId,
+  quantity,
+  session = null
+) {
+  const safeQuantity = Math.max(
+    Number(quantity) || 0,
+    0
+  );
 
-        isDeleted: false,
-
-        isActive: true,
-
-        "inventory.availableStock": {
-          $gte: quantity,
-        },
-      },
-      {
-        $inc: {
-          "inventory.availableStock":
-            -quantity,
-
-          "inventory.reservedStock":
-            quantity,
-        },
-      },
-      {
-         returnDocument: "after",
-        session,
-      }
-    );
+  if (!safeQuantity) {
+    return null;
   }
 
-  // =====================================================
-  // Confirm Inventory
-  // =====================================================
-
-  async confirmInventory(
-    productId,
-    quantity,
-    session = null
-  ) {
-    return Product.findOneAndUpdate(
-      {
-        _id: productId,
-
-        "inventory.reservedStock": {
-          $gte: quantity,
-        },
+  return Product.findOneAndUpdate(
+    {
+      _id: productId,
+      isDeleted: false,
+      "inventory.reservedStock": {
+        $gte: safeQuantity,
       },
-      {
-        $inc: {
-          "inventory.stock":
-            -quantity,
-
-          "inventory.reservedStock":
-            -quantity,
-        },
+    },
+    {
+      $inc: {
+        "inventory.stock": -safeQuantity,
+        "inventory.reservedStock": -safeQuantity,
       },
-      {
-         returnDocument: "after",
-        session,
-      }
-    );
-  }
-
-  // =====================================================
-  // Release Reserved Inventory
-  // =====================================================
-
-  async releaseInventory(
-    productId,
-    quantity,
-    session = null
-  ) {
-    return Product.findOneAndUpdate(
-      {
-        _id: productId,
-
-        "inventory.reservedStock": {
-          $gte: quantity,
-        },
-      },
-      {
-        $inc: {
-          "inventory.availableStock":
-            quantity,
-
-          "inventory.reservedStock":
-            -quantity,
-        },
-      },
-      {
-         returnDocument: "after",
-        session,
-      }
-    );
-  }
+    },
+    {
+      returnDocument: "after",
+      session,
+      runValidators: true,
+    }
+  );
+}
     // =====================================================
   // Restore Inventory (Cancelled Order)
   // =====================================================
@@ -475,6 +440,8 @@ class ProductRepository extends BaseRepository {
   async getInventoryReport() {
     return Product.find({
       isDeleted: false,
+      metal: "Silver",
+      purity: "925 Silver",
     })
       .select(
         `

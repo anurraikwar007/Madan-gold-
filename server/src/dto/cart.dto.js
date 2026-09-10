@@ -10,7 +10,7 @@ class CartDTO {
       Number(data.quantity);
 
     if (
-      !quantity ||
+      !Number.isInteger(quantity) ||
       quantity < 1
     ) {
       throw new Error(
@@ -34,9 +34,9 @@ class CartDTO {
       Number(data.quantity);
 
     if (
-      !quantity ||
-      quantity < 1
-    ) {
+    !Number.isInteger(quantity) ||
+    quantity < 1
+   ) {
       throw new Error(
         "Quantity must be greater than zero."
       );

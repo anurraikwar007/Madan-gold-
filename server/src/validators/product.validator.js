@@ -16,11 +16,39 @@ const imageSchema = Joi.object({
 // =====================================
 
 const inventorySchema = Joi.object({
-  stock: Joi.number().min(0).required(),
-  reservedStock: Joi.number().min(0).default(0),
-  availableStock: Joi.number().min(0).default(0),
-  lowStockThreshold: Joi.number().min(0).default(5),
+  stock: Joi.number()
+    .integer()
+    .min(0)
+    .required(),
+
+  reservedStock: Joi.number()
+    .integer()
+    .min(0)
+    .default(0),
+
+  lowStockThreshold: Joi.number()
+    .integer()
+    .min(0)
+    .default(5),
 });
+ 
+ // =====================================
+// Update Inventory Schema
+// =====================================
+
+ const updateInventorySchema = Joi.object({
+  stock: Joi.number()
+    .integer()
+    .min(0),
+
+  reservedStock: Joi.number()
+    .integer()
+    .min(0),
+
+  lowStockThreshold: Joi.number()
+    .integer()
+    .min(0),
+}).min(1);
 
 // =====================================
 // Create Product
@@ -38,18 +66,11 @@ export const createProductSchema = {
     category: Joi.string().required(),
 
     metal: Joi.string()
-      .valid("Gold", "Silver", "Platinum")
-      .required(),
+    .valid("Silver")
+    .required(),
 
     purity: Joi.string()
-      .valid(
-        "14K",
-        "18K",
-        "22K",
-        "24K",
-        "925 Silver",
-        "950 Platinum"
-      )
+      .valid("925 Silver")
       .required(),
 
     gender: Joi.string()
@@ -60,12 +81,35 @@ export const createProductSchema = {
 
     price: Joi.number().positive().required(),
 
-    discountPrice: Joi.number().min(0).default(0),
+    discountPrice: Joi.number()
+  .min(0)
+  .default(0)
+  .custom((value, helpers) => {
+    const price =
+      Number(
+        helpers.state.ancestors[0].price
+      );
+
+      if (
+        value > 0 &&
+        value >= price
+      ) {
+        return helpers.error(
+          "any.invalid"
+        );
+      }
+
+      return value;
+    })
+    .messages({
+      "any.invalid":
+        "Discount price must be less than price.",
+    }),
 
     makingCharges: Joi.number().min(0).default(0),
 
-    gst: Joi.number().min(0).default(3),
-
+    gst: Joi.number().min(0).max(100).default(3),
+    
     featured: Joi.boolean().default(false),
 
     bestseller: Joi.boolean().default(false),
@@ -74,9 +118,10 @@ export const createProductSchema = {
 
     inventory: inventorySchema.required(),
 
-    images: Joi.array()
-      .items(imageSchema)
-      .default([]),
+   images: Joi.array()
+    .items(imageSchema)
+    .max(10)
+    .default([]),
 
     seoTitle: Joi.string().allow("").default(""),
 
@@ -104,19 +149,12 @@ export const updateProductSchema = {
 
     category: Joi.string(),
 
-    metal: Joi.string().valid(
-      "Gold",
-      "Silver",
-      "Platinum"
+   metal: Joi.string().valid(
+      "Silver"
     ),
 
     purity: Joi.string().valid(
-      "14K",
-      "18K",
-      "22K",
-      "24K",
-      "925 Silver",
-      "950 Platinum"
+      "925 Silver"
     ),
 
     gender: Joi.string().valid(
@@ -134,7 +172,7 @@ export const updateProductSchema = {
 
     makingCharges: Joi.number().min(0),
 
-    gst: Joi.number().min(0),
+    gst: Joi.number().min(0).max(100),
 
     featured: Joi.boolean(),
 
@@ -142,7 +180,7 @@ export const updateProductSchema = {
 
     isActive: Joi.boolean(),
 
-    inventory: inventorySchema,
+   inventory: updateInventorySchema,
 
     images: Joi.array().items(imageSchema),
 
@@ -153,7 +191,64 @@ export const updateProductSchema = {
     seoKeywords: Joi.array().items(Joi.string()),
 
   }),
-};
+};  
+   
+  // =====================================
+// Public Product Query
+// =====================================
+
+export const getProductsQuerySchema = {
+  query: Joi.object({
+    page: Joi.number()
+      .integer()
+      .min(1)
+      .default(1),
+
+    limit: Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .default(24),
+
+    search: Joi.string()
+      .trim()
+      .max(100)
+      .allow("")
+      .default(""),
+
+    category: Joi.string()
+      .trim()
+      .max(100),
+
+    gender: Joi.string()
+      .valid(
+        "Men",
+        "Women",
+        "Kids",
+        "Unisex"
+      ),
+
+        featured: Joi.boolean(),
+
+        bestseller: Joi.boolean(),
+
+        minPrice: Joi.number()
+          .min(0),
+
+        maxPrice: Joi.number()
+          .min(0),
+
+        sort: Joi.string()
+          .valid(
+            "newest",
+            "price_low",
+            "price_high",
+            "rating",
+            "popular"
+          )
+          .default("newest"),
+      }),
+  };
 
 // =====================================
 // Product Id

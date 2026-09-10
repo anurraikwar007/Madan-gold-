@@ -7,6 +7,7 @@ import roleMiddleware from "../middleware/role.middleware.js";
 import validate from "../middleware/validate.js";
 import {
   createOrderSchema,
+  updateOrderStatusSchema,
 } from "../validators/order.validator.js";
 
 
@@ -45,6 +46,13 @@ router.get(
   OrderController.myOrders
 );   
 
+  router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware("Customer"),
+  OrderController.myOrders
+ );
+
 router.get(
   "/admin",
   authMiddleware,
@@ -58,11 +66,9 @@ router.get(
 router.patch(
   "/:id/status",
   authMiddleware,
-  roleMiddleware(
-    "Admin",
-    "SuperAdmin"
-  ),
+  roleMiddleware("Admin", "SuperAdmin"),
   validateObjectId,
+  validate(updateOrderStatusSchema),
   OrderController.updateStatus
 );
 
@@ -94,28 +100,5 @@ router.get(
   OrderController.downloadInvoice
 );
 
-/*
-=========================================
-Admin Routes
-=========================================
-*/
-
-router.get(
-  "/admin/all",
-  authMiddleware,
-  roleMiddleware("Admin","SuperAdmin"),
-  OrderController.getAll
-);
-
-  router.put(
-    "/admin/:id/status",
-    authMiddleware,
-    roleMiddleware(
-      "Admin",
-      "SuperAdmin"
-    ),
-    validateObjectId,
-    OrderController.updateStatus
-  );
 
 export default router;

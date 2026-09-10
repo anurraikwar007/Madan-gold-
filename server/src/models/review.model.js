@@ -47,7 +47,7 @@ const reviewSchema = new mongoose.Schema(
 
     isApproved: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {
@@ -65,6 +65,17 @@ reviewSchema.index(
     unique: true,
   }
 );
+
+reviewSchema.index({
+  product: 1,
+  isApproved: 1,
+  createdAt: -1,
+});
+
+reviewSchema.index({
+  customer: 1,
+  createdAt: -1,
+});
 
 const Review = mongoose.model("Review", reviewSchema);
 

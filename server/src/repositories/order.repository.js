@@ -8,19 +8,37 @@ class OrderRepository extends BaseRepository {
     super(Order);
   }
 
-  async paginate(filter = {}, options = {}) {
+ async paginate(
+  filter = {},
+  options = {}
+) {
+  const page = Math.max(
+    Number(options.page) || 1,
+    1
+  );
 
-    const {
-      page = 1,
-      limit = 20,
-      populate = [],
-      sort = {},
-    } = options;
+  const limit = Math.min(
+    Math.max(
+      Number(options.limit) || 20,
+      1
+    ),
+    50
+  );
 
-    const skip = (page - 1) * limit;
+  const populate =
+    options.populate || [];
 
-    const [items, total] = await Promise.all([
+  const sort =
+    options.sort || {
+      createdAt: -1,
+      _id: -1,
+    };
 
+  const skip =
+    (page - 1) * limit;
+
+  const [items, total] =
+    await Promise.all([
       this.model
         .find(filter)
         .populate(populate)
@@ -29,29 +47,31 @@ class OrderRepository extends BaseRepository {
         .limit(limit)
         .lean(),
 
-      this.model.countDocuments(filter),
-
+      this.model.countDocuments(
+        filter
+      ),
     ]);
 
-    return {
+  const totalPages =
+    Math.ceil(total / limit);
 
-      items,
+  return {
+    items,
 
-      pagination: {
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
 
-        page,
+      hasNextPage:
+        page < totalPages,
 
-        limit,
-
-        total,
-
-        totalPages: Math.ceil(total / limit),
-
-      },
-
-    };
-
-  }
+      hasPrevPage:
+        page > 1,
+    },
+  };
+}
  
   async recent(limit = 10) {
 

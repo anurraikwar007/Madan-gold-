@@ -11,6 +11,21 @@ export const createCouponSchema = {
       .allow("")
       .default(""),
 
+      image: Joi.object({
+      public_id: Joi.string()
+        .trim()
+        .allow(""),
+
+      url: Joi.string()
+        .uri()
+        .allow(""),
+
+      alt: Joi.string()
+        .trim()
+        .max(150)
+        .allow(""),
+    }).optional(),
+
     discountType: Joi.string()
       .valid("Percentage", "Flat")
       .required(),
@@ -48,6 +63,21 @@ export const updateCouponSchema = {
 
     description: Joi.string().allow(""),
 
+        image: Joi.object({
+      public_id: Joi.string()
+        .trim()
+        .allow(""),
+
+      url: Joi.string()
+        .uri()
+        .allow(""),
+
+      alt: Joi.string()
+        .trim()
+        .max(150)
+        .allow(""),
+    }).optional(),
+
     discountType: Joi.string().valid("Percentage", "Flat"),
 
     discountValue: Joi.number().positive(),
@@ -71,6 +101,15 @@ export const applyCouponSchema = {
     code: Joi.string()
       .trim()
       .uppercase()
+      .required(),
+  }),
+};
+
+export const couponIdSchema = {
+  params: Joi.object({
+    id: Joi.string()
+      .length(24)
+      .hex()
       .required(),
   }),
 };

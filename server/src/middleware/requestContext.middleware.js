@@ -15,20 +15,13 @@ const requestContext = (req, res, next) => {
   // Client Information
   // =====================================================
 
-  req.clientIp =
-    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    req.socket?.remoteAddress ||
-    req.ip ||
-    "Unknown";
+   req.clientIp = req.ip || "Unknown";
 
-  req.userAgent =
-    req.headers["user-agent"] || "Unknown";
+    // =====================================================
+    // Request Information
+    // =====================================================
 
-  // =====================================================
-  // Request Information
-  // =====================================================
-
-  req.requestInfo = {
+   req.requestInfo = {
     id: req.requestId,
 
     method: req.method,

@@ -1,10 +1,30 @@
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { useSearch } from "../../context/SearchContext";
 
 const MobileSearchBar = () => {
+  const navigate = useNavigate();
 
-  const { query, setQuery } = useSearch();
+  const {
+    query,
+    setQuery,
+  } = useSearch();
+
+  const handleSubmit = () => {
+    const value = query.trim();
+
+    if (!value) {
+      navigate("/shop");
+      return;
+    }
+
+    navigate(
+      `/shop?search=${encodeURIComponent(
+        value
+      )}`
+    );
+  };
 
   return (
     <div
@@ -20,10 +40,7 @@ const MobileSearchBar = () => {
         backdrop-blur-xl
       "
     >
-
       <div className="relative">
-
-        {/* ICON */}
         <Search
           size={18}
           className="
@@ -32,15 +49,24 @@ const MobileSearchBar = () => {
             top-1/2
             -translate-y-1/2
             text-gray-400
+            cursor-pointer
           "
+          onClick={handleSubmit}
         />
 
-        {/* INPUT */}
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search jewellery..."
+          onChange={(e) =>
+            setQuery(e.target.value)
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSubmit();
+            }
+          }}
+          placeholder="Search 925 silver jewellery..."
+          aria-label="Search 925 silver jewellery"
           className="
             w-full
             h-[52px]
@@ -52,11 +78,10 @@ const MobileSearchBar = () => {
             pr-4
             text-sm
             shadow-sm
+            outline-none
           "
         />
-
       </div>
-
     </div>
   );
 };

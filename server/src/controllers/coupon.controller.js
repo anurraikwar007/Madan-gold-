@@ -1,6 +1,40 @@
 import * as CouponService from "../services/coupon.service.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { apiResponse } from "../utils/apiResponse.js";
 
 class CouponController {
+
+    uploadImage = asyncHandler(async (req, res) => {
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json(
+      apiResponse.error(
+        "Coupon image is required."
+      )
+    );
+  }
+
+  return res.status(200).json(
+    apiResponse.success(
+      "Coupon image uploaded successfully.",
+      {
+        public_id:
+          file.filename ||
+          file.public_id ||
+          "",
+
+        url:
+          file.path ||
+          file.secure_url ||
+          "",
+
+        alt: "Coupon offer",
+      }
+    )
+  );
+});
+
   // =====================================================
   // Create Coupon
   // =====================================================
@@ -131,12 +165,12 @@ class CouponController {
 
   async validate(req, res, next) {
   try {
-    const { code, cartTotal } = req.body;
+    const { code } = req.body;
 
     const result =
       await CouponService.validateCoupon(
-        code,
-        cartTotal
+        req.user._id,
+        code
       );
 
     return res.status(200).json({

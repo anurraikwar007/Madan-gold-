@@ -3,6 +3,39 @@ import ProductRepository from "../repositories/product.repository.js";
 import AuditService from "./audit.service.js";
 import { CartDTO } from "../dto/cart.dto.js";
 import ApiError from "../utils/apiError.js";
+import {getSellingPrice,} from "../utils/pricing.util.js";
+
+
+
+    const getCurrentProductPrice = (
+      product
+    ) => getSellingPrice(product);
+
+    const syncCartPrices = async (cart) => {
+      let changed = false;
+
+      for (const item of cart.items) {
+        const product = item.product;
+
+        if (!product) {
+          continue;
+        }
+
+        const currentPrice =
+          getCurrentProductPrice(product);
+
+        if (item.price !== currentPrice) {
+          item.price = currentPrice;
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        await CartRepository.saveCart(cart);
+      }
+
+      return cart;
+    };
 
 // ======================================
 // Get Cart
@@ -23,7 +56,7 @@ export const getCart = async (customerId) => {
 
   }
 
-  return cart;
+  return syncCartPrices(cart);
 
 };
 // ======================================
@@ -35,83 +68,94 @@ export const addToCart = async (
   productId,
   quantity = 1
 ) => {
-
   const dto =
     CartDTO.add({ quantity });
 
   const product =
-    await ProductRepository.findActiveById(productId);
+    await ProductRepository.findActiveById(
+      productId
+    );
 
   if (!product) {
-    throw new Error("Product not found.");
+    throw new ApiError(
+      404,
+      "Product not found."
+    );
   }
 
-  
+  if (
+    product.metal !== "Silver" ||
+    product.purity !== "925 Silver"
+  ) {
+    throw new ApiError(
+      400,
+      "Only 925 Silver jewellery is available."
+    );
+  }
+
+  const availableStock =
+    Number(
+      product.inventory?.availableStock || 0
+    );
 
   let cart =
-  await CartRepository.findByCustomer(customerId);
-
-if (!cart) {
-  cart =
-    await CartRepository.createCart(
+    await CartRepository.findByCustomer(
       customerId
     );
-}
 
-const existingItem =
-  cart.items.find(
-    (i) =>
-      i.product._id.toString() === productId
-  );
-
-    const requestedQuantity =
-      (existingItem?.quantity || 0) +
-      dto.quantity;
-
-    if (
-      product.inventory.availableStock <
-      requestedQuantity
-    ) {
-      throw new Error(
-        "Insufficient stock."
+  if (!cart) {
+    cart =
+      await CartRepository.createCart(
+        customerId
       );
-    }
-  const item =
-    cart.items.find(
-
-      (i) =>
-        i.product._id.toString() === productId
-
-    );
-
-  if (item) {
-
-    item.quantity += dto.quantity;
-
   }
 
-  else {
+  const existingItem =
+    cart.items.find(
+      (item) =>
+        item.product._id.toString() ===
+        productId.toString()
+    );
 
+  const requestedQuantity =
+    (existingItem?.quantity || 0) +
+    dto.quantity;
+
+  if (
+    availableStock <
+    requestedQuantity
+  ) {
+    throw new ApiError(
+      409,
+      `Only ${availableStock} item(s) available.`
+    );
+  }
+
+  if (existingItem) {
+    existingItem.quantity =
+      requestedQuantity;
+
+    existingItem.price =
+      getSellingPrice(product);
+  } else {
     cart.items.push({
-
       product: product._id,
-
       quantity: dto.quantity,
-
       price:
-      product.discountPrice > 0 &&
-      product.discountPrice < product.price
-        ? product.discountPrice
-        : product.price,
-
+        getSellingPrice(product),
     });
-
   }
 
   await CartRepository.saveCart(cart);
 
-  return CartRepository.findByCustomer(customerId);
+  const updatedCart =
+    await CartRepository.findByCustomer(
+      customerId
+    );
 
+  return syncCartPrices(
+    updatedCart
+  );
 };
 
 // ======================================
@@ -123,47 +167,80 @@ export const updateCartItem = async (
   productId,
   quantity
 ) => {
-
   const dto =
     CartDTO.update({ quantity });
 
   const cart =
-    await CartRepository.findByCustomer(customerId);
+    await CartRepository.findByCustomer(
+      customerId
+    );
 
   if (!cart) {
-    throw new Error("Cart not found.");
+    throw new ApiError(
+      404,
+      "Cart not found."
+    );
   }
 
   const item =
     cart.items.find(
-      (i) =>
-        i.product._id.toString() === productId
+      (cartItem) =>
+        cartItem.product._id.toString() ===
+        productId.toString()
     );
 
   if (!item) {
-    throw new Error("Item not found.");
+    throw new ApiError(
+      404,
+      "Item not found."
+    );
   }
 
   const product =
-    await ProductRepository.findActiveById(productId);
+    await ProductRepository.findActiveById(
+      productId
+    );
 
   if (!product) {
-    throw new Error("Product not found.");
+    throw new ApiError(
+      404,
+      "Product not found."
+    );
   }
+
+  const availableStock =
+    Number(
+      product.inventory?.availableStock || 0
+    );
 
   if (
-    product.inventory.availableStock <
+    availableStock <
     dto.quantity
   ) {
-    throw new Error("Insufficient stock.");
+    throw new ApiError(
+      409,
+      `Only ${availableStock} item(s) available.`
+    );
   }
 
-  item.quantity = dto.quantity;
+  item.quantity =
+    dto.quantity;
 
-  await CartRepository.saveCart(cart);
+  item.price =
+    getSellingPrice(product);
 
-  return CartRepository.findByCustomer(customerId);
+  await CartRepository.saveCart(
+    cart
+  );
 
+  const updatedCart =
+    await CartRepository.findByCustomer(
+      customerId
+    );
+
+  return syncCartPrices(
+    updatedCart
+  );
 };
 
 // ======================================

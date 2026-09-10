@@ -52,14 +52,21 @@ class ReviewService {
   }
 
   async getReviewById(reviewId) {
-    const review = await ReviewRepository.findById(reviewId);
+      const review =
+        await ReviewRepository.findOne({
+          _id: reviewId,
+          isApproved: true,
+        });
 
-    if (!review) {
-      throw new ApiError(404, "Review not found");
+      if (!review) {
+        throw new ApiError(
+          404,
+          "Review not found"
+        );
+      }
+
+      return review;
     }
-
-    return review;
-  }
 
   async updateReview(customerId, reviewId, payload) {
     const review = await ReviewRepository.findById(reviewId);
@@ -123,12 +130,17 @@ class ReviewService {
   }
 
   const updatedReview =
-    await ReviewRepository.updateApproval(
-      reviewId,
-      isApproved
-    );
+  await ReviewRepository.updateReview(
+    reviewId,
+    {
+      ...payload,
+      isApproved: false,
+    }
+  );
 
-  await this.updateProductRating(review.product._id);
+await this.updateProductRating(
+  review.product._id
+);
 
   return updatedReview;
 }

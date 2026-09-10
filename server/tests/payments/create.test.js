@@ -63,6 +63,10 @@ describe("Create Payment", () => {
         .send({
           paymentMethod: "UPI",
 
+          idempotencyKey: `jest-payment-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 10)}`,
+
           shippingAddress: {
             fullName: "Test User",
             phone: "9999999999",

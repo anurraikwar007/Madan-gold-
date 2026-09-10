@@ -170,20 +170,22 @@ class BaseRepository {
 
     }
 
-    if (options.skip) {
+    if (
+        Number.isInteger(options.skip) &&
+        options.skip >= 0
+      ) {
+        query =
+          query.skip(options.skip);
+      }
 
-      query =
-        query.skip(options.skip);
-
-    }
-
-    if (options.limit) {
-
-      query =
-        query.limit(options.limit);
-
-    }
-
+      if (
+        Number.isInteger(options.limit) &&
+        options.limit > 0
+      ) {
+        query =
+          query.limit(options.limit);
+      }
+      
     if (options.session) {
 
       query =
@@ -201,6 +203,16 @@ class BaseRepository {
     return await query;
 
   }
+    
+   // =====================================================
+  // Count
+ // =====================================================
+
+    async count(filter = {}) {
+      return this.model
+        .countDocuments(filter)
+        .exec();
+    }
 
   // =====================================================
   // Find One And Update
@@ -298,19 +310,7 @@ class BaseRepository {
       );
     }
 
-  // =====================================================
-  // Count
-  // =====================================================
-
-  async count(
-    filter = {}
-  ) {
-
-    return await this.model.countDocuments(
-      filter
-    );
-
-  }
+  
 
   // =====================================================
   // Exists
@@ -343,20 +343,36 @@ class BaseRepository {
      // =====================================================
   // Paginate
   // =====================================================
+  
+    
 
-  async paginate(
-    filter = {},
-    {
-      page = 1,
-      limit = 10,
-      sort = { createdAt: -1 },
-      populate,
-      select,
-      lean = true,
-    } = {}
-  ) {
+   async paginate(
+  filter = {},
+  options = {}
+) {
+  let {
+  page = 1,
+  limit = 10,
+  sort = { createdAt: -1 },
+  populate = [],
+  select = "",
+  lean = true,
+} = options;
 
-    const skip = (page - 1) * limit;
+  page = Math.max(
+    Number(page) || 1,
+    1
+  );
+
+  limit = Math.min(
+    Math.max(
+      Number(limit) || 10,
+      1
+    ),
+    50
+  );
+
+  const skip = (page - 1) * limit;
 
     let query = this.model.find(filter);
 
@@ -375,18 +391,18 @@ class BaseRepository {
     }
 
     query = query
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+  .sort(sort)
+  .skip(skip)
+  .limit(limit);
 
-    if (lean) {
-      query = query.lean();
-    }
+  if (lean) {
+    query = query.lean();
+  }
 
-    const [docs, total] = await Promise.all([
-      query,
-      this.model.countDocuments(filter),
-    ]);
+  const [docs, total] = await Promise.all([
+    query.exec(),
+    this.model.countDocuments(filter).exec(),
+  ]);
 
     return {
       docs,

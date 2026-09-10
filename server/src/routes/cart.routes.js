@@ -1,5 +1,13 @@
 import express from "express";
 
+import validate from "../middleware/validate.js";
+
+import {
+  addToCartSchema,
+  updateCartSchema,
+  removeCartItemSchema,
+} from "../validators/cart.validator.js";
+
 import {
   getCart,
   addToCart,
@@ -33,22 +41,25 @@ router.post(
   "/:productId",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate(addToCartSchema),
   addToCart
 );
 
 // Update Quantity
-router.put(
-  "/:productId",
-  authMiddleware,
-  roleMiddleware("Customer"),
-  updateCartItem
-);
+  router.put(
+    "/:productId",
+    authMiddleware,
+    roleMiddleware("Customer"),
+    validate(updateCartSchema),
+    updateCartItem
+  );
 
 // Remove Item
 router.delete(
   "/:productId",
   authMiddleware,
   roleMiddleware("Customer"),
+  validate(removeCartItemSchema),
   removeCartItem
 );
 

@@ -62,22 +62,36 @@ export default function RelatedProducts({
       </h2>
 
       <div className="mt-8 grid grid-cols-2 gap-5 md:grid-cols-4">
-        {products
-          .slice(0, 4)
-          .map((item) => (
-            <Link
-              key={item._id}
-              to={`/product/${item._id}`}
-              className="
-                group
-                overflow-hidden
-                rounded-3xl
-                bg-white
-                border
-                border-[#eee4d5]
-                shadow-[0_15px_45px_rgba(40,25,20,.06)]
-              "
-            >
+       {products
+  .slice(0, 4)
+  .map((item) => {
+    const basePrice =
+      Number(item.price) || 0;
+
+    const finalPrice =
+      Number(item.finalPrice) ||
+      (
+        Number(item.discountPrice) > 0 &&
+        Number(item.discountPrice) <
+          basePrice
+          ? Number(item.discountPrice)
+          : basePrice
+      );
+
+    return (
+      <Link
+        key={item._id}
+        to={`/product/${item._id}`}
+        className="
+          group
+          overflow-hidden
+          rounded-3xl
+          bg-white
+          border
+          border-[#eee4d5]
+          shadow-[0_15px_45px_rgba(40,25,20,.06)]
+        "
+      >
               <div className="aspect-square overflow-hidden bg-[#faf7f2]">
                 <img
                   src={
@@ -104,14 +118,15 @@ export default function RelatedProducts({
                 </p>
 
                 <p className="mt-2 font-bold text-[#9A6D32]">
-                  ₹
-                  {Number(
-                    item.price || 0
-                  ).toLocaleString("en-IN")}
+                 ₹
+                  {finalPrice.toLocaleString(
+                    "en-IN"
+                  )}
                 </p>
               </div>
             </Link>
-          ))}
+         );
+      })}
       </div>
     </section>
   );

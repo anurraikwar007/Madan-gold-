@@ -34,7 +34,14 @@ const cartSchema = new mongoose.Schema(
       unique: true,
     },
 
-    items: [cartItemSchema],
+   items: {
+    type: [cartItemSchema],
+    default: [],
+    validate: {
+      validator: (items) => items.length <= 50,
+      message: "Cart cannot contain more than 50 different products.",
+    },
+  },
 
     totalItems: {
       type: Number,

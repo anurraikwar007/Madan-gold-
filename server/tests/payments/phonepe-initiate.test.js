@@ -69,8 +69,12 @@ describe("PhonePe Payment Initiate", () => {
             `Bearer ${customerToken}`
           )
           .send({
-            paymentMethod:
-              "PHONEPE",
+            paymentMethod: "PHONEPE",
+
+            idempotencyKey: `jest-phonepe-${Date.now()}-${Math.random()
+              .toString(36)
+              .slice(2, 10)}`,
+
 
             shippingAddress: {
               fullName:

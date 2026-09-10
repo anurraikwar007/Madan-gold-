@@ -853,7 +853,7 @@ useEffect(() => {
               {cart.map((item) => (
 
                 <div
-                  key={item.id}
+                  key={item.productId || item.id}
                   className="
                     flex
                     gap-4
@@ -870,8 +870,11 @@ useEffect(() => {
                   >
 
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={
+                        item.image ||
+                        "/placeholder.png"
+                      }
+                      alt={item.name || "Product"}
                       className="
                         w-full
                         h-full
@@ -883,9 +886,9 @@ useEffect(() => {
 
                   <div className="flex-1">
 
-                    <h4 className="font-semibold">
-                      {item.name}
-                    </h4>
+                     <h4 className="font-semibold">
+                      {item.name || "Product"}
+                     </h4>
 
                     <p
                       className="
@@ -896,7 +899,7 @@ useEffect(() => {
                     >
                       Qty:
                       {" "}
-                      {item.quantity || 1}
+                      {Number(item.quantity || 1)}
                     </p>
 
                     <p

@@ -22,6 +22,10 @@ import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
+
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 
 
@@ -70,14 +74,22 @@ const AppLayout = () => {
           />
 
           <Route
-            path="/cart"
-            element={<Cart />}
-          />
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/wishlist"
-            element={<Wishlist />}
-          />
+            <Route
+              path="/wishlist"
+              element={
+                <ProtectedRoute>
+                  <Wishlist />
+                </ProtectedRoute>
+              }
+            />
 
           <Route
             path="/login"
@@ -91,21 +103,42 @@ const AppLayout = () => {
             }
           />
 
+           <Route
+              path="/reset-password"
+              element={<ResetPassword />}
+            />
+
           <Route
             path="/signup"
             element={<Signup />}
           />
 
-          <Route
+            <Route
             path="/checkout"
-            element={<Checkout />}
+            element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            }
           />
 
           <Route
             path="/orders"
-            element={<Orders />}
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
           />
 
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
           {/* ADMIN LOGIN */}
 
           <Route

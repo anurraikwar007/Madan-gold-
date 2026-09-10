@@ -27,10 +27,10 @@ describe("Update Product", () => {
 
         category: "Ring",
 
-        metal: "Gold",
+        metal: "Silver",
 
-        purity: "22K",
-
+        purity: "925 Silver",
+        
         gender: "Men",
 
         weight: 200,

@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 
-import { Heart, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  Heart,
+  ShoppingBag,
+  Trash2,
+} from "lucide-react";
 
 import { useCart } from "../context/CartContext";
 
@@ -23,9 +27,7 @@ const Wishlist = () => {
     >
       <div className="max-w-7xl mx-auto">
 
-        {/* HEADER */}
         <div className="mb-10">
-
           <p
             className="
               text-[#D4AF37]
@@ -50,12 +52,9 @@ const Wishlist = () => {
           >
             Wishlist
           </h1>
-
         </div>
 
-        {/* EMPTY */}
         {wishlist.length === 0 ? (
-
           <div
             className="
               bg-white
@@ -118,27 +117,30 @@ const Wishlist = () => {
             >
               Continue Shopping
             </Link>
-
           </div>
-
         ) : (
+          <div
+            className="
+              grid
+              grid-cols-2
+              lg:grid-cols-4
+              gap-4
+              sm:gap-6
+            "
+          >
+            {wishlist.map((product) => {
+              const productId =
+                product?._id ||
+                product?.id;
 
-          <>
-            {/* GRID */}
-            <div
-              className="
-                grid
-                grid-cols-2
-                lg:grid-cols-4
-                gap-4
-                sm:gap-6
-              "
-            >
+              const image =
+                product?.images?.[0]?.url ||
+                product?.image ||
+                "/placeholder.png";
 
-              {wishlist.map((product) => (
-
+              return (
                 <div
-                  key={product.id}
+                  key={productId}
                   className="
                     group
                     bg-white
@@ -151,14 +153,16 @@ const Wishlist = () => {
                     duration-500
                   "
                 >
-                  {/* IMAGE */}
                   <Link
-                    to={`/product/${product.id}`}
+                    to={`/product/${productId}`}
                     className="block relative"
                   >
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={image}
+                      alt={
+                        product?.name ||
+                        "Product"
+                      }
                       className="
                         w-full
                         aspect-[4/5]
@@ -169,11 +173,15 @@ const Wishlist = () => {
                       "
                     />
 
-                    {/* REMOVE */}
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.preventDefault();
-                        removeFromWishlist(product.id);
+                        e.stopPropagation();
+
+                        removeFromWishlist(
+                          productId
+                        );
                       }}
                       className="
                         absolute
@@ -194,10 +202,8 @@ const Wishlist = () => {
                         className="text-red-500"
                       />
                     </button>
-
                   </Link>
 
-                  {/* CONTENT */}
                   <div className="p-4 sm:p-5">
 
                     <h3
@@ -209,7 +215,8 @@ const Wishlist = () => {
                         line-clamp-1
                       "
                     >
-                      {product.name}
+                      {product?.name ||
+                        "Product"}
                     </h3>
 
                     <p
@@ -220,12 +227,21 @@ const Wishlist = () => {
                         mt-2
                       "
                     >
-                      ₹{product.price}
+                      ₹
+                      {Number(
+                        product?.discountPrice > 0 &&
+                        product?.discountPrice <
+                          product?.price
+                          ? product.discountPrice
+                          : product?.price || 0
+                      ).toLocaleString()}
                     </p>
 
-                    {/* BTN */}
                     <button
-                      onClick={() => addToCart(product)}
+                      type="button"
+                      onClick={() =>
+                        addToCart(product)
+                      }
                       className="
                         w-full
                         mt-4
@@ -244,21 +260,15 @@ const Wishlist = () => {
                       "
                     >
                       <ShoppingBag size={16} />
-
                       Add To Cart
                     </button>
 
                   </div>
-
                 </div>
-
-              ))}
-
-            </div>
-          </>
-
+              );
+            })}
+          </div>
         )}
-
       </div>
     </div>
   );

@@ -27,14 +27,36 @@ const ProductCard = ({ product }) => {
   const isWishlisted = wishlist.some(
     (item) =>
       (item._id || item.id) === productId
+  );  
+    
+   const basePrice =
+  Number(product.price) || 0;
+
+const finalPrice =
+  Number(product.finalPrice) ||
+  (
+    product.discountPrice > 0 &&
+    product.discountPrice <
+      product.price
+      ? product.discountPrice
+      : product.price
   );
 
-  return (
-    <div
-      className="group relative"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+  const discountPercentage =
+    basePrice > finalPrice
+      ? Math.round(
+          ((basePrice - finalPrice) /
+            basePrice) *
+            100
+        )
+      : 0;
+
+    return (
+      <div
+        className="group relative"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
       <div
         className="
           relative
@@ -82,13 +104,13 @@ const ProductCard = ({ product }) => {
             "
           >
             {product.newLaunch && (
-              <span className="bg-[#D4AF37] text-black text-[10px] px-3 py-1 rounded-full font-semibold">
+              <span className="bg-[#DDAED3] text-[#213C51] text-[10px] px-3 py-1 rounded-full font-semibold">
                 NEW
               </span>
             )}
 
             {product.bestseller && (
-              <span className="bg-black text-white text-[10px] px-3 py-1 rounded-full font-semibold">
+              <span className="bg-[#213C51] text-white text-[10px] px-3 py-1 rounded-full font-semibold">
                 BESTSELLER
               </span>
             )}
@@ -169,7 +191,7 @@ const ProductCard = ({ product }) => {
                 w-full
                 h-12
                 rounded-full
-                bg-black
+               bg-[#213C51]
                 text-white
                 flex
                 items-center
@@ -184,29 +206,46 @@ const ProductCard = ({ product }) => {
         </div>
 
         <div className="p-5">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#D4AF37]">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#6594B1]">
             {product.category?.name ||
               product.category}
           </p>
 
           <Link to={`/product/${productId}`}>
-            <h3 className="font-semibold mt-2 line-clamp-2 hover:text-[#D4AF37]">
+            <h3 className="font-semibold mt-2 line-clamp-2 hover:text-[#6594B1]">
               {product.name}
             </h3>
           </Link>
 
           <div className="mt-4">
-            <p className="text-xl font-bold">
-              ₹
-              {Number(
-                product.price || 0
-              ).toLocaleString()}
-            </p>
+  <div className="flex items-center gap-2 flex-wrap">
+    <p className="text-xl font-bold">
+      ₹
+      {finalPrice.toLocaleString(
+        "en-IN"
+      )}
+    </p>
 
-            <p className="text-xs text-gray-500">
-              Inclusive of all taxes
-            </p>
-          </div>
+    {discountPercentage > 0 && (
+            <>
+              <p className="text-sm text-gray-400 line-through">
+                ₹
+                {basePrice.toLocaleString(
+                  "en-IN"
+                )}
+              </p>
+
+              <span className="text-xs font-semibold text-green-600">
+                {discountPercentage}% OFF
+              </span>
+            </>
+          )}
+        </div>
+
+        <p className="text-xs text-gray-500">
+          Inclusive of all applicable taxes
+        </p>
+      </div>
         </div>
       </div>
     </div>

@@ -131,27 +131,18 @@ const productSchema = new mongoose.Schema(
     // Jewellery Details
     // =====================================
 
-    metal: {
+      metal: {
       type: String,
-      enum: [
-        "Gold",
-        "Silver",
-        "Platinum",
-      ],
+      enum: ["Silver"],
       required: true,
+      default: "Silver",
     },
 
     purity: {
       type: String,
-      enum: [
-        "14K",
-        "18K",
-        "22K",
-        "24K",
-        "925 Silver",
-        "950 Platinum",
-      ],
+      enum: ["925 Silver"],
       required: true,
+      default: "925 Silver",
     },
 
     gender: {
@@ -187,6 +178,13 @@ const productSchema = new mongoose.Schema(
       min: 0,
     },
 
+    sellingPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+      index: true,
+    },
+
     makingCharges: {
       type: Number,
       default: 0,
@@ -197,6 +195,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 3,
       min: 0,
+      max: 100,
     },
 
     // =====================================
@@ -217,10 +216,14 @@ const productSchema = new mongoose.Schema(
     // Images
     // =====================================
 
-    images: {
-      type: [imageSchema],
-      default: [],
+   images: {
+    type: [imageSchema],
+    default: [],
+    validate: {
+      validator: (images) => images.length <= 10,
+      message: "A product can have maximum 10 images.",
     },
+  },
 
     // =====================================
     // Product Status
@@ -321,16 +324,83 @@ productSchema.pre("save", function () {
 // Price Validation
 // ======================================================
 
-productSchema.pre("validate", function () {
-  if (
-    this.discountPrice > 0 &&
-    this.discountPrice >= this.price
-  ) {
-    throw new Error(
-      "Discount price must be less than price."
-    );
+productSchema.pre(
+  "validate",
+  function () {
+    if (
+      this.price === undefined ||
+      this.price === null ||
+      !Number.isFinite(
+        Number(this.price)
+      ) ||
+      Number(this.price) <= 0
+    ) {
+      throw new Error(
+        "Product price must be greater than 0."
+      );
+    }
+
+    if (
+      this.weight === undefined ||
+      this.weight === null ||
+      !Number.isFinite(
+        Number(this.weight)
+      ) ||
+      Number(this.weight) <= 0
+    ) {
+      throw new Error(
+        "Product weight must be greater than 0."
+      );
+    }
+
+    if (
+      this.discountPrice < 0
+    ) {
+      throw new Error(
+        "Discount price cannot be negative."
+      );
+    }
+
+    if (
+      this.discountPrice > 0 &&
+      this.discountPrice >=
+        this.price
+    ) {
+      throw new Error(
+        "Discount price must be less than price."
+      );
+    }
+
+    if (
+      this.makingCharges < 0
+    ) {
+      throw new Error(
+        "Making charges cannot be negative."
+      );
+    }
+
+    if (
+      this.gst < 0 ||
+      this.gst > 100
+    ) {
+      throw new Error(
+        "GST must be between 0 and 100."
+      );
+    }
+
+    this.metal = "Silver";
+    this.purity = "925 Silver";
+
+    const basePrice = Number(this.price) || 0;
+    const discountPrice = Number(this.discountPrice) || 0;
+
+    this.sellingPrice =
+      discountPrice > 0 &&
+      discountPrice < basePrice
+    ? discountPrice
+    : basePrice;
   }
-});
+);
 
 // ======================================================
 // Auto SKU Generator (Production Safe)
@@ -342,14 +412,9 @@ productSchema.pre("save", async function () {
     return;
   }
 
-  const metalPrefix = {
-    Gold: "GLD",
-    Silver: "SLV",
-    Platinum: "PLT",
-  };
+  
 
-  const prefix =
-    metalPrefix[this.metal] || "PRD";
+   const prefix = "SLV";
 
   const counter = await Counter.findOneAndUpdate(
   {
@@ -379,9 +444,20 @@ productSchema.pre("save", async function () {
 
 productSchema.virtual("finalPrice").get(
   function () {
-    return this.discountPrice > 0
-      ? this.discountPrice
-      : this.price;
+    const basePrice =
+      Number(this.price) || 0;
+
+    const discountPrice =
+      Number(this.discountPrice) || 0;
+
+    if (
+      discountPrice > 0 &&
+      discountPrice < basePrice
+    ) {
+      return discountPrice;
+    }
+
+    return basePrice;
   }
 );
 
@@ -392,18 +468,25 @@ productSchema.virtual("finalPrice").get(
 productSchema.virtual(
   "discountPercentage"
 ).get(function () {
-  if (!this.discountPrice) {
+  const basePrice =
+    Number(this.price) || 0;
+
+  const finalPrice =
+    Number(this.finalPrice) || 0;
+
+  if (
+    basePrice <= 0 ||
+    finalPrice >= basePrice
+  ) {
     return 0;
   }
 
   return Math.round(
-    ((this.price -
-      this.discountPrice) /
-      this.price) *
+    ((basePrice - finalPrice) /
+      basePrice) *
       100
   );
 });
-
 // ======================================================
 // Query Helpers
 // ======================================================
@@ -537,6 +620,7 @@ productSchema.index(
 
 productSchema.index(
   {
+    isDeleted: 1,
     isActive: 1,
     category: 1,
     metal: 1,
@@ -552,15 +636,31 @@ productSchema.index(
 // Price Sorting
 
 productSchema.index(
-{
-    isActive:1,
-    category:1,
-    discountPrice:1,
-    price:1
-},
-{
-    name:"price_sort"
-}
+  {
+    isDeleted: 1,
+    isActive: 1,
+    metal: 1,
+    purity: 1,
+    sellingPrice: 1,
+    _id: 1,
+  },
+  {
+    name: "catalog_price_asc",
+  }
+);
+
+productSchema.index(
+  {
+    isDeleted: 1,
+    isActive: 1,
+    metal: 1,
+    purity: 1,
+    sellingPrice: -1,
+    _id: -1,
+  },
+  {
+    name: "catalog_price_desc",
+  }
 );
 
 // Rating
@@ -613,6 +713,30 @@ productSchema.index(
     name: "new_arrivals",
   }
 );
+
+productSchema.index({
+  isDeleted: 1,
+  isActive: 1,
+  metal: 1,
+  purity: 1,
+  gender: 1,
+});
+
+productSchema.index({
+  isDeleted: 1,
+  isActive: 1,
+  metal: 1,
+  purity: 1,
+  weight: 1,
+});
+
+productSchema.index({
+  isDeleted: 1,
+  isActive: 1,
+  metal: 1,
+  purity: 1,
+  createdAt: -1,
+});
 
 // Inventory Dashboard
 

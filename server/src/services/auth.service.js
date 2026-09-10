@@ -13,7 +13,10 @@ import {
 
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { sendCustomerVerificationOtp } from "./email.service.js";
+import {
+  sendCustomerVerificationOtp,
+  sendCustomerPasswordResetEmail,
+} from "./email.service.js";
 
 // =========================
 // Customer Register
@@ -43,21 +46,46 @@ export const registerCustomer = async (data) => {
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
-    emailExists.emailVerificationOtp = crypto
-      .createHash("sha256")
-      .update(otp)
-      .digest("hex");
-    emailExists.emailVerificationOtpExpiresAt =
-      new Date(Date.now() + 10 * 60 * 1000);
+   const previousOtp =
+  emailExists.emailVerificationOtp;
 
-    await emailExists.save();
+const previousOtpExpiresAt =
+  emailExists.emailVerificationOtpExpiresAt;
 
-    try {
-      await sendCustomerVerificationOtp(emailExists.email, otp);
-    } catch (error) {
-      console.error("[EMAIL] Verification OTP failed:", error);
-      throw new Error("Unable to send verification OTP. Please try again.");
-    }
+emailExists.emailVerificationOtp =
+  crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
+
+emailExists.emailVerificationOtpExpiresAt =
+  new Date(
+    Date.now() + 10 * 60 * 1000
+  );
+
+try {
+  await sendCustomerVerificationOtp(
+    emailExists.email,
+    otp
+  );
+
+  await emailExists.save();
+} catch (error) {
+  emailExists.emailVerificationOtp =
+    previousOtp;
+
+  emailExists.emailVerificationOtpExpiresAt =
+    previousOtpExpiresAt;
+
+  console.error(
+    "[EMAIL] Verification OTP failed:",
+    error
+  );
+
+  throw new Error(
+    "Unable to send verification OTP. Please try again."
+  );
+}
 
     return emailExists;
   }
@@ -617,6 +645,128 @@ export const resendCustomerVerificationOtp = async (email) => {
       "Unable to send verification OTP. Please try again."
     );
   }
+
+  return true;
+};
+
+// =========================
+// Forgot Customer Password
+// =========================
+
+export const forgotCustomerPassword = async (
+  email
+) => {
+  const normalizedEmail =
+    email.trim().toLowerCase();
+
+  const customer =
+    await Customer.findOne({
+      email: normalizedEmail,
+      isDeleted: false,
+      isActive: true,
+    }).select(
+      "+passwordResetToken +passwordResetTokenExpiresAt"
+    );
+
+  /*
+   * Always return success to avoid
+   * exposing whether an email exists.
+   */
+  if (!customer) {
+    return true;
+  }
+
+  const rawToken =
+    crypto.randomBytes(32).toString("hex");
+
+  const hashedToken =
+    crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+  customer.passwordResetToken =
+    hashedToken;
+
+  customer.passwordResetTokenExpiresAt =
+    new Date(
+      Date.now() + 15 * 60 * 1000
+    );
+
+   await customer.save();
+
+   const frontendUrl = process.env.CLIENT_URL;
+
+   if (!frontendUrl) {
+    throw new Error(
+    "Client URL configuration is missing."
+   );
+ }
+  const resetUrl =
+    `${frontendUrl}/reset-password?token=${rawToken}`;
+
+  try {
+    await sendCustomerPasswordResetEmail(
+      customer.email,
+      resetUrl
+    );
+  } catch (error) {
+    customer.passwordResetToken = null;
+    customer.passwordResetTokenExpiresAt = null;
+
+    await customer.save();
+
+    throw new Error(
+      "Unable to send password reset email. Please try again."
+    );
+  }
+
+  return true;
+};
+
+// =========================
+// Reset Customer Password
+// =========================
+
+export const resetCustomerPassword = async (
+  rawToken,
+  newPassword
+) => {
+  const hashedToken =
+    crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+  const customer =
+    await Customer.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiresAt: {
+        $gt: new Date(),
+      },
+      isDeleted: false,
+      isActive: true,
+    }).select(
+      "+passwordResetToken +passwordResetTokenExpiresAt +password"
+    );
+
+  if (!customer) {
+    throw new Error(
+      "Invalid or expired password reset token."
+    );
+  }
+
+  customer.password = newPassword;
+
+  customer.passwordResetToken = null;
+  customer.passwordResetTokenExpiresAt = null;
+
+  await customer.save();
+
+  await revokeAllRefreshTokens({
+    userId: customer._id,
+    userType: "Customer",
+  });
 
   return true;
 };

@@ -10,6 +10,12 @@ import AuditService from "./audit.service.js";
 
 import { CheckoutDTO } from "../dto/checkout.dto.js";
 
+import {
+  calculateItemPricing,
+  calculateShipping,
+  calculateGrandTotal,
+} from "../utils/pricing.util.js";
+
 class CheckoutService {
 
   // =====================================================
@@ -138,26 +144,23 @@ class CheckoutService {
 
         }
 
-        const sellingPrice =
-        product.discountPrice > 0 &&
-        product.discountPrice < product.price
-          ? product.discountPrice
-          : product.price;
+        const pricing =
+          calculateItemPricing(
+            product,
+            cartItem.quantity
+          );
 
-      const itemSubtotal =
-        cartItem.quantity *
-        sellingPrice;
+        const sellingPrice =
+          pricing.sellingPrice;
+
+        const itemSubtotal =
+          pricing.subtotal;
+
         const itemMaking =
-          (product.makingCharges || 0) *
-          cartItem.quantity;
+          pricing.makingCharge;
 
         const itemGST =
-          (
-            itemSubtotal +
-            itemMaking
-          ) *
-          ((product.gst || 0) / 100);
-
+          pricing.gst;
         checkoutItems.push({
 
           product: product._id,
@@ -188,13 +191,8 @@ class CheckoutService {
       // Shipping Charge
       // ==========================================
 
-      let shippingCharge = 0;
-
-      if (subtotal < 1000) {
-
-        shippingCharge = 100;
-
-      }
+      const shippingCharge =
+      calculateShipping(subtotal);
 
       // ==========================================
       // Discount
@@ -312,16 +310,13 @@ class CheckoutService {
       // ==========================================
 
       const grandTotal =
-
-        subtotal +
-
-        makingCharge +
-
-        gst +
-
-        shippingCharge -
-
-        discount;
+      calculateGrandTotal({
+        subtotal,
+        makingCharge,
+        gst,
+        shippingCharge,
+        discount,
+      });
 
       // ==========================================
       // Create Checkout

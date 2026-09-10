@@ -6,6 +6,7 @@ import Hero from "../components/home/Hero";
 import MobileSearchBar from "../components/common/MobileSearchBar";
 import GenderCategories from "../components/home/GenderCategories";
 import BestSellerSlider from "../components/home/BestSellerSlider";
+import CategorySlider from "../components/home/CategorySlider";
 
 import ProductCard from "../components/product/ProductCard";
 import Loader from "../components/common/Loader";
@@ -54,12 +55,14 @@ const Home = () => {
       "
     >
       <Helmet>
-        <title>Madan Gold | Luxury Jewellery</title>
+       <title>
+            Madan Gold | 925 Silver Jewellery
+          </title>
 
-        <meta
-          name="description"
-          content="Premium Gold & Silver Jewellery"
-        />
+          <meta
+            name="description"
+            content="Shop premium 925 sterling silver jewellery including rings, necklaces, earrings, bracelets, bangles and more."
+          />
       </Helmet>
 
       {/* Hero */}
@@ -79,6 +82,13 @@ const Home = () => {
       {/* Featured Products Slider */}
 
       <BestSellerSlider />
+         
+         {/* ========================= */}
+        {/* SHOP BY CATEGORY */}
+        {/* ========================= */}
+
+        <CategorySlider />
+
             {/* ========================= */}
       {/* PREMIUM COLLECTIONS */}
       {/* ========================= */}

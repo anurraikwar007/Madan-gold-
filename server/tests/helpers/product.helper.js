@@ -4,8 +4,6 @@ import app from "../../src/app.js";
 import { adminLogin } from "./auth.helper.js";
 
 export async function createProduct(token = null) {
-
-  // Agar token pass nahi hua to automatically admin login kar lo
   if (!token) {
     token = await adminLogin();
   }
@@ -16,37 +14,45 @@ export async function createProduct(token = null) {
     .post("/api/v1/products")
     .set("Authorization", `Bearer ${token}`)
     .send({
-      name: `Test Product ${unique}`,
-      shortDescription: "Premium",
-      description: "22K Gold Ring",
+      name: `Test Silver Ring ${unique}`,
+      shortDescription: "Premium 925 Silver Jewellery",
+      description: "Premium 925 Sterling Silver Ring",
       category: "Ring",
-      metal: "Gold",
-      purity: "22K",
+
+      metal: "Silver",
+      purity: "925 Silver",
+
       gender: "Men",
-      weight: unique % 1000,
-      price: 50000,
-      discountPrice: 45000,
-      makingCharges: 1500,
+      weight: Math.max((unique % 1000) / 10, 1),
+
+      price: 5000,
+      discountPrice: 4500,
+      makingCharges: 500,
       gst: 3,
+
       inventory: {
         stock: 20,
-        availableStock: 20,
         reservedStock: 0,
         lowStockThreshold: 5,
       },
+
       images: [
         {
-          public_id: "abc",
+          public_id: `test-product-${unique}`,
           url: "https://dummyimage.com/600x600",
-          alt: "Gold Ring",
+          alt: "925 Silver Ring",
           isPrimary: true,
         },
       ],
     });
 
-  expect(response.statusCode).toBe(201);
-
-  console.log("PRODUCT RESPONSE:", response.statusCode, response.body);
+  if (response.statusCode !== 201) {
+    throw new Error(
+      `Product creation failed: ${response.statusCode} ${JSON.stringify(
+        response.body
+      )}`
+    );
+  }
 
   return response.body.data;
 }

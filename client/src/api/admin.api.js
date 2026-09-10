@@ -62,16 +62,10 @@ export const uploadAdminProductImages = (
     formData.append("images", file);
   });
 
-  return api.post(
-    "/admin/products/upload-images",
-    formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data",
-      },
-    }
-  );
+    return api.post(
+      "/admin/products/upload-images",
+      formData
+    );
 };
 
 // =====================================================
@@ -153,6 +147,25 @@ export const deleteAdminCoupon = (
   api.delete(
     `/admin/coupons/${id}`
   );
+  
+  export const uploadAdminCouponImage = (
+  file
+) => {
+  const formData = new FormData();
+
+  formData.append("image", file);
+
+  return api.post(
+    "/admin/coupons/upload-image",
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
+  );
+};
 
 // =====================================================
 // Orders

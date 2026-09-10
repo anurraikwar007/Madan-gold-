@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   Heart,
@@ -19,9 +19,28 @@ import { useSearch } from "../../context/SearchContext";
 const Navbar = () => {
   const { cartCount = 0, wishlist = [] } = useCart();
   const { user, logout } = useAuth();
-  const { setQuery } = useSearch();
+  const {
+    query,
+    setQuery,
+  } = useSearch();
 
-  const location = useLocation();
+const location = useLocation();
+const navigate = useNavigate();
+
+   const handleSearchSubmit = () => {
+    const value = query.trim();
+
+    if (!value) {
+      navigate("/shop");
+      return;
+    }
+
+    navigate(
+      `/shop?search=${encodeURIComponent(
+        value
+      )}`
+    );
+  };
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -88,16 +107,16 @@ const Navbar = () => {
             justify-center
             border-b
             border-[#8f5361]/8
-            bg-[#f9e9ec]
+            bg-[#EEEEEE]
             text-[9px]
             font-medium
             uppercase
             tracking-[0.28em]
-            text-[#704650]
+            text-[#213C51]
             lg:flex
           "
         >
-          Complimentary shipping on orders above ₹2,000
+          Complimentary shipping on orders above ₹1,000
         </div>
 
         <div className="mx-auto max-w-[1500px] px-3 sm:px-6 lg:px-10">
@@ -172,7 +191,7 @@ const Navbar = () => {
                     text-[24px]
                     font-semibold
                     tracking-[0.13em]
-                    text-[#35252a]
+                    text-[#213C51]
                     sm:text-[18px]
                     sm:tracking-[0.16em]
                   "
@@ -205,9 +224,9 @@ const Navbar = () => {
                   font-medium
                   uppercase
                   tracking-[0.16em]
-                  text-[#403337]
+                  text-[#213C51]
                   transition-colors
-                  hover:text-[#8c4e5d]
+                  hover:text-[#6594B1]
                 "
               >
                 Home
@@ -229,9 +248,9 @@ const Navbar = () => {
                     font-medium
                     uppercase
                     tracking-[0.16em]
-                    text-[#403337]
+                    text-[#213C51]
                     transition-colors
-                    hover:text-[#8c4e5d]
+                    hover:text-[#6594B1]
                   "
                 >
                   Shop
@@ -265,28 +284,28 @@ const Navbar = () => {
                   >
                     <div className="grid grid-cols-3 gap-8">
                       <div>
-                        <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#a05f6d]">
+                        <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#6594B1]">
                           Collections
                         </p>
 
                         <div className="space-y-3">
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             All Jewellery
                           </Link>
 
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             New Arrivals
                           </Link>
 
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             Best Sellers
                           </Link>
@@ -294,28 +313,28 @@ const Navbar = () => {
                       </div>
 
                       <div>
-                        <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#a05f6d]">
+                        <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#6594B1]">
                           Jewellery
                         </p>
 
                         <div className="space-y-3">
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             Rings
                           </Link>
 
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             Earrings
                           </Link>
 
                           <Link
                             to="/shop"
-                            className="block text-sm text-[#403337] hover:text-[#a05f6d]"
+                            className="block text-sm text-[#213C51] hover:text-[#6594B1]"
                           >
                             Necklaces
                           </Link>
@@ -323,11 +342,11 @@ const Navbar = () => {
                       </div>
 
                       <div className="rounded-sm bg-gradient-to-br from-[#f7dfe4] to-[#e9c5cc] p-5">
-                        <span className="text-[8px] uppercase tracking-[0.25em] text-[#80505b]">
+                        <span className="text-[8px] uppercase tracking-[0.25em] text-[#213C51]">
                           Madan Gold
                         </span>
 
-                        <h3 className="mt-2 font-serif text-xl text-[#402b31]">
+                        <h3 className="mt-2 font-serif text-xl text-[#213C51]">
                           Timeless
                           <br />
                           Elegance
@@ -353,9 +372,9 @@ const Navbar = () => {
                   font-medium
                   uppercase
                   tracking-[0.16em]
-                  text-[#403337]
+                  text-[#213C51]
                   transition-colors
-                  hover:text-[#8c4e5d]
+                  hover:text-[#6594B1]
                 "
               >
                 New Arrivals
@@ -369,9 +388,9 @@ const Navbar = () => {
                   font-medium
                   uppercase
                   tracking-[0.16em]
-                  text-[#403337]
+                  text-[#213C51]
                   transition-colors
-                  hover:text-[#8c4e5d]
+                  hover:text-[#6594B1]
                 "
               >
                 Best Sellers
@@ -417,7 +436,7 @@ const Navbar = () => {
                       w-full
                       bg-transparent
                       text-xs
-                      text-[#35252a]
+                      text-[#213C51]
                       outline-none
                       placeholder:text-[#9b858a]
                     "
@@ -438,7 +457,7 @@ const Navbar = () => {
                   border
                   border-[#8f5361]/10
                   bg-white/75
-                  text-[#403337]
+                  text-[#213C51]
                   sm:h-10
                   sm:w-10
                   xl:hidden
@@ -461,9 +480,9 @@ const Navbar = () => {
                   border
                   border-[#8f5361]/10
                   bg-white/75
-                  text-[#403337]
+                  text-[#213C51]
                   transition-all
-                  hover:text-[#8c4e5d]
+                  hover:text-[#6594B1]
                   sm:h-10
                   sm:w-10
                 "
@@ -482,7 +501,7 @@ const Navbar = () => {
                       items-center
                       justify-center
                       rounded-full
-                      bg-[#8c4e5d]
+                      bg-[#6594B1]
                       px-1
                       text-[8px]
                       font-semibold
@@ -508,9 +527,9 @@ const Navbar = () => {
                   border
                   border-[#8f5361]/10
                   bg-white/75
-                  text-[#403337]
+                  text-[#213C51]
                   transition-all
-                  hover:text-[#8c4e5d]
+                  hover:text-[#6594B1]
                   sm:h-10
                   sm:w-10
                 "
@@ -529,7 +548,7 @@ const Navbar = () => {
                       items-center
                       justify-center
                       rounded-full
-                      bg-[#8c4e5d]
+                      bg-[#6594B1]
                       px-1
                       text-[8px]
                       font-semibold
@@ -552,7 +571,7 @@ const Navbar = () => {
                     items-center
                     gap-2
                     rounded-full
-                    bg-[#35252a]
+                    bg-[#213C51]
                     px-4
                     text-[10px]
                     font-medium
@@ -578,7 +597,7 @@ const Navbar = () => {
                     border
                     border-[#8f5361]/10
                     bg-white/75
-                    text-[#403337]
+                    text-[#213C51]
                     lg:flex
                   "
                 >
@@ -602,7 +621,7 @@ const Navbar = () => {
                   border
                   border-[#8f5361]/10
                   bg-white/75
-                  text-[#403337]
+                  text-[#213C51]
                   sm:h-10
                   sm:w-10
                   lg:hidden
@@ -659,10 +678,18 @@ const Navbar = () => {
                 className="mr-2 text-[#87616a]"
               />
 
-              <input
-                type="text"
-                placeholder="Search jewellery..."
-                onChange={(e) => setQuery(e.target.value)}
+                <input
+                  type="text"
+                  value={query}
+                  placeholder="Search 925 silver jewellery..."
+                  onChange={(e) =>
+                    setQuery(e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearchSubmit();
+                    }
+                  }}
                 className="
                   w-full
                   bg-transparent
@@ -685,8 +712,8 @@ const Navbar = () => {
                   text-sm
                   ${
                     navActive("/")
-                      ? "font-medium text-[#8c4e5d]"
-                      : "text-[#403337]"
+                      ? "font-medium text-[#6594B1]"
+                      : "text-[#213C51]"
                   }
                 `}
               >
@@ -701,7 +728,7 @@ const Navbar = () => {
                   justify-between
                   py-4
                   text-sm
-                  text-[#403337]
+                  text-[#213C51]
                 "
               >
                 Shop All
@@ -715,7 +742,7 @@ const Navbar = () => {
                   justify-between
                   py-4
                   text-sm
-                  text-[#403337]
+                  text-[#213C51]
                 "
               >
                 New Arrivals
@@ -729,7 +756,7 @@ const Navbar = () => {
                   justify-between
                   py-4
                   text-sm
-                  text-[#403337]
+                  text-[#213C51]
                 "
               >
                 Best Sellers
@@ -743,7 +770,7 @@ const Navbar = () => {
                   justify-between
                   py-4
                   text-sm
-                  text-[#403337]
+                  text-[#213C51]
                 "
               >
                 <span>Wishlist</span>
@@ -756,7 +783,7 @@ const Navbar = () => {
                       px-2.5
                       py-1
                       text-[10px]
-                      text-[#8c4e5d]
+                      text-[#6594B1]
                     "
                   >
                     {wishlist.length}
@@ -772,7 +799,7 @@ const Navbar = () => {
                   justify-between
                   py-4
                   text-sm
-                  text-[#403337]
+                  text-[#213C51]
                 "
               >
                 <span>Shopping Bag</span>
@@ -785,7 +812,7 @@ const Navbar = () => {
                       px-2.5
                       py-1
                       text-[10px]
-                      text-[#8c4e5d]
+                      text-[#6594B1]
                     "
                   >
                     {cartCount}
@@ -805,7 +832,7 @@ const Navbar = () => {
                     py-4
                     text-left
                     text-sm
-                    text-[#8c4e5d]
+                    text-[#6594B1]
                   "
                 >
                   Logout
@@ -821,7 +848,7 @@ const Navbar = () => {
                     py-4
                     text-sm
                     font-medium
-                    text-[#8c4e5d]
+                    text-[#6594B1]
                   "
                 >
                   Account
@@ -832,11 +859,11 @@ const Navbar = () => {
 
             {/* Mobile luxury footer */}
             <div className="mt-6 rounded-2xl bg-gradient-to-br from-[#f7dfe4] to-[#ead0d5] p-5">
-              <p className="text-[8px] font-medium uppercase tracking-[0.3em] text-[#80505b]">
+              <p className="text-[8px] font-medium uppercase tracking-[0.3em] text-[#213C51]">
                 MADAN GOLD
               </p>
 
-              <p className="mt-2 font-serif text-lg text-[#402b31]">
+              <p className="mt-2 font-serif text-lg text-[#213C51]">
                 Jewellery made
                 <br />
                 for your moments.

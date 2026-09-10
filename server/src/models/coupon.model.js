@@ -17,6 +17,26 @@ const couponSchema = new mongoose.Schema(
       trim: true,
     },
 
+    image: {
+  public_id: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+
+  url: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+
+  alt: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+},
+
     discountType: {
       type: String,
       enum: ["Percentage", "Flat"],

@@ -16,17 +16,17 @@ describe("Create Product", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({
 
-        name: `Jest Gold Ring ${unique}`,
+       name: `Jest Silver Ring ${unique}`,
 
-        shortDescription: "Premium",
+        shortDescription: "Premium 925 Silver",
 
-        description: "22K Gold Ring",
+        description: "925 Sterling Silver Ring",
 
         category: "Ring",
 
-        metal: "Gold",
+        metal: "Silver",
 
-        purity: "22K",
+        purity: "925 Silver",
 
         gender: "Men",
 
@@ -50,7 +50,7 @@ describe("Create Product", () => {
           {
             public_id: "abc",
             url: "https://dummyimage.com/600x600",
-            alt: "Gold Ring",
+            alt: "Silver Ring",
             isPrimary: true
           }
         ]

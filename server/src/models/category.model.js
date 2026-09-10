@@ -117,9 +117,9 @@ const categorySchema = new mongoose.Schema(
           default: null,
     },
 
-    updatedBy: {
+   updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Admin",
       default: null,
     },
   },

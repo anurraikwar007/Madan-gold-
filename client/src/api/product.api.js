@@ -4,19 +4,24 @@ import api from "../lib/axios";
 // Customer Products
 // =========================
 
-export const getProducts = (params = {}) =>
+ export const getProducts = (params = {}) =>
   api.get("/products", {
     params,
   });
 
-export const getProductById = (id) =>
+ export const getProductById = (id) =>
   api.get(`/products/${id}`);
 
-export const getFeaturedProducts = () =>
+ export const getFeaturedProducts = () =>
   api.get("/products?featured=true");
 
-export const getBestSellerProducts = () =>
-  api.get("/products?bestseller=true");
+ export const getBestSellerProducts = (params = {}) =>
+  api.get("/products", {
+    params: {
+      ...params,
+      bestseller: true,
+    },
+  });
 
 // =========================
 // Admin Products
@@ -38,6 +43,16 @@ export const updateAdminProduct = (id, data) =>
 
 export const deleteAdminProduct = (id) =>
   api.delete(`/admin/products/${id}`);
+
+export const getSearchSuggestions = (
+  q
+) =>
+  api.get(
+    "/products/suggestions",
+    {
+      params: { q },
+    }
+  );
 
 export const getRelatedProducts = (
   id

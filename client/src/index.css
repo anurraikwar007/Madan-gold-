@@ -1,1642 +1,1271 @@
+/* ==========================================================
+   MADAN GOLD
+   PREMIUM LUXURY DESIGN SYSTEM
+   Brand:
+   Navy  #213C51
+   Blue  #6594B1
+   Pink  #DDAED3
+   Light #EEEEEE
+========================================================== */
+
+/* ==========================================================
+   GOOGLE FONTS
+========================================================== */
+
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
 /* ==========================================================
-   MADAN GOLD LUXURY DESIGN SYSTEM
-   PART 1 - ROOT + RESET + GLOBAL + TYPOGRAPHY
+   ROOT VARIABLES
 ========================================================== */
 
-:root{
+:root {
+  /* Brand */
+  --primary: #DDAED3;
+  --primary-dark: #C894BD;
+  --primary-light: #EBD2E6;
 
-    /* ADMIN THEME */
+  --navy: #213C51;
+  --blue: #6594B1;
+  --light: #EEEEEE;
 
-    --admin-bg: #F7F8FC;
-    --admin-sidebar: #FFFFFF;
-    --admin-card: #FFFFFF;
-    --admin-card-hover: #F8FAFF;
+  --white: #FFFFFF;
+  --black: #111111;
 
-    --admin-violet: #6366F1;
-    --admin-violet-soft: #818CF8;
+  /* Typography */
+  --heading: #213C51;
+  --body: #536878;
+  --muted: #7D8C96;
 
-    --admin-cyan: #06B6D4;
-    --admin-blue: #3B82F6;
-    --admin-green: #10B981;
-    --admin-red: #F43F5E;
+  /* Background */
+  --background: #FAFAFA;
+  --surface: #FFFFFF;
+  --surface-alt: #EEEEEE;
 
-    --admin-text: #0F172A;
-    --admin-muted: #64748B;
-    --admin-border: #E2E8F0;
+  /* Border */
+  --border: rgba(33, 60, 81, 0.12);
 
-  /* =====================================
-     BRAND COLORS
-  ===================================== */
-
-  --primary:#C98FA8;
-  --primary-dark:#B27793;
-  --primary-light:#EBCFDB;
-
-  --blush:#F8DCE6;
-  --pastel:#FFF7FA;
-  --soft-pink:#FDF1F5;
-  --rose:#D9A7BC;
-
-  --background:#FFFDFC;
-  --surface:#FFFFFF;
-  --surface-alt:#FFF8FB;
-
-  --heading:#33282D;
-  --body:#6F6469;
-  --muted:#A89BA1;
-
-  --border:#F0DDE5;
-
-  /* =====================================
-     SHADOWS
-  ===================================== */
-
+  /* Shadows */
   --shadow-xs:
-  0 6px 18px rgba(201,143,168,.05);
+    0 6px 20px rgba(33, 60, 81, 0.05);
 
   --shadow-sm:
-  0 12px 28px rgba(201,143,168,.08);
+    0 12px 35px rgba(33, 60, 81, 0.08);
 
   --shadow:
-  0 22px 55px rgba(201,143,168,.12);
+    0 22px 60px rgba(33, 60, 81, 0.12);
 
   --shadow-lg:
-  0 40px 90px rgba(201,143,168,.16);
+    0 35px 100px rgba(33, 60, 81, 0.16);
 
-  /* =====================================
-     RADIUS
-  ===================================== */
+  /* Radius */
+  --radius-sm: 14px;
+  --radius: 22px;
+  --radius-lg: 32px;
 
-  --radius-sm:14px;
-  --radius:22px;
-  --radius-lg:32px;
+  /* Transition */
+  --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* =====================================
-     TRANSITION
-  ===================================== */
-
-  --transition:.35s cubic-bezier(.4,0,.2,1);
-
+  /* Admin */
+  --admin-bg: #F5F7F9;
+  --admin-sidebar: #213C51;
+  --admin-card: #FFFFFF;
+  --admin-text: #213C51;
+  --admin-muted: #6594B1;
+  --admin-border: rgba(33, 60, 81, 0.12);
 }
 
-/* =====================================
+
+/* ==========================================================
    RESET
-===================================== */
+========================================================== */
 
 *,
 *::before,
-*::after{
-
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html{
-
-  scroll-behavior:smooth;
-
+html {
+  scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100vh;
+
   font-family: "DM Sans", sans-serif;
-  color: var(--heading);
 
-  background:
-    radial-gradient(
-      circle at 90% 0%,
-      rgba(99, 102, 241, 0.06),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 0% 100%,
-      rgba(6, 182, 212, 0.045),
-      transparent 28%
-    ),
-    var(--background);
+  color: var(--body);
+  background: var(--background);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  text-rendering: optimizeLegibility;
 }
 
-/* =====================================
+#root {
+  min-height: 100vh;
+}
+
+
+/* ==========================================================
    TYPOGRAPHY
-===================================== */
-
-.heading{
-
-  font-family:"Playfair Display",serif;
-
-}
+========================================================== */
 
 h1,
 h2,
 h3,
 h4,
 h5,
-h6{
+h6,
+.heading {
+  font-family: "Playfair Display", Georgia, serif;
 
-  font-family:"Playfair Display",serif;
+  color: var(--heading);
 
-  color:var(--heading);
+  font-weight: 600;
 
-  font-weight:700;
+  letter-spacing: -0.025em;
 
-  letter-spacing:-.03em;
-
-  line-height:1.15;
-
+  line-height: 1.12;
 }
 
-h1{
-
-  font-size:clamp(42px,6vw,72px);
-
+h1 {
+  font-size: clamp(40px, 6vw, 72px);
 }
 
-h2{
-
-  font-size:clamp(34px,5vw,54px);
-
+h2 {
+  font-size: clamp(32px, 5vw, 54px);
 }
 
-h3{
-
-  font-size:clamp(26px,4vw,38px);
-
+h3 {
+  font-size: clamp(24px, 4vw, 36px);
 }
 
-p{
-
-  color:var(--body);
-
-  font-size:16px;
-
-  line-height:1.9;
-
+h4 {
+  font-size: 24px;
 }
 
-small{
-
-  color:var(--muted);
-
+h5 {
+  font-size: 20px;
 }
 
-/* =====================================
+h6 {
+  font-size: 18px;
+}
+
+p {
+  color: var(--body);
+
+  font-family: "DM Sans", sans-serif;
+
+  font-size: 16px;
+
+  line-height: 1.8;
+}
+
+small {
+  color: var(--muted);
+}
+
+.accent-text {
+  font-family: "Playfair Display", Georgia, serif;
+
+  color: var(--primary-dark);
+}
+
+.text-primary {
+  color: var(--navy);
+}
+
+.text-brand-blue {
+  color: var(--blue);
+}
+
+.text-brand-pink {
+  color: var(--primary-dark);
+}
+
+
+/* ==========================================================
    LINKS
-===================================== */
+========================================================== */
 
-a{
+a {
+  color: inherit;
 
-  color:inherit;
+  text-decoration: none;
 
-  text-decoration:none;
-
-  transition:var(--transition);
-
+  transition: var(--transition);
 }
 
-a:hover{
-
-  color:var(--primary);
-
+a:hover {
+  color: var(--primary-dark);
 }
 
-/* =====================================
+
+/* ==========================================================
    MEDIA
-===================================== */
+========================================================== */
 
-img{
+img {
+  display: block;
 
-  display:block;
+  max-width: 100%;
 
-  width:100%;
+  user-select: none;
 
-  height:auto;
-
-  user-select:none;
-
-  -webkit-user-drag:none;
-
+  -webkit-user-drag: none;
 }
 
-/* =====================================
-   FORM ELEMENTS
-===================================== */
+video {
+  display: block;
 
-button{
+  max-width: 100%;
+}
 
-  border:none;
 
-  background:none;
+/* ==========================================================
+   FORMS
+========================================================== */
 
-  cursor:pointer;
+button,
+input,
+textarea,
+select {
+  font-family: "DM Sans", sans-serif;
+}
 
-  font-family:inherit;
+button {
+  border: none;
 
+  background: none;
+
+  cursor: pointer;
 }
 
 input,
 textarea,
-select{
-
-  border:none;
-
-  outline:none;
-
-  font-family:inherit;
-
+select {
+  outline: none;
 }
 
-button,
-a{
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--blue);
 
-  -webkit-tap-highlight-color:transparent;
-
+  outline-offset: 3px;
 }
 
-/* =====================================
+
+/* ==========================================================
    SELECTION
-===================================== */
-
-::selection{
-
-  background:#B89468;
-
-  color:#fff;
-
-}
-
-/* =====================================
-   SCROLLBAR
-===================================== */
-
-::-webkit-scrollbar{
-
-  width:9px;
-
-}
-
-::-webkit-scrollbar-track{
-
-  background:#FFF5F8;
-
-}
-
-::-webkit-scrollbar-thumb{
-
-  border-radius:999px;
-
-  background:
-  linear-gradient(
-  180deg,
-  #E9BED0,
-  #C98FA8
-  );
-
-}
-
-::-webkit-scrollbar-thumb:hover{
-
-  background:
-  linear-gradient(
-  180deg,
-  #D89CB6,
-  #AF6D8A
-  );
-
-}
-
-*{
-
-  scrollbar-width:thin;
-
-  scrollbar-color:#D89CB6 #FFF5F8;
-
-}
-
-/* =====================================
-   LAYOUT HELPERS
-===================================== */
-
-.container-padding{
-
-  padding-inline:24px;
-
-}
-
-.section-space{
-
-  padding-block:90px;
-
-}
-
-.section-title{
-
-  font-family:"Playfair Display",serif;
-
-  font-size:clamp(34px,5vw,56px);
-
-  font-weight:700;
-
-  color:var(--heading);
-
-  letter-spacing:-.03em;
-
-}
-
-.section-subtitle{
-
-  max-width:720px;
-
-  margin:18px auto 0;
-
-  color:var(--body);
-
-  font-size:17px;
-
-  line-height:1.9;
-
-}
-
-/* ==========================================================
-   MADAN GOLD LUXURY DESIGN SYSTEM
-   PART 2 - BUTTONS • GLASS • CARDS • HOVERS
-==========================================================*/
-
-/* ===========================
-      PRIMARY BUTTON
-=========================== */
-
-.btn-primary{
-
-display:inline-flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-
-position:relative;
-overflow:hidden;
-
-padding:15px 34px;
-
-border-radius:999px;
-
-font-size:15px;
-font-weight:600;
-letter-spacing:.3px;
-
-color:#fff;
-
-background:
-linear-gradient(
-135deg,
-#D8A6BB,
-#C889A5
-);
-
-box-shadow:
-0 18px 40px rgba(201,143,168,.18);
-
-transition:all .4s ease;
-
-}
-
-.btn-primary::before{
-
-content:"";
-
-position:absolute;
-
-left:-120%;
-top:0;
-
-width:70%;
-height:100%;
-
-background:
-linear-gradient(
-90deg,
-transparent,
-rgba(255,255,255,.55),
-transparent
-);
-
-transition:1s;
-
-}
-
-.btn-primary:hover::before{
-
-left:150%;
-
-}
-
-.btn-primary:hover{
-
-transform:
-translateY(-4px);
-
-background:
-linear-gradient(
-135deg,
-#C889A5,
-#B77693
-);
-
-box-shadow:
-0 28px 60px rgba(201,143,168,.28);
-
-}
-
-.btn-primary:active{
-
-transform:scale(.97);
-
-}
-
-/* ===========================
-      SECONDARY
-=========================== */
-
-.btn-secondary{
-
-display:inline-flex;
-align-items:center;
-justify-content:center;
-gap:10px;
-
-padding:15px 34px;
-
-border-radius:999px;
-
-font-weight:600;
-
-background:#FFF4F8;
-
-border:1px solid var(--border);
-
-color:var(--heading);
-
-transition:.35s;
-
-}
-
-.btn-secondary:hover{
-
-background:#FCEAF1;
-
-transform:translateY(-3px);
-
-box-shadow:var(--shadow-sm);
-
-}
-
-/* ===========================
-      OUTLINE
-=========================== */
-
-.btn-outline{
-
-display:inline-flex;
-align-items:center;
-justify-content:center;
-
-padding:15px 34px;
-
-border-radius:999px;
-
-border:1.5px solid #D8A6BB;
-
-color:#C889A5;
-
-transition:.35s;
-
-}
-
-.btn-outline:hover{
-
-background:#C889A5;
-
-color:#fff;
-
-}
-
-/* ===========================
-      GLASS
-=========================== */
-
-.glass{
-
-background:
-rgba(255,255,255,.72);
-
-backdrop-filter:blur(20px);
-
--webkit-backdrop-filter:blur(20px);
-
-border:1px solid rgba(255,255,255,.85);
-
-box-shadow:
-0 20px 60px rgba(201,143,168,.08);
-
-}
-
-/* ===========================
-      SHADOW HELPERS
-=========================== */
-
-.shadow-soft{
-
-box-shadow:var(--shadow-xs);
-
-}
-
-.shadow-medium{
-
-box-shadow:var(--shadow);
-
-}
-
-.shadow-large{
-
-box-shadow:var(--shadow-lg);
-
-}
-
-/* ===========================
-      PREMIUM CARD
-=========================== */
-
-.premium-card{
-
-background:#fff;
-
-border-radius:28px;
-
-border:1px solid #F4E3EA;
-
-overflow:hidden;
-
-transition:.45s;
-
-box-shadow:var(--shadow-xs);
-
-}
-
-.premium-card:hover{
-
-transform:
-translateY(-10px)
-scale(1.015);
-
-box-shadow:
-0 40px 90px rgba(201,143,168,.18);
-
-}
-
-/* ===========================
-      PRODUCT CARD
-=========================== */
-
-.product-card{
-
-position:relative;
-
-background:#fff;
-
-border-radius:28px;
-
-overflow:hidden;
-
-border:1px solid #F3E3EA;
-
-transition:.45s;
-
-box-shadow:
-0 12px 30px rgba(201,143,168,.06);
-
-}
-
-.product-card:hover{
-
-transform:
-translateY(-10px);
-
-box-shadow:
-0 40px 90px rgba(201,143,168,.18);
-
-border-color:#E9BED0;
-
-}
-
-/* ===========================
-      CATEGORY CARD
-=========================== */
-
-.category-card{
-
-background:#fff;
-
-border-radius:24px;
-
-border:1px solid #F4E3EA;
-
-transition:.4s;
-
-}
-
-.category-card:hover{
-
-transform:translateY(-8px);
-
-border-color:#D8A6BB;
-
-box-shadow:
-0 28px 70px rgba(201,143,168,.12);
-
-}
-
-/* ===========================
-      HERO CARD
-=========================== */
-
-.hero-card{
-
-position:relative;
-
-overflow:hidden;
-
-border-radius:36px;
-
-background:#fff;
-
-box-shadow:
-0 45px 100px rgba(201,143,168,.16);
-
-transition:.45s;
-
-}
-
-.hero-card:hover{
-
-transform:scale(1.01);
-
-}
-
-/* ===========================
-      IMAGE
-=========================== */
-
-.image-hover{
-
-overflow:hidden;
-
-}
-
-.image-hover img{
-
-transition:
-transform 7s ease,
-filter .4s;
-
-}
-
-.image-hover:hover img{
-
-transform:scale(1.08);
-
-filter:brightness(1.04);
-
-}
-
-/* ===========================
-      BADGE
-=========================== */
-
-.badge{
-
-display:inline-flex;
-
-align-items:center;
-
-gap:8px;
-
-padding:8px 16px;
-
-border-radius:999px;
-
-font-size:13px;
-
-font-weight:600;
-
-background:#FFF2F6;
-
-color:#B77693;
-
-border:1px solid #F2D9E4;
-
-}
-
-/* ===========================
-      PREMIUM BORDER
-=========================== */
-
-.premium-border{
-
-border:1px solid #F1DFE7;
-
-}
-
-/* ===========================
-      LUXURY BLURS
-=========================== */
-
-.blur-pink{
-
-position:absolute;
-
-width:420px;
-height:420px;
-
-border-radius:50%;
-
-background:
-rgba(248,220,230,.55);
-
-filter:blur(140px);
-
-pointer-events:none;
-
-}
-
-.blur-rose{
-
-position:absolute;
-
-width:300px;
-height:300px;
-
-border-radius:50%;
-
-background:
-rgba(217,167,188,.22);
-
-filter:blur(120px);
-
-pointer-events:none;
-
-}
-
-/* ===========================
-      HOVER SCALE
-=========================== */
-
-.hover-scale{
-
-transition:.4s;
-
-}
-
-.hover-scale:hover{
-
-transform:scale(1.04);
-
-}
-
-/* ===========================
-      HOVER LIFT
-=========================== */
-
-.hover-lift{
-
-transition:.4s;
-
-}
-
-.hover-lift:hover{
-
-transform:translateY(-8px);
-
-}
-
-/* ===========================
-      FADE
-=========================== */
-
-.fade{
-
-transition:.35s;
-
-}
-
-/* ===========================
-      FLOAT
-=========================== */
-
-@keyframes floatLuxury{
-
-0%{
-
-transform:translateY(0);
-
-}
-
-50%{
-
-transform:translateY(-12px);
-
-}
-
-100%{
-
-transform:translateY(0);
-
-}
-
-}
-
-.float{
-
-animation:
-floatLuxury 6s ease-in-out infinite;
-
-}
-
-/* ===========================
-      FADE UP
-=========================== */
-
-@keyframes fadeUp{
-
-from{
-
-opacity:0;
-
-transform:
-translateY(50px);
-
-}
-
-to{
-
-opacity:1;
-
-transform:
-translateY(0);
-
-}
-
-}
-
-.fade-up{
-
-animation:
-fadeUp .9s ease forwards;
-
-}
-
-/* ===========================
-      FADE
-=========================== */
-
-@keyframes fadeIn{
-
-from{
-
-opacity:0;
-
-}
-
-to{
-
-opacity:1;
-
-}
-
-}
-
-.fade-in{
-
-animation:
-fadeIn .8s ease;
-
-}/* ==========================================================
-   MADAN GOLD LUXURY DESIGN SYSTEM
-   PART 3 - NAVBAR • HERO • FOOTER • UTILITIES
-==========================================================*/
-
-/* ===========================
-   NAVBAR
-=========================== */
-
-.navbar{
-
-position:sticky;
-top:0;
-z-index:999;
-
-background:rgba(255,253,252,.78);
-
-backdrop-filter:blur(22px);
--webkit-backdrop-filter:blur(22px);
-
-border-bottom:1px solid rgba(240,221,229,.8);
-
-transition:.4s;
-
-}
-
-.nav-link{
-
-position:relative;
-
-font-size:15px;
-
-font-weight:500;
-
-color:var(--heading);
-
-transition:.35s;
-
-}
-
-.nav-link::after{
-
-content:"";
-
-position:absolute;
-
-left:0;
-bottom:-8px;
-
-width:0;
-height:2px;
-
-background:linear-gradient(
-90deg,
-#E5B8CB,
-#C889A5
-);
-
-transition:.35s;
-
-border-radius:999px;
-
-}
-
-.nav-link:hover{
-
-color:var(--primary);
-
-}
-
-.nav-link:hover::after{
-
-width:100%;
-
-}
-
-.nav-link.active{
-
-color:var(--primary);
-
-}
-
-.nav-link.active::after{
-
-width:100%;
-
-}
-
-/* ===========================
-   ICON BUTTON
-=========================== */
-
-.icon-btn{
-
-width:46px;
-height:46px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-border-radius:50%;
-
-background:#fff;
-
-border:1px solid var(--border);
-
-transition:.35s;
-
-box-shadow:0 10px 30px rgba(201,143,168,.05);
-
-}
-
-.icon-btn:hover{
-
-background:linear-gradient(
-135deg,
-#E6B8CA,
-#C889A5
-);
-
-color:#fff;
-
-transform:translateY(-3px);
-
-}
-
-/* ===========================
-   HERO
-=========================== */
-
-.hero-section{
-
-position:relative;
-
-overflow:hidden;
-
-background:
-
-radial-gradient(circle at top,#FFEAF3 0%,transparent 45%),
-
-radial-gradient(circle at bottom right,#FFF6F9 0%,transparent 40%),
-
-linear-gradient(
-180deg,
-#FFFDFC,
-#FFFFFF
-);
-
-}
-
-.hero-overlay{
-
-position:absolute;
-
-inset:0;
-
-background:
-
-linear-gradient(
-90deg,
-rgba(255,255,255,.15),
-transparent
-);
-
-pointer-events:none;
-
-}
-
-.hero-card{
-
-position:relative;
-
-overflow:hidden;
-
-border-radius:34px;
-
-background:#fff;
-
-border:1px solid #F5E4EB;
-
-box-shadow:
-
-0 45px 100px rgba(201,143,168,.15);
-
-transition:.5s;
-
-}
-
-.hero-card:hover{
-
-transform:translateY(-6px);
-
-}
-
-.hero-image{
-
-width:100%;
-height:100%;
-
-object-fit:cover;
-
-transition:8s ease;
-
-}
-
-.hero-card:hover .hero-image{
-
-transform:scale(1.08);
-
-}
-
-/* Floating Glow */
-
-.hero-glow{
-
-position:absolute;
-
-width:500px;
-height:500px;
-
-border-radius:50%;
-
-background:
-
-rgba(248,220,230,.45);
-
-filter:blur(160px);
-
-pointer-events:none;
-
-}
-
-/* ===========================
-   PRODUCT IMAGE
-=========================== */
-
-.product-image{
-
-overflow:hidden;
-
-background:#fff;
-
-}
-
-.product-image img{
-
-transition:
-
-transform .8s ease,
-
-filter .4s ease;
-
-}
-
-.product-card:hover .product-image img{
-
-transform:scale(1.08);
-
-filter:brightness(1.03);
-
-}
-
-/* ===========================
-   PRICE
-=========================== */
-
-.price{
-
-font-size:22px;
-
-font-weight:700;
-
-color:#B77693;
-
-}
-
-.old-price{
-
-margin-left:8px;
-
-color:var(--muted);
-
-text-decoration:line-through;
-
-font-size:14px;
-
-}
-
-/* ===========================
-   OFFER BADGE
-=========================== */
-
-.offer-badge{
-
-position:absolute;
-
-top:16px;
-left:16px;
-
-padding:7px 14px;
-
-border-radius:999px;
-
-font-size:12px;
-
-font-weight:700;
-
-color:#B77693;
-
-background:#FFF2F7;
-
-border:1px solid #F3DCE6;
-
-box-shadow:0 10px 25px rgba(201,143,168,.08);
-
-}
-
-/* ===========================
-   WISHLIST
-=========================== */
-
-.wishlist-btn{
-
-width:44px;
-height:44px;
-
-display:flex;
-align-items:center;
-justify-content:center;
-
-border-radius:50%;
-
-background:#fff;
-
-border:1px solid var(--border);
-
-transition:.35s;
-
-box-shadow:0 8px 24px rgba(201,143,168,.06);
-
-}
-
-.wishlist-btn:hover{
-
-background:#FDECF4;
-
-color:#D65B8C;
-
-transform:translateY(-3px);
-
-}
-
-/* ===========================
-   SECTION TITLE
-=========================== */
-
-.title-center{
-
-text-align:center;
-
-margin-bottom:65px;
-
-}
-
-.title-center h2{
-
-font-size:clamp(34px,5vw,56px);
-
-font-family:"Playfair Display",serif;
-
-letter-spacing:-.03em;
-
-}
-
-.title-center p{
-
-max-width:700px;
-
-margin:20px auto 0;
-
-}
-
-/* ===========================
-   NEWSLETTER
-=========================== */
-
-.newsletter{
-
-padding:60px;
-
-border-radius:34px;
-
-background:
-
-linear-gradient(
-135deg,
-#FFF8FA,
-#FFFFFF
-);
-
-border:1px solid #F4E3EA;
-
-box-shadow:
-
-0 35px 80px rgba(201,143,168,.08);
-
-}
-
-/* ===========================
-   INPUT
-=========================== */
-
-.input{
-
-width:100%;
-
-height:56px;
-
-padding:0 22px;
-
-border-radius:999px;
-
-background:#fff;
-
-border:1px solid #F2DEE7;
-
-transition:.35s;
-
-}
-
-.input:focus{
-
-border-color:#D9A7BC;
-
-box-shadow:
-
-0 0 0 5px rgba(217,167,188,.15);
-
-}
-
-/* ===========================
-   FOOTER
-=========================== */
-
-.footer{
-
-background:
-
-linear-gradient(
-180deg,
-#3A3034,
-#2A2326
-);
-
-color:#F6EDEE;
-
-}
-
-.footer h4{
-
-color:#fff;
-
-margin-bottom:18px;
-
-font-family:"Playfair Display",serif;
-
-}
-
-.footer a{
-
-color:#E9D7DE;
-
-transition:.35s;
-
-}
-
-.footer a:hover{
-
-color:#FFD8E8;
-
-padding-left:6px;
-
-}
-
-/* ===========================
-   DIVIDER
-=========================== */
-
-.divider{
-
-width:100%;
-
-height:1px;
-
-background:#4B3D42;
-
-}
-
-/* ===========================
-   LOADER
-=========================== */
-
-.loader{
-
-width:42px;
-height:42px;
-
-border-radius:50%;
-
-border:3px solid #F4D9E6;
-
-border-top-color:#C889A5;
-
-animation:spin .8s linear infinite;
-
-}
-
-@keyframes spin{
-
-to{
-
-transform:rotate(360deg);
-
-}
-
-}
-
-/* ===========================
-   UTILITIES
-=========================== */
-
-.text-primary{
-
-color:#B77693;
-
-}
-
-.bg-primary{
-
-background:#C889A5;
-
-}
-
-.bg-blush{
-
-background:#FCEEF4;
-
-}
-
-.bg-pastel{
-
-background:#FFF8FB;
-
-}
-
-.rounded-premium{
-
-border-radius:30px;
-
-}
-
-.shadow-premium{
-
-box-shadow:0 35px 90px rgba(201,143,168,.15);
-
-}
-
-.safe-bottom{
-
-padding-bottom:env(safe-area-inset-bottom);
-
-}
-
-.will-change{
-
-will-change:transform;
-
-}
-
-/* ===========================
-   RESPONSIVE
-=========================== */
-
-@media(max-width:1024px){
-
-.section-space{
-
-padding-block:70px;
-
-}
-
-.newsletter{
-
-padding:45px;
-
-}
-
-}
-
-@media(max-width:768px){
-
-.container-padding{
-
-padding-inline:18px;
-
-}
-
-.section-space{
-
-padding-block:55px;
-
-}
-
-.hero-card{
-
-border-radius:22px;
-
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-outline{
-
-width:100%;
-
-justify-content:center;
-
-}
-
-.newsletter{
-
-padding:28px;
-
-border-radius:24px;
-
-}
-
-}
-
-@media(max-width:480px){
-
-.section-title{
-
-font-size:32px;
-
-}
-
-.title-center{
-
-margin-bottom:45px;
-
-}
-
-.navbar{
-
-backdrop-filter:blur(16px);
-
-}
-
-}
-/* ==========================================================
-   ADMIN LUXURY CONSOLE
 ========================================================== */
 
-.admin-shell{
-  background:
-    radial-gradient(
-      circle at 90% 0%,
-      rgba(214,185,138,.10),
-      transparent 24%
-    ),
-    #F5F1EC;
+::selection {
+  background: var(--primary);
+
+  color: var(--navy);
 }
 
-.admin-glass{
-  background:rgba(255,254,252,.82);
-  border:1px solid rgba(232,222,211,.9);
-  box-shadow:
-    0 18px 55px rgba(45,35,30,.06);
-  backdrop-filter:blur(18px);
-}
-
-.admin-table-row{
-  transition:
-    background .2s ease,
-    transform .2s ease;
-}
-
-.admin-table-row:hover{
-  background:#FCF9F5;
-}
-
-.admin-scrollbar::-webkit-scrollbar{
-  width:7px;
-  height:7px;
-}
-
-.admin-scrollbar::-webkit-scrollbar-track{
-  background:#F1ECE6;
-}
-
-.admin-scrollbar::-webkit-scrollbar-thumb{
-  background:#C5B29B;
-  border-radius:999px;
-}
-
-.admin-scrollbar::-webkit-scrollbar-thumb:hover{
-  background:#A8865D;
-}
 
 /* ==========================================================
-   MODERN ADMIN SYSTEM
+   SCROLLBAR
+========================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--blue);
+
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--navy);
+}
+
+* {
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--blue)
+    var(--light);
+}
+
+
+/* ==========================================================
+   LAYOUT
+========================================================== */
+
+.container-padding {
+  padding-inline: 24px;
+}
+
+.section-space {
+  padding-block: 90px;
+}
+
+.section-title {
+  font-family: "Playfair Display", Georgia, serif;
+
+  color: var(--heading);
+
+  font-size: clamp(34px, 5vw, 56px);
+
+  font-weight: 600;
+
+  letter-spacing: -0.03em;
+
+  line-height: 1.12;
+}
+
+.section-subtitle {
+  max-width: 720px;
+
+  margin: 18px auto 0;
+
+  color: var(--body);
+
+  font-size: 17px;
+
+  line-height: 1.9;
+
+  text-align: center;
+}
+
+.title-center {
+  text-align: center;
+
+  margin-bottom: 65px;
+}
+
+.title-center h2 {
+  font-family: "Playfair Display", Georgia, serif;
+
+  font-size: clamp(34px, 5vw, 56px);
+
+  letter-spacing: -0.03em;
+}
+
+.title-center p {
+  max-width: 700px;
+
+  margin: 20px auto 0;
+}
+
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.btn-primary {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 14px 32px;
+
+  border-radius: 999px;
+
+  color: var(--navy);
+
+  background: var(--primary);
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  box-shadow:
+    0 14px 35px rgba(221, 174, 211, 0.28);
+
+  transition: var(--transition);
+}
+
+.btn-primary:hover {
+  color: var(--navy);
+
+  background: var(--primary-dark);
+
+  transform: translateY(-3px);
+
+  box-shadow:
+    0 20px 45px rgba(221, 174, 211, 0.38);
+}
+
+.btn-secondary {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 14px 32px;
+
+  border-radius: 999px;
+
+  color: var(--navy);
+
+  background: var(--light);
+
+  border: 1px solid var(--border);
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background: var(--blue);
+
+  color: var(--white);
+
+  transform: translateY(-3px);
+}
+
+.btn-outline {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  padding: 14px 32px;
+
+  border-radius: 999px;
+
+  border: 1px solid var(--navy);
+
+  color: var(--navy);
+
+  font-size: 14px;
+
+  font-weight: 600;
+
+  transition: var(--transition);
+}
+
+.btn-outline:hover {
+  background: var(--navy);
+
+  color: var(--white);
+
+  transform: translateY(-2px);
+}
+
+
+/* ==========================================================
+   ICON BUTTON
+========================================================== */
+
+.icon-btn {
+  width: 46px;
+
+  height: 46px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  color: var(--navy);
+
+  transition: var(--transition);
+
+  box-shadow:
+    0 10px 30px rgba(33, 60, 81, 0.05);
+}
+
+.icon-btn:hover {
+  background: var(--primary);
+
+  color: var(--navy);
+
+  border-color: var(--primary);
+
+  transform: translateY(-3px);
+}
+
+
+/* ==========================================================
+   CARDS
+========================================================== */
+
+.premium-card,
+.product-card,
+.category-card {
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow-xs);
+
+  transition: var(--transition);
+}
+
+.premium-card {
+  border-radius: 28px;
+
+  overflow: hidden;
+}
+
+.product-card {
+  position: relative;
+
+  border-radius: 28px;
+
+  overflow: hidden;
+}
+
+.category-card {
+  border-radius: 24px;
+
+  overflow: hidden;
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+
+  box-shadow: var(--shadow);
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+
+  border-color: rgba(221, 174, 211, 0.65);
+
+  box-shadow: var(--shadow);
+}
+
+.category-card:hover {
+  transform: translateY(-7px);
+
+  border-color: var(--primary);
+
+  box-shadow: var(--shadow);
+}
+
+
+/* ==========================================================
+   HERO
+========================================================== */
+
+.hero-section {
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 10% 10%,
+      rgba(221, 174, 211, 0.20),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(101, 148, 177, 0.14),
+      transparent 35%
+    ),
+    linear-gradient(
+      180deg,
+      #FFFFFF,
+      #FAFAFA
+    );
+}
+
+.hero-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.16),
+      transparent
+    );
+
+  pointer-events: none;
+}
+
+.hero-card {
+  position: relative;
+
+  overflow: hidden;
+
+  border-radius: 34px;
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  box-shadow: var(--shadow-lg);
+
+  transition: 0.5s ease;
+}
+
+.hero-card:hover {
+  transform: translateY(-5px);
+}
+
+.hero-image {
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  transition: 8s ease;
+}
+
+.hero-card:hover .hero-image {
+  transform: scale(1.06);
+}
+
+.hero-glow {
+  position: absolute;
+
+  width: 500px;
+
+  height: 500px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(221, 174, 211, 0.24);
+
+  filter: blur(160px);
+
+  pointer-events: none;
+}
+
+
+/* ==========================================================
+   PRODUCT IMAGE
+========================================================== */
+
+.product-image {
+  overflow: hidden;
+
+  background: var(--light);
+}
+
+.product-image img {
+  width: 100%;
+
+  transition:
+    transform 0.8s ease,
+    filter 0.4s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.07);
+
+  filter: brightness(1.03);
+}
+
+.image-hover {
+  overflow: hidden;
+}
+
+.image-hover img {
+  transition:
+    transform 7s ease,
+    filter 0.4s ease;
+}
+
+.image-hover:hover img {
+  transform: scale(1.08);
+
+  filter: brightness(1.04);
+}
+
+
+/* ==========================================================
+   PRODUCT PRICE
+========================================================== */
+
+.price {
+  font-size: 22px;
+
+  font-weight: 700;
+
+  color: var(--navy);
+}
+
+.old-price {
+  margin-left: 8px;
+
+  color: var(--muted);
+
+  text-decoration: line-through;
+
+  font-size: 14px;
+}
+
+
+/* ==========================================================
+   BADGES
+========================================================== */
+
+.badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 7px 14px;
+
+  border-radius: 999px;
+
+  background: rgba(221, 174, 211, 0.20);
+
+  color: var(--navy);
+
+  border: 1px solid rgba(221, 174, 211, 0.55);
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+}
+
+.offer-badge {
+  position: absolute;
+
+  top: 16px;
+
+  left: 16px;
+
+  padding: 7px 14px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  color: var(--navy);
+
+  background: rgba(221, 174, 211, 0.92);
+
+  border: 1px solid var(--primary);
+
+  box-shadow:
+    0 10px 25px rgba(33, 60, 81, 0.08);
+}
+
+
+/* ==========================================================
+   WISHLIST
+========================================================== */
+
+.wishlist-btn {
+  width: 44px;
+
+  height: 44px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  color: var(--navy);
+
+  transition: var(--transition);
+
+  box-shadow:
+    0 8px 24px rgba(33, 60, 81, 0.06);
+}
+
+.wishlist-btn:hover {
+  background: var(--primary-light);
+
+  color: var(--navy);
+
+  border-color: var(--primary);
+
+  transform: translateY(-3px);
+}
+
+
+/* ==========================================================
+   PREMIUM BORDER
+========================================================== */
+
+.premium-border {
+  border: 1px solid var(--border);
+}
+
+
+/* ==========================================================
+   GLASS
+========================================================== */
+
+.glass {
+  background:
+    rgba(255, 255, 255, 0.72);
+
+  backdrop-filter: blur(20px);
+
+  -webkit-backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(255, 255, 255, 0.85);
+
+  box-shadow:
+    0 20px 60px rgba(33, 60, 81, 0.08);
+}
+
+
+/* ==========================================================
+   SHADOW HELPERS
+========================================================== */
+
+.shadow-soft {
+  box-shadow: var(--shadow-xs);
+}
+
+.shadow-medium {
+  box-shadow: var(--shadow);
+}
+
+.shadow-large {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-premium {
+  box-shadow: var(--shadow);
+}
+
+
+/* ==========================================================
+   BLUR DECORATIONS
+========================================================== */
+
+.blur-pink {
+  position: absolute;
+
+  width: 420px;
+
+  height: 420px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(221, 174, 211, 0.32);
+
+  filter: blur(140px);
+
+  pointer-events: none;
+}
+
+.blur-blue {
+  position: absolute;
+
+  width: 360px;
+
+  height: 360px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(101, 148, 177, 0.18);
+
+  filter: blur(130px);
+
+  pointer-events: none;
+}
+
+
+/* ==========================================================
+   HOVER UTILITIES
+========================================================== */
+
+.hover-scale {
+  transition: 0.4s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.04);
+}
+
+.hover-lift {
+  transition: 0.4s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+}
+
+.fade {
+  transition: 0.35s ease;
+}
+
+
+/* ==========================================================
+   FLOAT ANIMATION
+========================================================== */
+
+@keyframes floatLuxury {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.float {
+  animation:
+    floatLuxury 6s ease-in-out infinite;
+}
+
+
+/* ==========================================================
+   FADE UP
+========================================================== */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+
+    transform: translateY(50px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation:
+    fadeUp 0.9s ease forwards;
+}
+
+
+/* ==========================================================
+   FADE IN
+========================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation:
+    fadeIn 0.8s ease;
+}
+
+
+/* ==========================================================
+   NAVBAR
+========================================================== */
+
+.navbar {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 999;
+
+  background:
+    rgba(250, 250, 250, 0.88);
+
+  backdrop-filter: blur(20px);
+
+  -webkit-backdrop-filter: blur(20px);
+
+  border-bottom: 1px solid var(--border);
+
+  transition: 0.4s ease;
+}
+
+.nav-link {
+  position: relative;
+
+  font-size: 15px;
+
+  font-weight: 500;
+
+  color: var(--heading);
+
+  transition: 0.35s ease;
+}
+
+.nav-link::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+
+  bottom: -8px;
+
+  width: 0;
+
+  height: 2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--primary),
+      var(--blue)
+    );
+
+  transition: 0.35s ease;
+
+  border-radius: 999px;
+}
+
+.nav-link:hover {
+  color: var(--primary-dark);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link.active {
+  color: var(--primary-dark);
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
+
+/* ==========================================================
+   NEWSLETTER
+========================================================== */
+
+.newsletter {
+  padding: 60px;
+
+  border-radius: 34px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary-light),
+      var(--white)
+    );
+
+  border: 1px solid var(--border);
+
+  box-shadow:
+    var(--shadow-sm);
+}
+
+
+/* ==========================================================
+   INPUT
+========================================================== */
+
+.input {
+  width: 100%;
+
+  height: 56px;
+
+  padding: 0 22px;
+
+  border-radius: 999px;
+
+  background: var(--white);
+
+  border: 1px solid var(--border);
+
+  color: var(--navy);
+
+  transition: 0.35s ease;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus {
+  border-color: var(--primary-dark);
+
+  box-shadow:
+    0 0 0 5px rgba(221, 174, 211, 0.18);
+}
+
+
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+.footer {
+  background:
+    linear-gradient(
+      180deg,
+      #213C51,
+      #182F41
+    );
+
+  color: var(--white);
+}
+
+.footer h4 {
+  color: var(--white);
+
+  margin-bottom: 18px;
+
+  font-family:
+    "Playfair Display",
+    Georgia,
+    serif;
+}
+
+.footer a {
+  color: rgba(255, 255, 255, 0.68);
+
+  transition: 0.35s ease;
+}
+
+.footer a:hover {
+  color: var(--primary);
+
+  padding-left: 5px;
+}
+
+.divider {
+  width: 100%;
+
+  height: 1px;
+
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+
+/* ==========================================================
+   LOADER
+========================================================== */
+
+.loader {
+  width: 42px;
+
+  height: 42px;
+
+  border-radius: 50%;
+
+  border: 3px solid var(--primary-light);
+
+  border-top-color: var(--blue);
+
+  animation:
+    spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ==========================================================
+   GENERAL UTILITIES
+========================================================== */
+
+.bg-primary {
+  background: var(--primary);
+}
+
+.bg-brand-blue {
+  background: var(--blue);
+}
+
+.bg-brand-light {
+  background: var(--light);
+}
+
+.bg-blush {
+  background: var(--primary-light);
+}
+
+.bg-pastel {
+  background: #FBF7FA;
+}
+
+.border-brand {
+  border-color: var(--border);
+}
+
+.rounded-premium {
+  border-radius: 30px;
+}
+
+.safe-bottom {
+  padding-bottom:
+    env(safe-area-inset-bottom);
+}
+
+.will-change {
+  will-change: transform;
+}
+
+
+/* ==========================================================
+   ADMIN — PREMIUM LIGHT CONSOLE
 ========================================================== */
 
 .admin-shell {
@@ -1644,28 +1273,26 @@ backdrop-filter:blur(16px);
 
   background:
     radial-gradient(
-      circle at 80% 0%,
-      rgba(139,92,246,.08),
+      circle at 90% 0%,
+      rgba(221,174,211,.20),
       transparent 25%
     ),
     radial-gradient(
-      circle at 10% 90%,
-      rgba(34,211,238,.05),
-      transparent 25%
+      circle at 0% 100%,
+      rgba(101,148,177,.12),
+      transparent 28%
     ),
-    #080A0F;
+    #EEEEEE;
 }
 
-.admin-glow-violet {
-  box-shadow:
-    0 0 0 1px rgba(139,92,246,.18),
-    0 20px 60px rgba(139,92,246,.08);
-}
+.admin-glass {
+  background: rgba(255,255,255,.82);
+  border: 1px solid rgba(33,60,81,.10);
 
-.admin-glow-cyan {
   box-shadow:
-    0 0 0 1px rgba(34,211,238,.18),
-    0 20px 60px rgba(34,211,238,.06);
+    0 18px 55px rgba(33,60,81,.07);
+
+  backdrop-filter: blur(18px);
 }
 
 .admin-table-row {
@@ -1675,31 +1302,84 @@ backdrop-filter:blur(16px);
 }
 
 .admin-table-row:hover {
-  background: rgba(139,92,246,.035);
+  background: rgba(221,174,211,.08);
 }
 
 .admin-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 .admin-scrollbar::-webkit-scrollbar-track {
-  background: #0D1017;
+  background: #EEEEEE;
 }
 
 .admin-scrollbar::-webkit-scrollbar-thumb {
-  background: #293244;
+  background: #6594B1;
+  border-radius: 999px;
+}
+
+.admin-glass {
+  background:
+    rgba(255, 255, 255, 0.84);
+
+  border: 1px solid var(--admin-border);
+
+  box-shadow:
+    0 18px 55px rgba(33, 60, 81, 0.06);
+
+  backdrop-filter: blur(18px);
+
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.admin-table-row {
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-table-row:hover {
+  background:
+    rgba(221, 174, 211, 0.08);
+}
+
+.admin-glow-violet {
+  box-shadow:
+    0 0 0 1px rgba(221, 174, 211, 0.30),
+    0 20px 60px rgba(221, 174, 211, 0.12);
+}
+
+.admin-glow-cyan {
+  box-shadow:
+    0 0 0 1px rgba(101, 148, 177, 0.25),
+    0 20px 60px rgba(101, 148, 177, 0.10);
+}
+
+.admin-scrollbar::-webkit-scrollbar {
+  width: 7px;
+
+  height: 7px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: var(--light);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--blue);
+
   border-radius: 999px;
 }
 
 .admin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--navy);
 }
 
 @keyframes adminPulse {
   0%,
   100% {
-    opacity: .45;
+    opacity: 0.45;
   }
 
   50% {
@@ -1708,5 +1388,103 @@ backdrop-filter:blur(16px);
 }
 
 .admin-live-dot {
-  animation: adminPulse 1.8s ease-in-out infinite;
+  animation:
+    adminPulse 1.8s ease-in-out infinite;
 }
+
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media (max-width: 1024px) {
+  .section-space {
+    padding-block: 70px;
+  }
+
+  .newsletter {
+    padding: 45px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .container-padding {
+    padding-inline: 18px;
+  }
+
+  .section-space {
+    padding-block: 55px;
+  }
+
+  .section-title {
+    font-size: 34px;
+  }
+
+  .hero-card {
+    border-radius: 22px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+  .newsletter {
+    padding: 28px;
+
+    border-radius: 24px;
+  }
+
+  .navbar {
+    backdrop-filter: blur(16px);
+
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+
+@media (max-width: 480px) {
+  .container-padding {
+    padding-inline: 16px;
+  }
+
+  .section-title {
+    font-size: 30px;
+  }
+
+  .title-center {
+    margin-bottom: 45px;
+  }
+
+  .title-center h2 {
+    font-size: 32px;
+  }
+
+  p {
+    font-size: 15px;
+  }
+}
+
+
+/* ==========================================================
+   REDUCED MOTION
+========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+}
+

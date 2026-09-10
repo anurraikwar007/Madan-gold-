@@ -1,53 +1,55 @@
 import rateLimit from "express-rate-limit";
 
+const isTest = process.env.NODE_ENV === "test";
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+const createLimiter = (options) => {
+  if (isTest) {
+    return (req, res, next) => next();
+  }
 
-  max: 10, // 10 requests per window
+  return rateLimit(options);
+};
+
+const authLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+
+  standardHeaders: true,
+  legacyHeaders: false,
 
   message: {
     success: false,
-    message: "Too many authentication attempts, please try again later",
+    message:
+      "Too many authentication attempts. Please try again later.",
   },
-
-  standardHeaders: true,
-
-  legacyHeaders: false,
 });
 
-
-const refreshLimiter = rateLimit({
+const refreshLimiter = createLimiter({
   windowMs: 15 * 60 * 1000,
-
   max: 30,
+
+  standardHeaders: true,
+  legacyHeaders: false,
 
   message: {
     success: false,
     message:
       "Too many refresh attempts, please try again later",
   },
-
-  standardHeaders: true,
-
-  legacyHeaders: false,
 });
 
-
-const apiLimiter = rateLimit({
+const apiLimiter = createLimiter({
   windowMs: 15 * 60 * 1000,
   max: 1000,
+
+  standardHeaders: true,
+  legacyHeaders: false,
 
   message: {
     success: false,
     message: "Too many requests",
   },
-
-  standardHeaders: true,
-
-  legacyHeaders: false,
 });
-
 
 export default {
   authLimiter,

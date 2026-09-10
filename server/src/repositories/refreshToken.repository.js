@@ -34,20 +34,44 @@ class RefreshTokenRepository extends BaseRepository {
     );
   }
 
-  async revokeAllForUser(userId, userType) {
-    return this.model.updateMany(
-      {
-        userId,
-        userType,
-        revokedAt: null,
+  async revokeAllForUser(
+  userId,
+  userType
+) {
+  return this.model.updateMany(
+    {
+      userId,
+      userType,
+      revokedAt: null,
+    },
+    {
+      $set: {
+        revokedAt: new Date(),
       },
-      {
-        $set: {
-          revokedAt: new Date(),
-        },
-      }
-    );
-  }
+    }
+  );
+}
+
+async revokeByHash(
+  tokenHash,
+  replacedByHash = null
+) {
+  return this.model.findOneAndUpdate(
+    {
+      tokenHash,
+      revokedAt: null,
+    },
+    {
+      $set: {
+        revokedAt: new Date(),
+        replacedByHash,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+}
 
   async consumeValidToken(
   tokenHash,

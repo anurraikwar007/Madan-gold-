@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -11,10 +11,18 @@ const ProtectedRoute = ({
     loading,
   } = useAuth();
 
+  const location = useLocation();
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-black/10 border-t-[#D4AF37]" />
+
+          <p className="text-sm text-gray-500">
+            Loading...
+          </p>
+        </div>
       </div>
     );
   }
@@ -28,6 +36,9 @@ const ProtectedRoute = ({
             : "/login"
         }
         replace
+        state={{
+          from: location.pathname,
+        }}
       />
     );
   }
@@ -45,6 +56,18 @@ const ProtectedRoute = ({
         />
       );
     }
+  }
+
+  if (
+    !adminOnly &&
+    user.role !== "Customer"
+  ) {
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
   }
 
   return children;

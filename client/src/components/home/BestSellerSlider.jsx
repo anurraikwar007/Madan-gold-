@@ -4,11 +4,64 @@ import "swiper/css";
 
 import ProductCard from "../product/ProductCard";
 
-import { useProducts } from "../../context/ProductContext";
+import { useEffect, useState } from "react";
+
+import { getBestSellerProducts } from "../../api/product.api";
 
 const BestSellerSlider = () => {
+  const [products, setProducts] =
+    useState([]);
 
-  const { products, loading } = useProducts();
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadBestSellers = async () => {
+      try {
+        setLoading(true);
+
+        const response =
+          await getBestSellerProducts();
+
+        const data =
+          response?.data?.data;
+
+        const items =
+          Array.isArray(data?.products)
+            ? data.products
+            : Array.isArray(data)
+              ? data
+              : [];
+
+        if (!cancelled) {
+          setProducts(
+            items.slice(0, 10)
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Best sellers load failed:",
+           error?.response?.data || error
+        );
+
+        if (!cancelled) {
+          setProducts([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadBestSellers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section
@@ -105,10 +158,9 @@ const BestSellerSlider = () => {
             }}
           >
 
-            {(products || []).slice(0, 10).map((product) => (
-
-              <SwiperSlide key={product.id}>
-
+            {products.map((product) => (
+              
+              <SwiperSlide key={product._id || product.id}>
                 <ProductCard product={product} />
 
               </SwiperSlide>

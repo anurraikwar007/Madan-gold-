@@ -28,6 +28,33 @@ const changeSchema = new mongoose.Schema(
 );
 
 // =====================================================
+// Audit Metadata Schema
+// =====================================================
+
+const auditMetadataSchema = new mongoose.Schema(
+  {
+    productIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+      ],
+      default: [],
+    },
+
+    bulk: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    _id: false,
+    strict: true,
+  }
+);
+
+// =====================================================
 // Audit Log Schema
 // =====================================================
 
@@ -54,51 +81,48 @@ const auditLogSchema = new mongoose.Schema(
 
     entityId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      default: null,
       index: true,
     },
 
-   action: {
-  type: String,
-  required: true,
-  enum: [
-    "CREATE",
-    "UPDATE",
-    "DELETE",
-    "RESTORE",
+    action: {
+      type: String,
+      required: true,
+      enum: [
+        "CREATE",
+        "UPDATE",
+        "DELETE",
+        "RESTORE",
 
-    "LOGIN",
-    "LOGOUT",
+        "LOGIN",
+        "LOGOUT",
 
-    "STATUS_CHANGE",
+        "STATUS_CHANGE",
 
-    // Payment
-    "PAYMENT_SUBMITTED",
-    "PAYMENT_VERIFIED",
-    "PAYMENT_REJECTED",
+        "PAYMENT_SUBMITTED",
+        "PAYMENT_VERIFIED",
+        "PAYMENT_REJECTED",
 
-    // Order
-    "ORDER_CREATED",
-    "ORDER_CONFIRMED",
-    "ORDER_CANCELLED",
-    "ORDER_DELIVERED",
+        "ORDER_CREATED",
+        "ORDER_CONFIRMED",
+        "ORDER_CANCELLED",
+        "ORDER_DELIVERED",
 
-    "TRACKING_UPDATE",
-    "CUSTOMER_CANCEL",
+        "TRACKING_UPDATE",
+        "CUSTOMER_CANCEL",
 
-    "COUPON_APPLY",
-    "COUPON_REMOVE",
-    "COMPLETE",
-    "EXPIRE",
+        "COUPON_APPLY",
+        "COUPON_REMOVE",
+        "COMPLETE",
+        "EXPIRE",
 
-    // Inventory
-    "STOCK_IN",
-    "STOCK_OUT",
-  ],
-  index: true,
-},
+        "STOCK_IN",
+        "STOCK_OUT",
+      ],
+      index: true,
+    },
 
-        performedBy: {
+    performedBy: {
       type: mongoose.Schema.Types.ObjectId,
       refPath: "performedByModel",
       required: true,
@@ -139,8 +163,8 @@ const auditLogSchema = new mongoose.Schema(
     },
 
     metadata: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
+      type: auditMetadataSchema,
+      default: () => ({}),
     },
   },
   {
@@ -170,9 +194,6 @@ auditLogSchema.index({
 
 const AuditLog =
   mongoose.models.AuditLog ||
-  mongoose.model(
-    "AuditLog",
-    auditLogSchema
-  );
+  mongoose.model("AuditLog", auditLogSchema);
 
 export default AuditLog;

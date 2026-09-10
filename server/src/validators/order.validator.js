@@ -6,7 +6,13 @@ export const createOrderSchema = {
       .valid("COD", "PHONEPE", "UPI")
       .required(),
 
-    shippingAddress: Joi.object({
+      idempotencyKey: Joi.string()
+        .trim()
+        .min(16)
+        .max(100)
+        .required(),
+
+     shippingAddress: Joi.object({
       fullName: Joi.string().trim().required(),
 
       phone: Joi.string()

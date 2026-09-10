@@ -12,10 +12,22 @@ import authMiddleware from "../middleware/auth.middleware.js";
 import roleMiddleware from "../middleware/role.middleware.js";
 import validate from "../middleware/validate.js";
 
+import {
+  createCouponSchema,
+  updateCouponSchema,
+  couponIdSchema,
+} from "../validators/coupon.validator.js";
+
 
 import {
   adminLoginSchema,
 } from "../validators/auth.validator.js";
+
+import {
+  createCategorySchema,
+  updateCategorySchema,
+  categoryIdSchema,
+} from "../validators/category.validators.js";
 
 import {
   createProductSchema,
@@ -31,9 +43,11 @@ import OrderController from "../controllers/order.controller.js";
 import DashboardController from "../controllers/dashboard.controller.js";
 import {
   multipleUpload,
+  singleUpload,
   uploadErrorHandler,
 } from "../middleware/upload.middleware.js";
 
+import adminCustomerRoutes from "./adminCustomer.routes.js";
 
 const router = Router();
 
@@ -102,6 +116,11 @@ router.use(
   authMiddleware,
   roleMiddleware("Admin","SuperAdmin")
 );
+
+router.use(
+  "/customers",
+  adminCustomerRoutes
+);
 /*
 ===========================================================
 Dashboard
@@ -135,6 +154,8 @@ Products Management
  */
 router.post(
   "/products/upload-images",
+  authMiddleware,
+  roleMiddleware("Admin", "SuperAdmin"),
   multipleUpload("images", 10),
   uploadErrorHandler,
   ProductController.uploadImages
@@ -187,10 +208,11 @@ router.get(
     ProductController.update
   );
 
-  router.patch(
-  "/products/:id/toggle-active",
-  ProductController.toggleActive
- );
+ router.patch(
+  "/categories/:id/toggle-active",
+  validate(categoryIdSchema),
+  CategoryController.toggleActive
+);
 
 /**
  * @route   DELETE /api/v1/admin/products/:id
@@ -218,9 +240,9 @@ Category Management
  */
 router.post(
   "/categories",
+  validate(createCategorySchema),
   CategoryController.createCategory
 );
-
 
 
 /**
@@ -254,6 +276,7 @@ router.get(
  */
 router.put(
   "/categories/:id",
+  validate(updateCategorySchema),
   CategoryController.updateCategory
 );
  
@@ -270,6 +293,7 @@ router.patch(
  */
 router.delete(
   "/categories/:id",
+  validate(categoryIdSchema),
   CategoryController.deleteCategory
 );
 /*
@@ -278,16 +302,28 @@ Coupon Management
 ===========================================================
 */
 
+/**
+ * @route   POST /api/v1/admin/coupons/upload-image
+ * @desc    Upload coupon promotional image
+ * @access  Private (Admin)
+ */
+router.post(
+  "/coupons/upload-image",
+  singleUpload("image"),
+  uploadErrorHandler,
+  CouponController.uploadImage
+);
 
 /**
  * @route   POST /api/v1/admin/coupons
  * @desc    Create coupon
  * @access  Private (Admin)
  */
-router.post(
-  "/coupons",
-  CouponController.create
-);
+  router.post(
+    "/coupons",
+    validate(createCouponSchema),
+    CouponController.create
+  );
 
 
 
@@ -308,10 +344,11 @@ router.get(
  * @desc    Get coupon by id
  * @access  Private (Admin)
  */
-router.get(
-  "/coupons/:id",
-  CouponController.getById
-);
+  router.get(
+    "/coupons/:id",
+    validate(couponIdSchema),
+    CouponController.getById
+  );
 
 
 
@@ -322,6 +359,10 @@ router.get(
  */
 router.put(
   "/coupons/:id",
+  validate({
+    params: couponIdSchema.params,
+    body: updateCouponSchema.body,
+  }),
   CouponController.update
 );
 
@@ -332,10 +373,11 @@ router.put(
  * @desc    Delete coupon
  * @access  Private (Admin)
  */
-router.delete(
-  "/coupons/:id",
-  CouponController.delete
-);
+  router.delete(
+    "/coupons/:id",
+    validate(couponIdSchema),
+    CouponController.delete
+  );
 
 
 

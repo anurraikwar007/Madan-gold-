@@ -11,6 +11,18 @@ class ReviewRepository {
       .populate("product", "name slug images averageRating");
   }
 
+  async findOne(filter) {
+  return await Review.findOne(filter)
+      .populate(
+        "customer",
+        "name avatar"
+      )
+      .populate(
+        "product",
+        "name slug images averageRating"
+      );
+   }
+
   async findByCustomerAndProduct(customerId, productId) {
     return await Review.findOne({
       customer: customerId,
@@ -120,21 +132,26 @@ class ReviewRepository {
     }
 
     if (search) {
-      filter.$or = [
-        {
-          title: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-        {
-          comment: {
-            $regex: search,
-            $options: "i",
-          },
-        },
-      ];
-    }
+   const escapedSearch = String(search).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
+  filter.$or = [
+    {
+      title: {
+        $regex: escapedSearch,
+        $options: "i",
+      },
+    },
+    {
+      comment: {
+        $regex: escapedSearch,
+        $options: "i",
+      },
+    },
+  ];
+}
 
     const skip = (page - 1) * limit;
 

@@ -44,8 +44,8 @@ const initialForm = {
   description: "",
   shortDescription: "",
   category: "",
-  metal: "Gold",
-  purity: "22K",
+  metal: "Silver",
+  purity: "925 Silver",
   gender: "Unisex",
   weight: "",
   price: "",
@@ -183,11 +183,9 @@ export default function AdminProducts() {
       category:
         product.category || "",
 
-      metal:
-        product.metal || "Gold",
+        metal: "Silver",
 
-      purity:
-        product.purity || "22K",
+        purity: "925 Silver",
 
       gender:
         product.gender || "Unisex",
@@ -369,7 +367,58 @@ export default function AdminProducts() {
         throw new Error(
           "Product name is required."
         );
-      }
+      } 
+        
+        if (
+  payload.price <= 0
+) {
+  throw new Error(
+    "Product price must be greater than 0."
+  );
+}
+
+if (
+  payload.discountPrice < 0
+) {
+  throw new Error(
+    "Discount price cannot be negative."
+  );
+}
+
+  if (
+    payload.discountPrice > 0 &&
+    payload.discountPrice >=
+      payload.price
+  ) {
+    throw new Error(
+      "Discount price must be less than the original price."
+    );
+  }
+
+  if (
+    payload.makingCharges < 0
+  ) {
+    throw new Error(
+      "Making charges cannot be negative."
+    );
+  }
+
+  if (
+    payload.gst < 0 ||
+    payload.gst > 100
+  ) {
+    throw new Error(
+      "GST must be between 0 and 100."
+    );
+  }
+
+  if (
+    payload.weight <= 0
+  ) {
+    throw new Error(
+      "Product weight must be greater than 0."
+    );
+  }
 
       if (!payload.category) {
         throw new Error(
@@ -903,8 +952,8 @@ export default function AdminProducts() {
               }
               required
             >
-              <option value="">
-                Select category
+              <option value="925 Silver" >
+                925 Silver (92.5% Sterling Silver)
               </option>
 
               {categories.map(
@@ -952,62 +1001,28 @@ export default function AdminProducts() {
               </option>
             </AdminSelect>
 
-            <AdminSelect
+           <AdminSelect
               label="Metal"
-              value={form.metal}
-              onChange={(e) =>
-                updateField(
-                  "metal",
-                  e.target.value
-                )
-              }
+              value="Silver"
+              disabled
             >
-              <option value="Gold">
-                Gold
-              </option>
-
               <option value="Silver">
                 Silver
               </option>
-
-              <option value="Diamond">
-                Diamond
-              </option>
-
-              <option value="Platinum">
-                Platinum
-              </option>
             </AdminSelect>
-
+ 
             <AdminSelect
-              label="Purity"
-              value={form.purity}
-              onChange={(e) =>
-                updateField(
-                  "purity",
-                  e.target.value
-                )
-              }
-            >
-              <option value="22K">
-                22K
-              </option>
+            label="Purity"
+            value="92.5 Silver"
+            disabled
+          >
+            <option value="925 Silver">
+              92.5 Silver (92.5% Sterling Silver)
+            </option>
+          </AdminSelect>
 
-              <option value="24K">
-                24K
-              </option>
-
-              <option value="18K">
-                18K
-              </option>
-
-              <option value="14K">
-                14K
-              </option>
-            </AdminSelect>
-
-            <AdminInput
-              label="Weight"
+           <AdminInput
+             label="Silver Weight (grams)"
               type="number"
               step="0.01"
               value={form.weight}
@@ -1020,7 +1035,7 @@ export default function AdminProducts() {
             />
 
             <AdminInput
-              label="Price"
+              label="Base Price (₹)"
               type="number"
               min="0"
               value={form.price}
@@ -1034,7 +1049,7 @@ export default function AdminProducts() {
             />
 
             <AdminInput
-              label="Discount Price"
+               label="Discount Price (₹)"
               type="number"
               min="0"
               value={
@@ -1049,7 +1064,7 @@ export default function AdminProducts() {
             />
 
             <AdminInput
-              label="Making Charges"
+             label="Making Charges (₹)"
               type="number"
               min="0"
               value={
@@ -1064,7 +1079,7 @@ export default function AdminProducts() {
             />
 
             <AdminInput
-              label="GST %"
+              label="GST (%)"
               type="number"
               min="0"
               value={form.gst}
