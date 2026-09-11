@@ -67,6 +67,12 @@ export default function AdminCoupons() {
   const [search, setSearch] =
     useState("");
 
+  const [selectedImage, setSelectedImage] =
+    useState(null);
+
+  const [imageUploading, setImageUploading] =
+    useState(false);
+
   const load =  useCallback(async () => {
     setLoading(true);
 
@@ -172,6 +178,7 @@ export default function AdminCoupons() {
   const openCreate = () => {
     setEditing(null);
     setForm(initialForm);
+    setSelectedImage(null);
     setOpen(true);
   };
 
@@ -234,6 +241,7 @@ export default function AdminCoupons() {
         coupon.isActive !== false,
     });
 
+    setSelectedImage(null);
     setOpen(true);
   };
 
@@ -713,6 +721,25 @@ export default function AdminCoupons() {
               }
               required
             />
+          </div>
+
+          <div className="rounded-2xl border border-dashed border-[#6594B1]/40 bg-[#F5F7F9] p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-[#213C51]">Offer artwork</p>
+                <p className="mt-1 text-xs text-slate-500">Upload a JPG, PNG or WebP promotional image up to 1 MB.</p>
+              </div>
+              <label className={`inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#213C51] px-4 py-2.5 text-sm font-semibold text-white ${imageUploading ? "pointer-events-none opacity-60" : ""}`}>
+                {imageUploading ? "Uploading…" : "Choose image"}
+                <input type="file" accept="image/*" className="hidden" onChange={handleCouponImage} />
+              </label>
+            </div>
+            {(selectedImage || form.image?.url) && (
+              <div className="mt-4 flex items-center gap-3">
+                <img src={form.image?.url || "/placeholder.png"} alt={form.image?.alt || "Coupon preview"} className="h-16 w-24 rounded-xl object-cover ring-1 ring-slate-200" />
+                <div className="min-w-0"><p className="truncate text-xs font-semibold text-[#213C51]">{selectedImage?.name || "Current promotional image"}</p><p className="text-[11px] text-slate-500">Image will be stored with the coupon.</p></div>
+              </div>
+            )}
           </div>
 
           <AdminInput

@@ -1,13 +1,8 @@
 import axios from "axios";
 
-const API_URL =
-  import.meta.env.VITE_API_URL;
-
-if (!API_URL) {
-  throw new Error(
-    "VITE_API_URL is not configured."
-  );
-}
+const API_URL = (
+  import.meta.env.VITE_API_URL || "/api/v1"
+).replace(/\/$/, "");
 
 const api = axios.create({
   baseURL: API_URL,
@@ -18,7 +13,6 @@ const api = axios.create({
 
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
   },
 });
 
@@ -53,6 +47,14 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization =
         `Bearer ${token}`;
+    }
+
+    // Let the browser/Axios set the multipart boundary for FormData.
+    // Explicitly forcing application/json breaks image uploads.
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else if (config.data && typeof config.data === "object") {
+      config.headers["Content-Type"] = "application/json";
     }
 
     return config;

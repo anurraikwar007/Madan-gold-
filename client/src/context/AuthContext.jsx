@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import * as AuthAPI from "../api/auth.api";
+import toast from "react-hot-toast";
 
 const AuthContext = createContext();
 
@@ -30,12 +31,19 @@ export const AuthProvider = ({ children }) => {
         data?.data;
 
       if (customer) {
-        setUser(customer);
+        const normalizedCustomer = {
+          ...customer,
+          role: customer.role || "Customer",
+        };
+
+        setUser(normalizedCustomer);
 
         localStorage.setItem(
           "user",
-          JSON.stringify(customer)
+          JSON.stringify(normalizedCustomer)
         );
+
+        return normalizedCustomer;
       }
 
       return customer;
@@ -64,12 +72,18 @@ export const AuthProvider = ({ children }) => {
         data?.data;
 
       if (admin) {
-        setUser(admin);
+        const normalizedAdmin = {
+          ...admin,
+          role: admin.role || "Admin",
+        };
+        setUser(normalizedAdmin);
 
         localStorage.setItem(
           "user",
-          JSON.stringify(admin)
+          JSON.stringify(normalizedAdmin)
         );
+
+        return normalizedAdmin;
       }
 
       return admin;
@@ -101,12 +115,19 @@ export const AuthProvider = ({ children }) => {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
+        const normalizedUser = {
+          ...parsedUser,
+          role:
+            parsedUser.role ||
+            (parsedUser.email === localStorage.getItem("adminEmail") ? "Admin" : "Customer"),
+        };
 
-        setUser(parsedUser);
+        setUser(normalizedUser);
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
 
         if (
-          parsedUser.role === "Admin" ||
-          parsedUser.role === "SuperAdmin"
+          normalizedUser.role === "Admin" ||
+          normalizedUser.role === "SuperAdmin"
         ) {
           loadAdminProfile();
         } else {
@@ -140,8 +161,12 @@ const login = async (email, password) => {
 
       const customer = data?.data?.customer || data?.data?.user || data?.data;
       if (customer) {
-        setUser(customer);
-        localStorage.setItem("user", JSON.stringify(customer));
+        const normalizedCustomer = {
+          ...customer,
+          role: customer.role || "Customer",
+        };
+        setUser(normalizedCustomer);
+        localStorage.setItem("user", JSON.stringify(normalizedCustomer));
       } else {
         await loadProfile();
       }
@@ -220,11 +245,15 @@ const login = async (email, password) => {
         data?.data?.admin;
 
       if (admin) {
-        setUser(admin);
+        const normalizedAdmin = {
+          ...admin,
+          role: admin.role || "Admin",
+        };
+        setUser(normalizedAdmin);
 
         localStorage.setItem(
           "user",
-          JSON.stringify(admin)
+          JSON.stringify(normalizedAdmin)
         );
       } else {
         await loadAdminProfile();
@@ -248,15 +277,6 @@ const login = async (email, password) => {
   // =========================
 
     const logout = async () => {
-      const confirmed =
-        window.confirm(
-          "Are you sure you want to logout?"
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
       try {
       if (
         user?.role === "Admin" ||
@@ -278,6 +298,7 @@ const login = async (email, password) => {
     localStorage.removeItem("user");
 
     setUser(null);
+    toast.success("You have been signed out securely.");
   };
 
   return (

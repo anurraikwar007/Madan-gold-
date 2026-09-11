@@ -38,7 +38,7 @@ const AppLayout = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#111111] flex flex-col">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--body)] flex flex-col">
 
       {!isAdminRoute && (
         <Navbar />

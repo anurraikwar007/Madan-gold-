@@ -23,7 +23,7 @@ const storage = new CloudinaryStorage({
   cloudinary,
 
   params: async (req, file) => ({
-    folder: "manikya",
+    folder: "madan-gold/products",
 
     resource_type: "image",
 
@@ -147,7 +147,7 @@ export const uploadErrorHandler = (
         return next(
           new ApiError(
             400,
-            "Maximum image size allowed is 1 MB."
+            "Maximum image size allowed is 5 MB."
           )
         );
 

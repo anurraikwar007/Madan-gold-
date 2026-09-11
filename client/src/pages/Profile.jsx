@@ -201,7 +201,8 @@ const handleDeleteAddress = async (
           await loadProfile();
 
         const customer =
-          profile || user;
+          profile ||
+          (user ? { ...user, role: user.role || "Customer" } : null);
 
         setForm({
           name: customer?.name || "",

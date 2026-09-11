@@ -53,19 +53,47 @@ export const deleteAdminProduct = (
     `/admin/products/${id}`
   );
 
-export const uploadAdminProductImages = (
-  files
-) => {
+export const uploadAdminProductImages = async (files) => {
   const formData = new FormData();
 
   files.forEach((file) => {
-    formData.append("images", file);
+    formData.append("images", file, file.name);
   });
 
-    return api.post(
-      "/admin/products/upload-images",
-      formData
+  const token = localStorage.getItem("token");
+  const apiBase = (import.meta.env.VITE_API_URL || "/api/v1").replace(/\/$/, "");
+
+  // Use the browser fetch stack for multipart uploads. Do NOT set
+  // Content-Type manually; fetch adds the correct multipart boundary.
+  const response = await fetch(`${apiBase}/admin/products/upload-images`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    const error = new Error(
+      data?.message || data?.errors?.join?.(", ") || "Product image upload failed."
     );
+    error.response = {
+      status: response.status,
+      data,
+    };
+    throw error;
+  }
+
+  return { data };
 };
 
 // =====================================================
@@ -202,3 +230,41 @@ export const adminLogout = () =>
 
 export const adminLogoutAll = () =>
   api.post("/admin/logout-all");
+
+// =====================================================
+// Customers
+// =====================================================
+
+export const getAdminCustomers = (params = {}) =>
+  api.get("/admin/customers", { params });
+
+export const getAdminCustomer = (id) =>
+  api.get(`/admin/customers/${id}`);
+
+export const updateAdminCustomer = (id, data) =>
+  api.put(`/admin/customers/${id}`, data);
+
+export const toggleAdminCustomer = (id) =>
+  api.patch(`/admin/customers/${id}/toggle-active`);
+
+export const deleteAdminCustomer = (id) =>
+  api.delete(`/admin/customers/${id}`);
+
+export const restoreAdminCustomer = (id) =>
+  api.patch(`/admin/customers/${id}/restore`);
+
+export const getAdminCustomerStatistics = () =>
+  api.get("/admin/customers/statistics");
+
+// =====================================================
+// Reviews
+// =====================================================
+
+export const getAdminReviews = (params = {}) =>
+  api.get("/reviews/admin/all", { params });
+
+export const updateAdminReviewApproval = (reviewId, isApproved) =>
+  api.patch(`/reviews/admin/${reviewId}/approval`, { isApproved });
+
+export const deleteAdminReview = (reviewId) =>
+  api.delete(`/reviews/admin/${reviewId}`);

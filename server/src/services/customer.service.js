@@ -117,6 +117,7 @@ export const getAllCustomers = async ({
   page = 1,
   limit = 20,
   search = "",
+  includeDeleted = true,
 }) => {
   page = Math.max(
     Number(page) || 1,
@@ -131,9 +132,11 @@ export const getAllCustomers = async ({
     50
   );
 
-  const filter = {
-    isDeleted: false,
-  };
+  const filter = {};
+
+  if (!includeDeleted) {
+    filter.isDeleted = false;
+  }
 
   const normalizedSearch =
     String(search || "")
@@ -586,6 +589,8 @@ async () => {
 
     deletedCustomers,
 
+    verifiedCustomers,
+
   ] = await Promise.all([
 
     CustomerRepository.count({
@@ -616,6 +621,14 @@ async () => {
 
     }),
 
+    CustomerRepository.count({
+
+      isDeleted: false,
+
+      isVerified: true,
+
+    }),
+
   ]);
 
   return {
@@ -627,6 +640,8 @@ async () => {
     inactiveCustomers,
 
     deletedCustomers,
+
+    verifiedCustomers,
 
   };
 

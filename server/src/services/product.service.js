@@ -142,9 +142,31 @@ export const createProduct = async (
     String(search || "").trim();
 
   if (normalizedSearch) {
-    filter.$text = {
-      $search: normalizedSearch,
-    };
+    const fields = [
+      "name",
+      "sku",
+      "category",
+      "description",
+      "shortDescription",
+      "seoTitle",
+      "seoDescription",
+      "seoKeywords",
+    ];
+
+    const tokens = normalizedSearch
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter(Boolean)
+      .slice(0, 8);
+
+    filter.$and = tokens.map((token) => {
+      const escapedToken = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return {
+        $or: fields.map((field) => ({
+          [field]: { $regex: escapedToken, $options: "i" },
+        })),
+      };
+    });
   }
 
   // ==============================
@@ -384,9 +406,30 @@ export const createProduct = async (
 
   // Search
   if (search) {
-    filter.$text = {
-      $search: search,
-    };
+    const fields = [
+      "name",
+      "sku",
+      "category",
+      "description",
+      "shortDescription",
+      "seoTitle",
+      "seoDescription",
+      "seoKeywords",
+    ];
+    const tokens = String(search)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 8);
+
+    filter.$and = tokens.map((token) => {
+      const escapedToken = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return {
+        $or: fields.map((field) => ({
+          [field]: { $regex: escapedToken, $options: "i" },
+        })),
+      };
+    });
   }
 
   if (category) {

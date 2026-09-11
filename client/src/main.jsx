@@ -10,6 +10,7 @@ import { SearchProvider } from "./context/SearchContext";
 import { ProductProvider } from "./context/ProductContext";
 import { AuthProvider } from "./context/AuthContext";
 import { HelmetProvider } from "react-helmet-async";
+import { Toaster } from "react-hot-toast";
 
 ReactDOM.createRoot(
   document.getElementById("root")
@@ -21,6 +22,7 @@ ReactDOM.createRoot(
           <SearchProvider>
             <CartProvider>
               <App />
+              <Toaster position="top-right" toastOptions={{duration:3500, style:{borderRadius:"14px", fontSize:"13px"}}} />
             </CartProvider>
           </SearchProvider>
         </ProductProvider>

@@ -16,7 +16,7 @@ export function AdminButton({
   }) {
    const variants = {
   primary:
-  "bg-violet-600 text-white shadow-lg shadow-violet-600/20 hover:bg-violet-500",
+  "bg-[#213C51] text-white shadow-lg shadow-[#213C51]/20 hover:bg-[#172D3E]",
 
   gold:
     "bg-gradient-to-r from-[#B9975B] to-[#D4B77A] text-white shadow-[0_10px_28px_rgba(185,151,91,.22)] hover:brightness-105",
@@ -28,10 +28,10 @@ export function AdminButton({
     "bg-[#5C8068] text-white shadow-[0_10px_25px_rgba(92,128,104,.16)] hover:bg-[#4D7059]",
 
   soft:
-  "border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600",
+  "border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-[#DDAED3] hover:bg-[#DDAED3]/15 hover:text-[#213C51]",
 
   outline:
-  "border border-slate-200 bg-white text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600",
+  "border border-slate-200 bg-white text-slate-600 hover:border-[#DDAED3] hover:bg-[#DDAED3]/15 hover:text-[#213C51]",
    };
 
   return (

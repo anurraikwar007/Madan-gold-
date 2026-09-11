@@ -14,6 +14,7 @@ import {
 } from "../../context/AuthContext";
 
 import AdminSidebar from "./AdminSidebar";
+import LogoutModal from "../common/LogoutModal";
 
 export default function AdminHeader() {
   const {
@@ -21,10 +22,9 @@ export default function AdminHeader() {
     logout,
   } = useAuth();
 
-  const [
-    mobileOpen,
-    setMobileOpen,
-  ] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   return (
     <>
@@ -96,7 +96,7 @@ export default function AdminHeader() {
 
           <button
             type="button"
-            onClick={logout}
+            onClick={() => setLogoutOpen(true)}
             title="Logout"
             className="rounded-xl p-2.5 text-slate-500 hover:bg-rose-500/10 hover:text-rose-400"
           >
@@ -104,6 +104,8 @@ export default function AdminHeader() {
           </button>
         </div>
       </header>
+
+      <LogoutModal open={logoutOpen} admin loading={logoutLoading} onCancel={() => !logoutLoading && setLogoutOpen(false)} onConfirm={async () => { setLogoutLoading(true); try { await logout(); } finally { setLogoutLoading(false); setLogoutOpen(false); } }} />
 
       {mobileOpen && (
         <AdminSidebar

@@ -192,39 +192,85 @@ class ProductRepository extends BaseRepository {
 // =====================================================
 
     async searchSuggestions(keyword) {
-  const value = String(keyword || "").trim();
+      const value = String(keyword || "").trim().slice(0, 80);
 
-  if (!value) {
-    return [];
-  }
+      if (!value) return { products: [], suggestions: [] };
 
-  const escaped = value.replace(
-    /[.*+?^${}()|[\]\\]/g,
-    "\\$&"
-  );
+      const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const tokens = value
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean)
+        .slice(0, 6);
 
-  return this.model
-    .find({
-      name: {
-        $regex: escaped,
-        $options: "i",
-      },
+      const searchableFields = [
+        "name",
+        "sku",
+        "category",
+        "gender",
+        "description",
+        "shortDescription",
+        "seoTitle",
+        "seoDescription",
+        "seoKeywords",
+      ];
 
-      metal: "Silver",
-      purity: "925 Silver",
+      // Amazon-style suggestions: a product can match any relevant catalogue
+      // metadata, not only its visible name. For multi-word queries every token
+      // must occur somewhere in the searchable metadata.
+      const tokenFilter = tokens.length
+        ? {
+            $and: tokens.map((token) => {
+              const tokenEscaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              return {
+                $or: searchableFields.map((field) => ({
+                  [field]: { $regex: tokenEscaped, $options: "i" },
+                })),
+              };
+            }),
+          }
+        : {
+            $or: searchableFields.map((field) => ({
+              [field]: { $regex: escaped, $options: "i" },
+            })),
+          };
 
-      isDeleted: false,
-      isActive: true,
-    })
-    .select("name slug images")
-    .sort({
-      bestseller: -1,
-      averageRating: -1,
-      totalReviews: -1,
-    })
-    .limit(10)
-    .lean();
-}
+      const products = await this.model
+        .find({
+          metal: "Silver",
+          purity: "925 Silver",
+          isDeleted: false,
+          isActive: true,
+          ...tokenFilter,
+        })
+        .select("name slug sku category images sellingPrice price seoTitle seoKeywords bestseller averageRating totalReviews")
+        .sort({ bestseller: -1, averageRating: -1, totalReviews: -1, createdAt: -1 })
+        .limit(8)
+        .lean();
+
+      // Build human-friendly keyword/category suggestions from the same metadata.
+      const keywordSet = new Map();
+      const addCandidate = (candidate) => {
+        if (!candidate) return;
+        const clean = String(candidate).replace(/\s+/g, " ").trim();
+        if (!clean || clean.length < 2 || clean.length > 80) return;
+        if (!new RegExp(escaped, "i").test(clean)) return;
+        const key = clean.toLowerCase();
+        if (!keywordSet.has(key)) keywordSet.set(key, clean);
+      };
+
+      for (const product of products) {
+        addCandidate(product.name);
+        addCandidate(product.category);
+        addCandidate(product.seoTitle);
+        for (const keyword of product.seoKeywords || []) addCandidate(keyword);
+      }
+
+      return {
+        products,
+        suggestions: Array.from(keywordSet.values()).slice(0, 8),
+      };
+    }
 
   // =====================================================
   // Out Of Stock Products

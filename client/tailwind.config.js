@@ -15,7 +15,12 @@ export default {
 
       colors: {
 
-        primary: "#C98FA8",
+        gold: "#DDAED3",
+        navy: "#213C51",
+        blue: "#6594B1",
+        light: "#EEEEEE",
+
+        primary: "#DDAED3",
         "primary-dark": "#B27793",
         "primary-light": "#EBCFDB",
 
@@ -43,7 +48,7 @@ export default {
 
         heading: ["Playfair Display", "serif"],
 
-        body: ["Inter", "sans-serif"],
+        body: ["DM Sans", "sans-serif"],
 
       },
 

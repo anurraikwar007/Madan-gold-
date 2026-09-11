@@ -9,11 +9,16 @@ import {
   Menu,
   X,
   ChevronDown,
+  Clock3,
+  Sparkles,
+  Package,
 } from "lucide-react";
 
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
+import { getSearchSuggestions } from "../../api/product.api";
+import LogoutModal from "../common/LogoutModal";
 
 
 const Navbar = () => {
@@ -27,24 +32,57 @@ const Navbar = () => {
 const location = useLocation();
 const navigate = useNavigate();
 
-   const handleSearchSubmit = () => {
-    const value = query.trim();
+   const handleSearchSubmit = (nextValue = query) => {
+    const value = String(nextValue).trim();
 
     if (!value) {
       navigate("/shop");
       return;
     }
 
-    navigate(
-      `/shop?search=${encodeURIComponent(
-        value
-      )}`
-    );
+    navigate(`/shop?search=${encodeURIComponent(value)}`);
+    setSuggestionOpen(false);
+    setMobileOpen(false);
+    setShopOpen(false);
   };
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState({ products: [], keywords: [] });
+  const [suggestionOpen, setSuggestionOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  useEffect(() => {
+    const value = query.trim();
+    if (!value) {
+      setSuggestions({ products: [], keywords: [] });
+      setSuggestionOpen(false);
+      return undefined;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const response = await getSearchSuggestions(value);
+        const data = response?.data?.data || {};
+        const products = Array.isArray(data?.products) ? data.products : [];
+        const keywords = Array.isArray(data?.suggestions) ? data.suggestions : [];
+        setSuggestions({ products: products.slice(0, 7), keywords: keywords.slice(0, 6) });
+        setSuggestionOpen(true);
+      } catch {
+        setSuggestions({ products: [], keywords: [] });
+      }
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    const handleKey = (event) => {
+      if (event.key === "Escape") { setSuggestionOpen(false); setShopOpen(false); setMobileOpen(false); }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -404,7 +442,7 @@ const navigate = useNavigate();
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Desktop search */}
               <div className="hidden xl:block">
-                <div
+                <div className="relative"
                   className="
                     flex
                     h-10
@@ -430,23 +468,37 @@ const navigate = useNavigate();
 
                   <input
                     type="text"
-                    placeholder="Search"
+                    value={query}
+                    placeholder="Search jewellery..."
+                    onFocus={() => query.trim() && setSuggestionOpen(true)}
                     onChange={(e) => setQuery(e.target.value)}
-                    className="
-                      w-full
-                      bg-transparent
-                      text-xs
-                      text-[#213C51]
-                      outline-none
-                      placeholder:text-[#9b858a]
-                    "
+                    onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit()}
+                    className="w-full bg-transparent text-xs text-[#213C51] outline-none placeholder:text-[#9b858a]"
                   />
+                  {suggestionOpen && (suggestions.products?.length > 0 || suggestions.keywords?.length > 0) && (
+                    <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-[150] overflow-hidden rounded-2xl border border-[#213C51]/10 bg-white p-2 shadow-[0_25px_70px_rgba(33,60,81,.16)]">
+                      {suggestions.keywords?.slice(0, 5).map((keyword) => (
+                        <button key={`keyword-${keyword}`} type="button" onClick={() => handleSearchSubmit(keyword)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-[#EEEEEE]/70">
+                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#DDAED3]/20"><Sparkles size={15} className="text-[#213C51]"/></span>
+                          <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#213C51]">{keyword}</span>
+                          <span className="text-[10px] text-slate-400">Search</span>
+                        </button>
+                      ))}
+                      {suggestions.products?.slice(0, 7).map((item) => {
+                        const id = item?._id || item?.id;
+                        const name = item?.name || item?.title || "Product";
+                        const image = typeof item?.images?.[0] === "string" ? item.images[0] : item?.images?.[0]?.url;
+                        return <Link key={id || name} to={id ? `/product/${id}` : `/shop?search=${encodeURIComponent(name)}`} onClick={() => setSuggestionOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[#EEEEEE]/70">{image ? <img src={image} alt="" className="h-9 w-9 rounded-lg object-cover"/> : <Sparkles size={16} className="text-[#6594B1]"/>}<span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-[#213C51]">{name}</span><span className="block truncate text-[10px] text-slate-400">{item?.category || "925 Silver Jewellery"}</span></span><span className="text-[10px] text-slate-400">View</span></Link>;
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Mobile search */}
               <button
                 type="button"
+                onClick={() => setMobileOpen(true)}
                 className="
                   flex
                   h-9
@@ -562,28 +614,18 @@ const navigate = useNavigate();
 
               {/* Desktop account */}
               {user ? (
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="
-                    hidden
-                    h-10
-                    items-center
-                    gap-2
-                    rounded-full
-                    bg-[#213C51]
-                    px-4
-                    text-[10px]
-                    font-medium
-                    uppercase
-                    tracking-[0.14em]
-                    text-white
-                    lg:flex
-                  "
-                >
-                  <User size={15} />
-                  Logout
-                </button>
+                <div className="relative hidden lg:block group">
+                  <button type="button" className="flex h-10 items-center gap-2 rounded-full bg-[#213C51] px-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-white">
+                    <User size={15} /> {user?.name?.split(" ")[0] || "Account"} <ChevronDown size={13}/>
+                  </button>
+                  <div className="pointer-events-none absolute right-0 top-[calc(100%+10px)] w-64 translate-y-2 rounded-2xl border border-[#213C51]/10 bg-white p-2 opacity-0 shadow-[0_25px_70px_rgba(33,60,81,.16)] transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="border-b border-slate-100 px-3 py-3"><p className="text-sm font-semibold text-[#213C51]">Hi, {user?.name || "there"}</p><p className="mt-1 text-xs text-slate-400">Manage your Madan Gold account</p></div>
+                    <Link to="/profile" onClick={() => { setMobileOpen(false); setShopOpen(false); setSuggestionOpen(false); }} className="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-[#EEEEEE]">My Profile</Link>
+                    <Link to="/orders" onClick={() => { setMobileOpen(false); setShopOpen(false); setSuggestionOpen(false); }} className="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-[#EEEEEE]">My Orders</Link>
+                    <Link to="/wishlist" onClick={() => { setMobileOpen(false); setShopOpen(false); setSuggestionOpen(false); }} className="block rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-[#EEEEEE]">Wishlist</Link>
+                    <button onClick={() => { setMobileOpen(false); setLogoutOpen(true); }} className="mt-1 w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50">Sign out</button>
+                  </div>
+                </div>
               ) : (
                 <Link
                   to="/login"
@@ -659,51 +701,54 @@ const navigate = useNavigate();
         >
           <div className="max-h-[calc(100vh-68px)] overflow-y-auto px-5 pb-8 pt-3">
             {/* Mobile search */}
-            <div
-              className="
-                mb-4
-                flex
-                h-11
-                items-center
-                rounded-full
-                border
-                border-[#8f5361]/10
-                bg-[#f9eef0]
-                px-4
-              "
-            >
-              <Search
-                size={17}
-                strokeWidth={1.6}
-                className="mr-2 text-[#87616a]"
-              />
-
+            <div className="relative mb-4">
+              <div className="flex h-11 items-center rounded-full border border-[#8f5361]/10 bg-[#f9eef0] px-4">
+                <Search
+                  size={17}
+                  strokeWidth={1.6}
+                  className="mr-2 shrink-0 text-[#87616a]"
+                  onClick={() => handleSearchSubmit()}
+                />
                 <input
-                  type="text"
+                  type="search"
                   value={query}
                   placeholder="Search 925 silver jewellery..."
-                  onChange={(e) =>
-                    setQuery(e.target.value)
-                  }
+                  onFocus={() => query.trim() && setSuggestionOpen(true)}
+                  onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearchSubmit();
-                    }
+                    if (e.key === "Enter") handleSearchSubmit();
+                    if (e.key === "Escape") setSuggestionOpen(false);
                   }}
-                className="
-                  w-full
-                  bg-transparent
-                  text-sm
-                  outline-none
-                  placeholder:text-[#a18b91]
-                "
-              />
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-[#a18b91]"
+                />
+              </div>
+              {suggestionOpen && (suggestions.products?.length > 0 || suggestions.keywords?.length > 0) && (
+                <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[180] overflow-hidden rounded-2xl border border-[#213C51]/10 bg-white p-2 shadow-[0_24px_60px_rgba(33,60,81,.16)]">
+                  {suggestions.keywords?.slice(0, 4).map((keyword) => (
+                    <button key={`mobile-keyword-${keyword}`} type="button" onClick={() => handleSearchSubmit(keyword)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-[#EEEEEE]">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#DDAED3]/20"><Sparkles size={14} className="text-[#213C51]"/></span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#213C51]">{keyword}</span>
+                    </button>
+                  ))}
+                  {suggestions.products?.slice(0, 5).map((item) => {
+                    const id = item?._id || item?.id;
+                    const image = typeof item?.images?.[0] === "string" ? item.images[0] : item?.images?.[0]?.url;
+                    return (
+                      <Link key={`mobile-product-${id}`} to={id ? `/product/${id}` : `/shop?search=${encodeURIComponent(item?.name || query)}`} onClick={() => { setSuggestionOpen(false); setMobileOpen(false); }} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-[#EEEEEE]">
+                        {image ? <img src={image} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover"/> : <Sparkles size={15} className="shrink-0 text-[#6594B1]"/>}
+                        <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-[#213C51]">{item?.name}</span><span className="block truncate text-[10px] text-slate-400">{item?.category || "925 Silver Jewellery"}</span></span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Links */}
             <nav className="divide-y divide-[#8f5361]/10">
               <Link
                 to="/"
+                onClick={() => setMobileOpen(false)}
                 className={`
                   flex
                   items-center
@@ -722,6 +767,7 @@ const navigate = useNavigate();
 
               <Link
                 to="/shop"
+                onClick={() => setMobileOpen(false)}
                 className="
                   flex
                   items-center
@@ -736,6 +782,7 @@ const navigate = useNavigate();
 
               <Link
                 to="/shop"
+                onClick={() => setMobileOpen(false)}
                 className="
                   flex
                   items-center
@@ -750,6 +797,7 @@ const navigate = useNavigate();
 
               <Link
                 to="/shop"
+                onClick={() => setMobileOpen(false)}
                 className="
                   flex
                   items-center
@@ -764,6 +812,7 @@ const navigate = useNavigate();
 
               <Link
                 to="/wishlist"
+                onClick={() => setMobileOpen(false)}
                 className="
                   flex
                   items-center
@@ -793,6 +842,7 @@ const navigate = useNavigate();
 
               <Link
                 to="/cart"
+                onClick={() => setMobileOpen(false)}
                 className="
                   flex
                   items-center
@@ -821,9 +871,10 @@ const navigate = useNavigate();
               </Link>
 
               {user ? (
-                <button
-                  type="button"
-                  onClick={logout}
+                <div className="py-2">
+                  <Link to="/profile" onClick={() => setMobileOpen(false)} className="flex items-center justify-between py-3 text-sm text-[#213C51]">My Profile <User size={17}/></Link>
+                  <Link to="/orders" onClick={() => setMobileOpen(false)} className="flex items-center justify-between py-3 text-sm text-[#213C51]">My Orders <Package size={17}/></Link>
+                  <button type="button" onClick={() => { setMobileOpen(false); setLogoutOpen(true); }}
                   className="
                     flex
                     w-full
@@ -838,6 +889,7 @@ const navigate = useNavigate();
                   Logout
                   <User size={17} strokeWidth={1.6} />
                 </button>
+                </div>
               ) : (
                 <Link
                   to="/login"
@@ -879,6 +931,15 @@ const navigate = useNavigate();
       ===================================================== */}
 
       <div className="h-[68px] sm:h-[76px] lg:h-[103px]" />
+      <LogoutModal
+        open={logoutOpen}
+        loading={logoutLoading}
+        onCancel={() => !logoutLoading && setLogoutOpen(false)}
+        onConfirm={async () => {
+          setLogoutLoading(true);
+          try { await logout(); } finally { setLogoutLoading(false); setLogoutOpen(false); }
+        }}
+      />
     </>
   );
 };

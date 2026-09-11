@@ -60,6 +60,7 @@ const ProtectedRoute = ({
 
   if (
     !adminOnly &&
+    user.role &&
     user.role !== "Customer"
   ) {
     return (

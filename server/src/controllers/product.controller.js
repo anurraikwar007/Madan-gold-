@@ -218,12 +218,12 @@ customerProductBySlug = asyncHandler(
   });
 
   uploadImages = asyncHandler(async (req, res) => {
-  const files = req.files || [];
+  const files = Array.isArray(req.files) ? req.files : [];
 
   if (!files.length) {
     return res.status(400).json(
       apiResponse.error(
-        "At least one image is required."
+        "No product images were received. Please select JPG, JPEG, PNG or WEBP files and try again."
       )
     );
   }

@@ -6,8 +6,9 @@ import {
   ShoppingBag,
   Gem,
   X,
-  Sparkles,
   Activity,
+  Users,
+  Star,
 } from "lucide-react";
 
 import {
@@ -35,6 +36,16 @@ const links = [
     label: "Orders",
     path: "/admin/orders",
     icon: ShoppingBag,
+  },
+  {
+    label: "Customers",
+    path: "/admin/customers",
+    icon: Users,
+  },
+  {
+    label: "Reviews",
+    path: "/admin/reviews",
+    icon: Star,
   },
   {
     label: "Coupons",
@@ -93,7 +104,7 @@ export default function AdminSidebar({
                 MADAN GOLD
               </p>
 
-              <p className="mt-1 text-[9px] uppercase tracking-[.28em] text-slate-600">
+              <p className="mt-1 text-[9px] uppercase tracking-[.28em] text-white/40">
                 Admin OS
               </p>
             </div>
@@ -112,7 +123,7 @@ export default function AdminSidebar({
 
         <div className="relative px-3 py-7">
           <div className="mb-4 flex items-center justify-between px-3">
-            <p className="text-[10px] font-bold uppercase tracking-[.25em] text-slate-600">
+            <p className="text-[10px] font-bold uppercase tracking-[.25em] text-white/40">
               Workspace
             </p>
 
@@ -168,7 +179,7 @@ export default function AdminSidebar({
         </div>
 
         <div className="relative mt-auto p-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#22C55E]" />
 
@@ -177,7 +188,7 @@ export default function AdminSidebar({
               </span>
             </div>
 
-            <p className="mt-2 text-[11px] leading-5 text-slate-600">
+            <p className="mt-2 text-[11px] leading-5 text-white/40">
               Admin services are ready.
             </p>
 

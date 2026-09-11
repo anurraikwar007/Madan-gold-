@@ -604,14 +604,24 @@ productSchema.index(
   {
     name: "text",
     description: "text",
+    shortDescription: "text",
+    seoTitle: "text",
+    seoDescription: "text",
     seoKeywords: "text",
+    category: "text",
+    sku: "text",
   },
   {
     name: "product_text_search",
     weights: {
       name: 10,
-      seoKeywords: 5,
-      description: 2,
+      seoKeywords: 7,
+      seoTitle: 6,
+      category: 5,
+      shortDescription: 4,
+      description: 3,
+      seoDescription: 2,
+      sku: 2,
     },
   }
 );

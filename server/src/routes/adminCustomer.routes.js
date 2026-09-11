@@ -36,6 +36,8 @@ const listSchema = {
       .max(100)
       .allow("")
       .default(""),
+
+    includeDeleted: Joi.boolean().default(true),
   }),
 };
 

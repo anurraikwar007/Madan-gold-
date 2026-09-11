@@ -15,6 +15,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import {
   getAdminProducts,
@@ -267,19 +268,32 @@ export default function AdminProducts() {
       let images = form.images || [];
 
       if (selectedFiles.length) {
-        const uploadResponse =
-          await uploadAdminProductImages(
-            selectedFiles
-          );
+        toast.loading("Uploading product images…", { id: "product-image-upload" });
+        let uploadResponse;
+        try {
+          uploadResponse = await uploadAdminProductImages(selectedFiles);
+        } finally {
+          toast.dismiss("product-image-upload");
+        }
 
         const uploaded =
           uploadResponse?.data?.data ||
           [];
 
+        if (!uploaded.length) {
+          throw new Error("Image upload returned no images. Please select JPG, JPEG, PNG or WEBP files and try again.");
+        }
+
+        toast.success(`${uploaded.length} image${uploaded.length > 1 ? "s" : ""} uploaded.`);
+
         images = [
           ...images,
           ...uploaded,
         ];
+      }
+
+      if (!images.length) {
+        throw new Error("Please add at least one product image before saving.");
       }
 
       const payload = {
@@ -433,14 +447,11 @@ if (
       }
 
       if (editing) {
-        await updateAdminProduct(
-          editing._id,
-          payload
-        );
+        await updateAdminProduct(editing._id, payload);
+        toast.success("Product updated successfully.");
       } else {
-        await createAdminProduct(
-          payload
-        );
+        await createAdminProduct(payload);
+        toast.success("Product created successfully.");
       }
 
       window.dispatchEvent(
@@ -459,7 +470,7 @@ if (
         error
       );
 
-      alert(
+      toast.error(
         error?.response?.data?.message ||
           error?.message ||
           "Product save failed."
@@ -1174,14 +1185,20 @@ if (
               className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm"
             />
 
-            {selectedFiles.length >
-              0 && (
-              <p className="mt-2 text-xs text-slate-500">
-                {
-                  selectedFiles.length
-                }{" "}
-                image(s) selected
-              </p>
+            {selectedFiles.length > 0 && (
+              <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
+                {selectedFiles.map((file) => (
+                  <div key={`${file.name}-${file.lastModified}`} className="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <img src={URL.createObjectURL(file)} alt="Selected product" className="h-full w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {form.images?.length > 0 && (
+              <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3">
+                <p className="text-xs font-semibold text-emerald-700">{form.images.length} existing image(s) will be kept</p>
+              </div>
             )}
           </div>
 

@@ -120,8 +120,13 @@ export const createProductSchema = {
 
    images: Joi.array()
     .items(imageSchema)
+    .min(1)
     .max(10)
-    .default([]),
+    .required()
+    .messages({
+      "array.min": "At least one product image is required.",
+      "any.required": "At least one product image is required.",
+    }),
 
     seoTitle: Joi.string().allow("").default(""),
 

@@ -122,28 +122,24 @@ class ReviewService {
   return await ReviewRepository.getCustomerReviews(customerId);
   }   
      
-      async updateApproval(reviewId, isApproved) {
-  const review = await ReviewRepository.findById(reviewId);
+  async updateApproval(reviewId, isApproved) {
+    const review = await ReviewRepository.findById(reviewId);
 
-  if (!review) {
-    throw new ApiError(404, "Review not found");
-  }
-
-  const updatedReview =
-  await ReviewRepository.updateReview(
-    reviewId,
-    {
-      ...payload,
-      isApproved: false,
+    if (!review) {
+      throw new ApiError(404, "Review not found");
     }
-  );
 
-await this.updateProductRating(
-  review.product._id
-);
+    const updatedReview =
+      await ReviewRepository.updateApproval(
+        reviewId,
+        Boolean(isApproved)
+      );
 
-  return updatedReview;
-}
+    const productId = review.product?._id || review.product;
+    await this.updateProductRating(productId);
+
+    return updatedReview;
+  }
 
   async updateProductRating(productId) {
     const stats =

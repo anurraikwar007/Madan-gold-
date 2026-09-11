@@ -1,7 +1,7 @@
 node_modules/
-coverage/
 .env
-.env.test
-tests/.env.test
-output.txt
-*.zip
+.env.*
+!.env.example
+logs/
+coverage/
+.DS_Store

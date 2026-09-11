@@ -1488,3 +1488,73 @@ select:focus-visible {
   }
 }
 
+
+
+/* ==========================================================
+   MADAN GOLD 2.0 — COMMERCE UX / ACCESSIBILITY LAYER
+========================================================== */
+
+html { scroll-padding-top: 96px; }
+body { overflow-x: hidden; }
+button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+
+.surface-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  border-radius: var(--radius);
+}
+
+.focus-ring:focus-visible {
+  outline: 3px solid rgba(101,148,177,.35);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .container-padding { padding-inline: 16px; }
+  .section-space { padding-block: 58px; }
+  .section-subtitle { font-size: 15px; line-height: 1.7; }
+  .btn-primary, .btn-secondary { min-height: 48px; padding-inline: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Admin shell */
+.admin-shell { min-height: 100vh; background: var(--admin-bg); color: var(--admin-text); }
+.admin-shell ::selection { background: var(--primary); color: var(--navy); }
+
+/* Prevent desktop tables from breaking the mobile viewport */
+.admin-shell table { border-collapse: separate; border-spacing: 0; }
+
+/* Touch-friendly controls */
+@media (pointer: coarse) {
+  button, [role="button"], a { min-height: 42px; }
+}
+
+
+/* Storefront production guardrails */
+html, body, #root { width: 100%; max-width: 100%; overflow-x: hidden; }
+body { overscroll-behavior-x: none; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+img { max-width: 100%; }
+::selection { background: var(--primary); color: var(--navy); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Horizontal-scroll policy: preserve touch/trackpad swipe where needed,
+   but never show a horizontal scrollbar to customers. */
+.overflow-x-auto, [class*="overflow-x-auto"] {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.overflow-x-auto::-webkit-scrollbar, [class*="overflow-x-auto"]::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}

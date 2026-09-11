@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
 } from "react";
 
 import * as ProductAPI from "../api/product.api";
@@ -13,11 +14,14 @@ const ProductContext = createContext();
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const lastLoadedAt = useRef(0);
 
   const loadProducts =
   useCallback(async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response =
         await ProductAPI.getProducts({
@@ -38,6 +42,7 @@ export const ProductProvider = ({ children }) => {
             : [];
 
       setProducts(list);
+      lastLoadedAt.current = Date.now();
     } catch (err) {
       console.error(
         "Failed to load products:",
@@ -45,6 +50,7 @@ export const ProductProvider = ({ children }) => {
       );
       
       setProducts([]);
+      setError(err?.response?.data?.message || "Unable to load products right now.");
 
     } finally {
       setLoading(false);
@@ -55,7 +61,9 @@ export const ProductProvider = ({ children }) => {
     loadProducts();
 
     const handleFocus = () => {
-      loadProducts();
+      if (Date.now() - lastLoadedAt.current > 120000) {
+        loadProducts();
+      }
     };
 
     const handleProductsUpdated = () => {
@@ -90,6 +98,7 @@ export const ProductProvider = ({ children }) => {
       value={{
         products,
         loading,
+        error,
         refreshProducts: loadProducts,
       }}
     >
