@@ -562,7 +562,7 @@ export default function AdminDashboard() {
   return (
     <AdminPage
       title="Business Dashboard"
-      description="Store performance, orders, revenue and inventory overview"
+      description="Live MongoDB performance, orders, revenue and inventory overview"
       action={
         <div className="flex flex-wrap items-center gap-2">
           {RANGE_OPTIONS.map(

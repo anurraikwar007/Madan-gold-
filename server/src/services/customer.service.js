@@ -117,7 +117,7 @@ export const getAllCustomers = async ({
   page = 1,
   limit = 20,
   search = "",
-  includeDeleted = true,
+  includeDeleted = false,
 }) => {
   page = Math.max(
     Number(page) || 1,

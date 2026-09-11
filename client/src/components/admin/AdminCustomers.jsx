@@ -24,7 +24,7 @@ export default function AdminCustomers() {
     setLoading(true);
     try {
       const [listRes, statsRes] = await Promise.all([
-        getAdminCustomers({ page, limit: 20, search, includeDeleted: true }),
+        getAdminCustomers({ page, limit: 20, search, includeDeleted: false }),
         getAdminCustomerStatistics(),
       ]);
       const data = unwrap(listRes);

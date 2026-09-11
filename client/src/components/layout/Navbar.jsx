@@ -19,6 +19,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useSearch } from "../../context/SearchContext";
 import { getSearchSuggestions } from "../../api/product.api";
 import LogoutModal from "../common/LogoutModal";
+import madanLogo from "../../assets/logo/icon_Madan.png";
 
 
 const Navbar = () => {
@@ -198,18 +199,18 @@ const navigate = useNavigate();
                   overflow-hidden
                   rounded-full
                   border
-                  border-white/80
+                  border-white/15
                   bg-gradient-to-br
-                  from-[#ffffff]
-                  via-[#e8e8e8]
-                  to-[#bfc1c4]
-                  shadow-[inset_0_1px_4px_rgba(255,255,255,.9),0_5px_18px_rgba(80,55,60,.12)]
+                  from-[#213C51]
+                  via-[#2d526b]
+                  to-[#213C51]
+                  shadow-[inset_0_1px_5px_rgba(255,255,255,.12),0_6px_20px_rgba(33,60,81,.20)]
                   sm:h-10
                   sm:w-10
                 "
               >
                 <img
-                  src="../../assets/logo/icon_Madan.png"
+                  src={madanLogo}
                   alt="Madan Gold"
                   className="
                     h-[23px]
@@ -226,11 +227,11 @@ const navigate = useNavigate();
                   className="
                     truncate
                     font-serif
-                    text-[24px]
+                    text-[20px]
                     font-semibold
                     tracking-[0.13em]
                     text-[#213C51]
-                    sm:text-[18px]
+                    sm:text-[20px]
                     sm:tracking-[0.16em]
                   "
                 >

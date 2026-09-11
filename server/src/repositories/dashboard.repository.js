@@ -87,6 +87,7 @@ class DashboardRepository {
   async lowStock(limit = 10) {
 
     return Product.find({
+      isDeleted: false,
       isActive: true,
       "inventory.availableStock": {
         $lte: 5,

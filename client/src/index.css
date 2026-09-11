@@ -1558,3 +1558,40 @@ img { max-width: 100%; }
   width: 0;
   height: 0;
 }
+
+
+/* ==========================================================
+   PERFORMANCE + PREMIUM INTERACTION POLISH
+========================================================== */
+
+::selection {
+  background: rgba(221, 174, 211, .35);
+  color: var(--navy);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+img {
+  content-visibility: auto;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

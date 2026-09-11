@@ -388,6 +388,7 @@ class DashboardService {
       {
         $match: {
           paymentStatus: "Paid",
+          orderStatus: "Delivered",
         },
       },
       {
