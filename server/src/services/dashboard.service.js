@@ -194,7 +194,7 @@ class DashboardService {
 ) {
     const stats = await Order.aggregate([
       {
-        $match: filter,
+        $match: { ...filter, isDeleted: { $ne: true } },
       },
 
       {
@@ -367,7 +367,7 @@ class DashboardService {
   limit = 10,
   filter = {}
 ) {
-    return Order.find(filter)
+    return Order.find({ ...filter, isDeleted: { $ne: true } })
       .populate(
         "customer",
         "name email"
@@ -427,6 +427,10 @@ class DashboardService {
     async getTopSellingProducts(limit = 10) {
 
     return Order.aggregate([
+
+      {
+        $match: { isDeleted: { $ne: true }, paymentStatus: "Paid", orderStatus: "Delivered" },
+      },
 
       {
         $unwind: "$items",

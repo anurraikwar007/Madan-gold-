@@ -35,7 +35,7 @@ const initialForm = {
   discountValue: "",
   minimumOrderAmount: "0",
   maximumDiscount: "0",
-  usageLimit: "",
+  usageLimit: "1",
   validFrom: "",
   validTill: "",
   isActive: true,
@@ -73,27 +73,23 @@ export default function AdminCoupons() {
   const [imageUploading, setImageUploading] =
     useState(false);
 
-  const load =  useCallback(async () => {
+  const load = useCallback(async (searchValue = search) => {
     setLoading(true);
 
     try {
-      const response =
-        await getAdminCoupons({
-          page: 1,
-          limit: 100,
-          search,
-        });
+      const response = await getAdminCoupons({
+        page: 1,
+        limit: 100,
+        search: String(searchValue || "").trim(),
+      });
 
-      const data =
-        response?.data?.data;
+      const root = response?.data || {};
+      const data = root?.data ?? root;
+      const list = Array.isArray(data)
+        ? data
+        : data?.docs || data?.coupons || data?.items || data?.results || [];
 
-      setCoupons(
-        data?.docs ||
-          data?.coupons ||
-          (Array.isArray(data)
-            ? data
-            : [])
-      );
+      setCoupons(Array.isArray(list) ? list : []);
     } catch (error) {
       console.error(
         "Coupons load failed:",
@@ -228,7 +224,7 @@ export default function AdminCoupons() {
         coupon.maximumDiscount ??
         0,
       usageLimit:
-        coupon.usageLimit ?? "",
+        coupon.usageLimit ?? 1,
       validFrom:
         formatDateForInput(
           coupon.validFrom
@@ -296,11 +292,7 @@ export default function AdminCoupons() {
           ) || 0,
 
         usageLimit:
-          form.usageLimit === ""
-            ? null
-            : Number(
-                form.usageLimit
-              ),
+          Math.max(1, Number(form.usageLimit) || 1),
 
         validFrom: form.validFrom
           ? new Date(
@@ -317,27 +309,35 @@ export default function AdminCoupons() {
         isActive: form.isActive,
       };
 
+      let savedResponse;
+
       if (editing) {
-        await updateAdminCoupon(
-          editing._id,
-          payload
-        );
+        savedResponse = await updateAdminCoupon(editing._id, payload);
       } else {
-        await createAdminCoupon(
-          payload
-        );
+        savedResponse = await createAdminCoupon(payload);
       }
+
+      const savedCoupon = savedResponse?.data?.data?.coupon || savedResponse?.data?.data;
 
       setOpen(false);
       setEditing(null);
       setForm(initialForm);
+      setSelectedImage(null);
 
-      await load();
+      // Never leave a previous search hiding the newly saved coupon.
+      if (search) setSearch("");
+
+      if (savedCoupon?._id) {
+        setCoupons((prev) => {
+          const withoutSaved = prev.filter((item) => item?._id !== savedCoupon._id);
+          return [savedCoupon, ...withoutSaved];
+        });
+      }
+
+      await load("");
     } catch (error) {
-      console.error(
-        "Coupon save failed:",
-        error
-      );
+      console.error("Coupon save failed:", error);
+      alert(error?.response?.data?.message || error?.message || "Coupon save failed. Please check the dates, discount and coupon code.");
     } finally {
       setSaving(false);
     }

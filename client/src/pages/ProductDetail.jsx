@@ -1,7 +1,8 @@
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useProducts } from "../context/ProductContext";
+import { getProductById } from "../api/product.api";
 
 import Loader from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
@@ -14,31 +15,64 @@ import RelatedProducts from "../components/product/RelatedProducts";
 const ProductDetail = () => {
   const { id } = useParams();
 
-  const {
-    products,
-    loading,
-    refreshProducts,
-  } = useProducts();
+  const { products } = useProducts();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (products.length === 0) {
-      refreshProducts?.();
+    let cancelled = false;
+
+    const loadProduct = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        // Always fetch the detail endpoint. The catalog is paginated and may
+        // not contain the product (or all of its image data).
+        const response = await getProductById(id);
+        const data = response?.data?.data?.product || response?.data?.data;
+
+        if (!data) throw new Error("Product not found.");
+
+        if (!cancelled) setProduct(data);
+      } catch (err) {
+        // Keep a catalog fallback for older deployments.
+        const fallback = products.find(
+          (item) => String(item?._id || item?.id) === String(id)
+        );
+
+        if (!cancelled) {
+          if (fallback) {
+            setProduct(fallback);
+          } else {
+            setProduct(null);
+            setError(err?.response?.data?.message || err?.message || "Product not found.");
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    if (id) loadProduct();
+    else {
+      setProduct(null);
+      setLoading(false);
     }
-  }, [products.length, refreshProducts]);
+
+    return () => { cancelled = true; };
+  }, [id, products]);
 
   if (loading) {
     return <Loader />;
   }
 
-  const product = products.find(
-    (item) => item._id === id
-  );
-
   if (!product) {
     return (
       <EmptyState
         title="Product Not Found"
-        subtitle="The requested product does not exist."
+        subtitle={error || "The requested product does not exist."}
       />
     );
   }

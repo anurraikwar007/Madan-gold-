@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import {
   Heart,
   ShoppingBag,
@@ -8,6 +10,7 @@ import {
 import { useCart } from "../../context/CartContext";
 
 const ProductInfo = ({ product }) => {
+  const [wishlistBusy, setWishlistBusy] = useState(false);
   const {
     addToCart,
     toggleWishlist,
@@ -16,8 +19,8 @@ const ProductInfo = ({ product }) => {
 
   const isWishlisted = wishlist.some(
     (item) =>
-      (item._id || item.id) ===
-      (product._id || product.id)
+      String(item._id || item.id) ===
+      String(product._id || product.id)
   );
 
   const basePrice =
@@ -257,9 +260,12 @@ const ProductInfo = ({ product }) => {
 
         <button
           type="button"
-          onClick={() =>
-            toggleWishlist(product)
-          }
+          onClick={async () => {
+            if (wishlistBusy) return;
+            setWishlistBusy(true);
+            try { await toggleWishlist(product); } finally { setWishlistBusy(false); }
+          }}
+          disabled={wishlistBusy}
           aria-label={
             isWishlisted
               ? "Remove from wishlist"

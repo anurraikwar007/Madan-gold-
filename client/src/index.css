@@ -1595,3 +1595,13 @@ textarea {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* V3 performance + interaction utilities */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+.product-image { content-visibility: auto; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

@@ -23,7 +23,7 @@ import madanLogo from "../../assets/logo/icon_Madan.png";
 
 
 const Navbar = () => {
-  const { cartCount = 0, wishlist = [] } = useCart();
+  const { cartCount = 0, wishlist = [], openCartDrawer } = useCart();
   const { user, logout } = useAuth();
   const {
     query,
@@ -113,6 +113,13 @@ const navigate = useNavigate();
   }, [mobileOpen]);
 
   const navActive = (path) => location.pathname === path;
+
+  // Any SPA navigation should close the hamburger automatically.
+  useEffect(() => {
+    setMobileOpen(false);
+    setShopOpen(false);
+    setSuggestionOpen(false);
+  }, [location.pathname, location.search]);
 
   return (
     <>
@@ -443,8 +450,7 @@ const navigate = useNavigate();
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Desktop search */}
               <div className="hidden xl:block">
-                <div className="relative"
-                  className="
+                <div className="relative
                     flex
                     h-10
                     w-[190px]
@@ -567,25 +573,11 @@ const navigate = useNavigate();
               </Link>
 
               {/* Cart */}
-              <Link
-                to="/cart"
-                className="
-                  relative
-                  flex
-                  h-9
-                  w-9
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-[#8f5361]/10
-                  bg-white/75
-                  text-[#213C51]
-                  transition-all
-                  hover:text-[#6594B1]
-                  sm:h-10
-                  sm:w-10
-                "
+              <button
+                type="button"
+                onClick={openCartDrawer}
+                aria-label="Open shopping bag"
+                className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#8f5361]/10 bg-white/75 text-[#213C51] transition-all hover:text-[#6594B1] sm:h-10 sm:w-10"
               >
                 <ShoppingBag size={16} strokeWidth={1.6} />
 
@@ -611,7 +603,7 @@ const navigate = useNavigate();
                     {cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
 
               {/* Desktop account */}
               {user ? (
@@ -630,6 +622,7 @@ const navigate = useNavigate();
               ) : (
                 <Link
                   to="/login"
+                  onClick={() => setMobileOpen(false)}
                   className="
                     hidden
                     h-10
@@ -894,6 +887,7 @@ const navigate = useNavigate();
               ) : (
                 <Link
                   to="/login"
+                  onClick={() => setMobileOpen(false)}
                   className="
                     flex
                     items-center

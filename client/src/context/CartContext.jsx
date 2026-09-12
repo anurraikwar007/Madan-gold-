@@ -20,6 +20,7 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cartOpen, setCartOpen] = useState(false);
 
   const { user, loading: authLoading } =
     useAuth();
@@ -150,7 +151,8 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (
     product,
-    qty = 1
+    qty = 1,
+    options = {}
   ) => {
     try {
       await CartAPI.addToCart(
@@ -161,6 +163,7 @@ export const CartProvider = ({ children }) => {
       await loadCart();
 
       toast.success("Added To Cart");
+      if (options?.openDrawer) setCartOpen(true);
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
@@ -217,7 +220,7 @@ export const CartProvider = ({ children }) => {
       WISHLIST
   =========================== */
 
-      const toggleWishlist = async (product) => {
+  const toggleWishlist = async (product) => {
       const productId =
         product?._id || product?.id;
 
@@ -226,9 +229,19 @@ export const CartProvider = ({ children }) => {
         return;
       }
 
+      if (authLoading) {
+        toast("Checking your account…");
+        return;
+      }
+
+      if (user?.role !== "Customer") {
+        toast.error("Please login to use your wishlist.");
+        return;
+      }
+
       const exists = wishlist.some(
         (item) =>
-          (item?._id || item?.id) === productId
+          String(item?._id || item?.id) === String(productId)
       );
 
       try {
@@ -352,6 +365,9 @@ const addToWishlist = toggleWishlist;
 
         cartCount,
         subtotal,
+        cartOpen,
+        openCartDrawer: () => setCartOpen(true),
+        closeCartDrawer: () => setCartOpen(false),
       }}
     >
       {children}

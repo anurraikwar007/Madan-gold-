@@ -75,7 +75,7 @@ class OrderRepository extends BaseRepository {
  
   async recent(limit = 10) {
 
-    return this.model.find()
+    return this.model.find({ isDeleted: { $ne: true } })
 
         .populate("customer")
 

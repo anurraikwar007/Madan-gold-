@@ -176,23 +176,20 @@ export const deleteAdminCoupon = (
     `/admin/coupons/${id}`
   );
   
-  export const uploadAdminCouponImage = (
-  file
-) => {
+  export const uploadAdminCouponImage = async (file) => {
   const formData = new FormData();
-
-  formData.append("image", file);
-
-  return api.post(
-    "/admin/coupons/upload-image",
-    formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data",
-      },
-    }
-  );
+  formData.append("image", file, file.name);
+  const token = localStorage.getItem("token");
+  const apiBase = (import.meta.env.VITE_API_URL || "/api/v1").replace(/\/$/, "");
+  const response = await fetch(`${apiBase}/admin/coupons/upload-image`, {
+    method: "POST",
+    body: formData,
+    credentials: "include",
+    headers: { Accept: "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  let data = null; try { data = await response.json(); } catch {}
+  if (!response.ok) { const error = new Error(data?.message || data?.errors?.join?.(", ") || "Coupon image upload failed."); error.response = { status: response.status, data }; throw error; }
+  return { data };
 };
 
 // =====================================================
