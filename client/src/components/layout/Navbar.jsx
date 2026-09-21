@@ -449,8 +449,7 @@ const navigate = useNavigate();
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Desktop search */}
-              <div className="hidden xl:block">
-                <div className="relative
+              <div className="hidden xl:block relative
                     flex
                     h-10
                     w-[190px]
