@@ -244,6 +244,23 @@ export default function AdminCoupons() {
   const save = async (event) => {
     event.preventDefault();
 
+    const discountType = form.discountType === "flat" ? "Flat" : form.discountType;
+    const discountValue = Number(form.discountValue);
+
+    if (!Number.isFinite(discountValue) || discountValue <= 0) {
+      alert(
+        discountType === "Percentage"
+          ? "Percentage discount must be between 1 and 100."
+          : "Flat discount must be greater than 0."
+      );
+      return;
+    }
+
+    if (discountType === "Percentage" && discountValue > 100) {
+      alert("Percentage discount must be between 1 and 100.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -273,13 +290,9 @@ export default function AdminCoupons() {
           alt: "",
         },
 
-        discountType:
-          form.discountType,
+        discountType,
 
-        discountValue:
-          Number(
-            form.discountValue
-          ) || 0,
+        discountValue,
 
         minimumOrderAmount:
           Number(

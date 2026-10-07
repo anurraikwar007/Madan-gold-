@@ -117,12 +117,6 @@ router.use(
   roleMiddleware("Admin","SuperAdmin")
 );
 
-router.use((req, res, next) => {
-  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-  res.removeHeader("ETag");
-  next();
-});
-
 router.use(
   "/customers",
   adminCustomerRoutes
@@ -162,7 +156,7 @@ router.post(
   "/products/upload-images",
   authMiddleware,
   roleMiddleware("Admin", "SuperAdmin"),
-  multipleUpload("images", 10),
+  multipleUpload("images", 3),
   uploadErrorHandler,
   ProductController.uploadImages
 );
@@ -213,11 +207,6 @@ router.get(
     validate(updateProductSchema),
     ProductController.update
   );
-
-router.patch(
-  "/products/:id/toggle-active",
-  ProductController.toggleActive
-);
 
  router.patch(
   "/categories/:id/toggle-active",

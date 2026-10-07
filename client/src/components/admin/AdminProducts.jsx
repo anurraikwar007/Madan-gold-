@@ -40,8 +40,6 @@ import {
   AdminCard,
 } from "./AdminUI";
 
-const MAX_PRODUCT_IMAGES = 10;
-
 const initialForm = {
   name: "",
   description: "",
@@ -79,6 +77,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const MAX_PRODUCT_IMAGES = 3;
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [, setPage] = useState(1);
   
@@ -254,36 +253,16 @@ export default function AdminProducts() {
   };
 
   const handleFiles = (event) => {
-    const input = event.target;
-    const files = Array.from(input.files || []);
+    const files = Array.from(event.target.files || []);
     const existingCount = Array.isArray(form.images) ? form.images.length : 0;
     const remaining = MAX_PRODUCT_IMAGES - existingCount;
 
-    if (!files.length) return;
-
     if (files.length > remaining) {
-      toast.error(
-        `You can select only ${remaining} more image${remaining === 1 ? "" : "s"}. Maximum ${MAX_PRODUCT_IMAGES} images per product.`
+      event.target.value = "";
+      setSelectedFiles([]);
+      alert(
+        `Maximum ${MAX_PRODUCT_IMAGES} images are allowed per product. You already have ${existingCount} image${existingCount === 1 ? "" : "s"}. You can select only ${Math.max(remaining, 0)} more.`
       );
-      input.value = "";
-      return;
-    }
-
-    const invalid = files.find((file) =>
-      !["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type)
-    );
-
-    if (invalid) {
-      toast.error("Only JPG, JPEG, PNG and WEBP images are allowed.");
-      input.value = "";
-      return;
-    }
-
-    const oversized = files.find((file) => file.size > 5 * 1024 * 1024);
-
-    if (oversized) {
-      toast.error("Each product image must be 5 MB or smaller.");
-      input.value = "";
       return;
     }
 
@@ -293,16 +272,17 @@ export default function AdminProducts() {
   const save = async (event) => {
     event.preventDefault();
 
+    const existingImages = Array.isArray(form.images) ? form.images : [];
+
+    if (existingImages.length + selectedFiles.length > MAX_PRODUCT_IMAGES) {
+      alert(`Maximum ${MAX_PRODUCT_IMAGES} images are allowed per product. Please remove extra images before uploading.`);
+      return;
+    }
+
     setSaving(true);
 
     try {
-      let images = form.images || [];
-
-      const totalImageCount = images.length + selectedFiles.length;
-
-      if (totalImageCount > MAX_PRODUCT_IMAGES) {
-        throw new Error(`A product can have maximum ${MAX_PRODUCT_IMAGES} images.`);
-      }
+      let images = existingImages;
 
       if (selectedFiles.length) {
         toast.loading("Uploading product images…", { id: "product-image-upload" });
@@ -327,10 +307,6 @@ export default function AdminProducts() {
           ...images,
           ...uploaded,
         ];
-      }
-
-      if (images.length > MAX_PRODUCT_IMAGES) {
-        throw new Error(`A product can have maximum ${MAX_PRODUCT_IMAGES} images.`);
       }
 
       if (!images.length) {
@@ -744,10 +720,19 @@ if (
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full  min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[56px]" />
+              <col className="w-[36%]" />
+              <col className="w-[16%]" />
+              <col className="w-[13%]" />
+              <col className="w-[11%]" />
+              <col className="w-[11%]" />
+              <col className="w-[120px]" />
+            </colgroup>
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
-                  <th className="w-12 px-5 py-4">
+                  <th className="w-12 px-5 py-4 align-middle">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
@@ -763,27 +748,27 @@ if (
                   </button>
                 </th>
 
-                <th className="px-5 py-4">
+                <th className="px-5 py-4 text-left align-middle">
                   Product
                 </th>
 
-                <th className="px-5 py-4">
+                <th className="px-5 py-4 text-left align-middle">
                   Category
                 </th>
 
-                <th className="px-5 py-4">
+                <th className="px-5 py-4 text-left align-middle">
                   Price
                 </th>
 
-                <th className="px-5 py-4">
+                <th className="px-5 py-4 text-left align-middle">
                   Stock
                 </th>
 
-                <th className="px-5 py-4">
+                <th className="px-5 py-4 text-left align-middle">
                   Status
                 </th>
 
-                <th className="px-5 py-4 text-right">
+                <th className="px-5 py-4 text-right align-middle">
                   Actions
                 </th>
               </tr>
@@ -806,14 +791,14 @@ if (
                       key={
                         product._id
                       }
-                      className="border-t border-slate-100"
+                      className="border-t border-slate-100 align-middle"
                     >
                       <td className="w-12 px-5 py-4 align-middle">
                         <button
                           type="button"
                           onClick={() => toggleSelected(product._id)}
                           className="text-[#8B6A48]"
-                          aria-label={selectedIds.includes(product._id) ? "Deselect product" : "Select product"}
+                          aria-label={`Select ${product.name}`}
                         >
                           {selectedIds.includes(product._id) ? (
                             <CheckSquare size={18} />
@@ -824,7 +809,7 @@ if (
                       </td>
 
                       <td className="px-5 py-4 align-middle">
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
                           {product.images
                             ?.length ? (
                             <img
@@ -850,8 +835,8 @@ if (
                             </div>
                           )}
 
-                          <div>
-                            <p className="font-semibold text-slate-800">
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-slate-800">
                               {
                                 product.name
                               }
@@ -865,12 +850,12 @@ if (
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 align-middle text-slate-600">
                         {product.category ||
                           "—"}
                       </td>
 
-                      <td className="px-5 py-4 font-semibold text-slate-800">
+                      <td className="px-5 py-4 align-middle font-semibold text-slate-800">
                         ₹
                         {Number(
                           product.price ||
@@ -880,7 +865,7 @@ if (
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 align-middle text-slate-600">
                         {product.inventory
                           ?.availableStock ??
                           product.inventory
@@ -889,7 +874,7 @@ if (
                       </td>
 
                       
-                       <td className="px-5 py-4">
+                       <td className="px-5 py-4 align-middle">
                         <AdminToggle
                           checked={product.isActive !== false}
                           label
@@ -932,7 +917,7 @@ if (
                         />
                       </td>
 
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-4 align-middle">
                         <div className="flex justify-end gap-2">
                           <AdminButton
                             variant="soft"
@@ -1227,26 +1212,29 @@ if (
           />
 
           <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Product Images
+            </label>
+
             <div className="mb-2 flex items-center justify-between gap-3">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Product Images
-              </label>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                {Math.min(MAX_PRODUCT_IMAGES, (form.images?.length || 0) + selectedFiles.length)} / {MAX_PRODUCT_IMAGES} images
+              <p className="text-xs font-semibold text-slate-600">
+                Select up to {MAX_PRODUCT_IMAGES} images per product.
+              </p>
+              <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                ((form.images?.length || 0) + selectedFiles.length) >= MAX_PRODUCT_IMAGES
+                  ? "bg-amber-50 text-amber-700"
+                  : "bg-slate-100 text-slate-600"
+              }`}>
+                {(form.images?.length || 0) + selectedFiles.length} / {MAX_PRODUCT_IMAGES}
               </span>
             </div>
 
-            <p className="mb-2 text-xs text-slate-500">
-              Maximum {MAX_PRODUCT_IMAGES} images per product. JPG, JPEG, PNG or WEBP • max 5 MB each.
-            </p>
-
             <input
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp"
               multiple
-              disabled={(form.images?.length || 0) >= MAX_PRODUCT_IMAGES}
               onChange={handleFiles}
-              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm"
             />
 
             {selectedFiles.length > 0 && (

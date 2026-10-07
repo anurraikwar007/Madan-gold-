@@ -520,31 +520,31 @@ async confirmInventory(
       outOfStockProducts,
     ] = await Promise.all([
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
         isActive: true,
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
         isActive: false,
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
         featured: true,
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
         bestseller: true,
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
 
         $expr: {
           $lte: [
@@ -555,7 +555,7 @@ async confirmInventory(
       }),
 
       Product.countDocuments({
-        isDeleted: false,
+        isDeleted: { $ne: true },
         "inventory.availableStock": 0,
       }),
     ]);

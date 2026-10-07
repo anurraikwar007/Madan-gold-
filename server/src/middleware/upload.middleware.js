@@ -115,7 +115,7 @@ export const singleUpload = (fieldName = "image") =>
 // Multiple Images Upload
 export const multipleUpload = (
   fieldName = "images",
-  maxCount = 10
+  maxCount = 3
 ) =>
   upload.array(
     fieldName,

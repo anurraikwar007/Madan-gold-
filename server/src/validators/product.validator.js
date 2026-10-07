@@ -187,12 +187,7 @@ export const updateProductSchema = {
 
    inventory: updateInventorySchema,
 
-    images: Joi.array()
-      .items(imageSchema)
-      .max(10)
-      .messages({
-        "array.max": "A product can have maximum 10 images.",
-      }),
+    images: Joi.array().items(imageSchema),
 
     seoTitle: Joi.string(),
 

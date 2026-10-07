@@ -8,6 +8,11 @@ import CartRepository from "../repositories/cart.repository.js";
 export const createCoupon = async (
   payload
 ) => {
+  payload = {
+    ...payload,
+    discountType: payload.discountType === "flat" ? "Flat" : payload.discountType,
+    discountValue: Number(payload.discountValue),
+  };
 
   // ------------------------------------------
   // Duplicate Code Check
@@ -171,19 +176,17 @@ async (code) => {
         isActive === "true";
     }
 
-    return CouponRepository.paginate({
+    return CouponRepository.paginate(
       filter,
-
-      page: Number(page),
-
-      limit: Number(limit),
-
-      sort: {
-        createdAt: -1,
-      },
-
-      lean: true,
-    });
+      {
+        page: Number(page),
+        limit: Number(limit),
+        sort: {
+          createdAt: -1,
+        },
+        lean: true,
+      }
+    );
   };
 
   // ======================================================
@@ -260,6 +263,15 @@ async (
   couponId,
   payload
 ) => {
+  payload = {
+    ...payload,
+    ...(payload.discountType !== undefined
+      ? { discountType: payload.discountType === "flat" ? "Flat" : payload.discountType }
+      : {}),
+    ...(payload.discountValue !== undefined
+      ? { discountValue: Number(payload.discountValue) }
+      : {}),
+  };
 
   const coupon =
   await CouponRepository.findOne({

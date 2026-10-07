@@ -41,8 +41,6 @@ class ProductController {
   // Get All Products
   getAll = asyncHandler(async (req, res) => {
     const data = await getAllProducts(req.query);
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
-    res.removeHeader("ETag");
      
     return res.status(200).json(
       apiResponse.success(
@@ -222,16 +220,18 @@ customerProductBySlug = asyncHandler(
   uploadImages = asyncHandler(async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
 
-  if (files.length > 10) {
-    return res.status(400).json(
-      apiResponse.error("A maximum of 10 product images can be uploaded at once.")
-    );
-  }
-
   if (!files.length) {
     return res.status(400).json(
       apiResponse.error(
-        "No product images were received. Please select JPG, JPEG, PNG or WEBP files and try again."
+        "No product images were received. Please select JPG, JPEG or WEBP files and try again."
+      )
+    );
+  }
+
+  if (files.length > 3) {
+    return res.status(400).json(
+      apiResponse.error(
+        "Maximum 3 images are allowed per product. Upload was stopped before processing the product."
       )
     );
   }

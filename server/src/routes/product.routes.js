@@ -64,7 +64,7 @@ router.post(
   "/upload-images",
   authMiddleware,
   roleMiddleware("Admin", "SuperAdmin"),
-  multipleUpload("images", 10),
+  multipleUpload("images", 3),
   uploadErrorHandler,
   ProductController.uploadImages
 );
