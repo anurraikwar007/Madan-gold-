@@ -40,6 +40,8 @@ import {
   AdminCard,
 } from "./AdminUI";
 
+const MAX_PRODUCT_IMAGES = 10;
+
 const initialForm = {
   name: "",
   description: "",
@@ -252,11 +254,40 @@ export default function AdminProducts() {
   };
 
   const handleFiles = (event) => {
-    setSelectedFiles(
-      Array.from(
-        event.target.files || []
-      )
+    const input = event.target;
+    const files = Array.from(input.files || []);
+    const existingCount = Array.isArray(form.images) ? form.images.length : 0;
+    const remaining = MAX_PRODUCT_IMAGES - existingCount;
+
+    if (!files.length) return;
+
+    if (files.length > remaining) {
+      toast.error(
+        `You can select only ${remaining} more image${remaining === 1 ? "" : "s"}. Maximum ${MAX_PRODUCT_IMAGES} images per product.`
+      );
+      input.value = "";
+      return;
+    }
+
+    const invalid = files.find((file) =>
+      !["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type)
     );
+
+    if (invalid) {
+      toast.error("Only JPG, JPEG, PNG and WEBP images are allowed.");
+      input.value = "";
+      return;
+    }
+
+    const oversized = files.find((file) => file.size > 5 * 1024 * 1024);
+
+    if (oversized) {
+      toast.error("Each product image must be 5 MB or smaller.");
+      input.value = "";
+      return;
+    }
+
+    setSelectedFiles(files);
   };
 
   const save = async (event) => {
@@ -266,6 +297,12 @@ export default function AdminProducts() {
 
     try {
       let images = form.images || [];
+
+      const totalImageCount = images.length + selectedFiles.length;
+
+      if (totalImageCount > MAX_PRODUCT_IMAGES) {
+        throw new Error(`A product can have maximum ${MAX_PRODUCT_IMAGES} images.`);
+      }
 
       if (selectedFiles.length) {
         toast.loading("Uploading product images…", { id: "product-image-upload" });
@@ -290,6 +327,10 @@ export default function AdminProducts() {
           ...images,
           ...uploaded,
         ];
+      }
+
+      if (images.length > MAX_PRODUCT_IMAGES) {
+        throw new Error(`A product can have maximum ${MAX_PRODUCT_IMAGES} images.`);
       }
 
       if (!images.length) {
@@ -767,7 +808,22 @@ if (
                       }
                       className="border-t border-slate-100"
                     >
-                      <td className="px-5 py-4">
+                      <td className="w-12 px-5 py-4 align-middle">
+                        <button
+                          type="button"
+                          onClick={() => toggleSelected(product._id)}
+                          className="text-[#8B6A48]"
+                          aria-label={selectedIds.includes(product._id) ? "Deselect product" : "Select product"}
+                        >
+                          {selectedIds.includes(product._id) ? (
+                            <CheckSquare size={18} />
+                          ) : (
+                            <Square size={18} />
+                          )}
+                        </button>
+                      </td>
+
+                      <td className="px-5 py-4 align-middle">
                         <div className="flex items-center gap-3">
                           {product.images
                             ?.length ? (
@@ -911,7 +967,7 @@ if (
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="px-5 py-12 text-center text-slate-400"
                   >
                     No products found.
@@ -1171,18 +1227,26 @@ if (
           />
 
           <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Product Images
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Product Images
+              </label>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                {Math.min(MAX_PRODUCT_IMAGES, (form.images?.length || 0) + selectedFiles.length)} / {MAX_PRODUCT_IMAGES} images
+              </span>
+            </div>
+
+            <p className="mb-2 text-xs text-slate-500">
+              Maximum {MAX_PRODUCT_IMAGES} images per product. JPG, JPEG, PNG or WEBP • max 5 MB each.
+            </p>
 
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
               multiple
-              onChange={
-                handleFiles
-              }
-              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm"
+              disabled={(form.images?.length || 0) >= MAX_PRODUCT_IMAGES}
+              onChange={handleFiles}
+              className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60"
             />
 
             {selectedFiles.length > 0 && (

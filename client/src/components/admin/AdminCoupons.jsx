@@ -618,7 +618,7 @@ export default function AdminCoupons() {
                 Percentage
               </option>
 
-              <option value="flat">
+              <option value="Flat">
                 Flat Amount
               </option>
             </AdminSelect>

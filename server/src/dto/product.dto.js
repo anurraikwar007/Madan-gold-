@@ -117,10 +117,13 @@ export class ProductDTO {
         ),
     },
 
-    images:
-      Array.isArray(data.images)
-        ? data.images
-        : [],
+    images: (() => {
+      const images = Array.isArray(data.images) ? data.images : [];
+      if (images.length > 10) {
+        throw new Error("A product can have maximum 10 images.");
+      }
+      return images;
+    })(),
    };
  }
 

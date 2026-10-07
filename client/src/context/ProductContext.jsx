@@ -26,7 +26,7 @@ export const ProductProvider = ({ children }) => {
       const response =
         await ProductAPI.getProducts({
           page: 1,
-          limit: 50,
+          limit: 24,
         });
 
       const data =

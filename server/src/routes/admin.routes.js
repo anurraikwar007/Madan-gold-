@@ -117,6 +117,12 @@ router.use(
   roleMiddleware("Admin","SuperAdmin")
 );
 
+router.use((req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  res.removeHeader("ETag");
+  next();
+});
+
 router.use(
   "/customers",
   adminCustomerRoutes
@@ -207,6 +213,11 @@ router.get(
     validate(updateProductSchema),
     ProductController.update
   );
+
+router.patch(
+  "/products/:id/toggle-active",
+  ProductController.toggleActive
+);
 
  router.patch(
   "/categories/:id/toggle-active",
