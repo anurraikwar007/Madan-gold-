@@ -721,18 +721,9 @@ if (
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
-            <colgroup>
-              <col className="w-[56px]" />
-              <col className="w-[36%]" />
-              <col className="w-[16%]" />
-              <col className="w-[13%]" />
-              <col className="w-[11%]" />
-              <col className="w-[11%]" />
-              <col className="w-[120px]" />
-            </colgroup>
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
-                  <th className="w-12 px-5 py-4 align-middle">
+                  <th className="w-[56px] px-4 py-4">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
@@ -748,27 +739,27 @@ if (
                   </button>
                 </th>
 
-                <th className="px-5 py-4 text-left align-middle">
+                <th className="w-[34%] px-5 py-4">
                   Product
                 </th>
 
-                <th className="px-5 py-4 text-left align-middle">
+                <th className="w-[16%] px-5 py-4">
                   Category
                 </th>
 
-                <th className="px-5 py-4 text-left align-middle">
+                <th className="w-[12%] px-5 py-4">
                   Price
                 </th>
 
-                <th className="px-5 py-4 text-left align-middle">
+                <th className="w-[12%] px-5 py-4">
                   Stock
                 </th>
 
-                <th className="px-5 py-4 text-left align-middle">
+                <th className="w-[12%] px-5 py-4">
                   Status
                 </th>
 
-                <th className="px-5 py-4 text-right align-middle">
+                <th className="w-[14%] px-5 py-4 text-right">
                   Actions
                 </th>
               </tr>
@@ -791,9 +782,9 @@ if (
                       key={
                         product._id
                       }
-                      className="border-t border-slate-100 align-middle"
+                      className="border-t border-slate-100"
                     >
-                      <td className="w-12 px-5 py-4 align-middle">
+                      <td className="w-[56px] px-4 py-4 align-middle">
                         <button
                           type="button"
                           onClick={() => toggleSelected(product._id)}
@@ -835,8 +826,8 @@ if (
                             </div>
                           )}
 
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-slate-800">
+                          <div>
+                            <p className="font-semibold text-slate-800">
                               {
                                 product.name
                               }
@@ -851,11 +842,13 @@ if (
                       </td>
 
                       <td className="px-5 py-4 align-middle text-slate-600">
+                        <div className="truncate">
                         {product.category ||
                           "—"}
+                        </div>
                       </td>
 
-                      <td className="px-5 py-4 align-middle font-semibold text-slate-800">
+                      <td className="px-5 py-4 font-semibold text-slate-800">
                         ₹
                         {Number(
                           product.price ||
@@ -865,7 +858,7 @@ if (
                         )}
                       </td>
 
-                      <td className="px-5 py-4 align-middle text-slate-600">
+                      <td className="px-5 py-4 text-slate-600">
                         {product.inventory
                           ?.availableStock ??
                           product.inventory
@@ -874,7 +867,7 @@ if (
                       </td>
 
                       
-                       <td className="px-5 py-4 align-middle">
+                       <td className="px-5 py-4">
                         <AdminToggle
                           checked={product.isActive !== false}
                           label
@@ -917,7 +910,7 @@ if (
                         />
                       </td>
 
-                      <td className="px-5 py-4 align-middle">
+                      <td className="px-5 py-4">
                         <div className="flex justify-end gap-2">
                           <AdminButton
                             variant="soft"
@@ -952,7 +945,7 @@ if (
               ) : (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="px-5 py-12 text-center text-slate-400"
                   >
                     No products found.
