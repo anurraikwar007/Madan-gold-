@@ -499,7 +499,6 @@ const navigate = useNavigate();
                     </div>
                   )}
                 </div>
-              </div>
 
               {/* Mobile search */}
               <button
