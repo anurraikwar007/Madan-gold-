@@ -743,15 +743,15 @@ if (
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] table-fixed border-separate border-spacing-0 text-left text-sm">
+          <table className="w-full min-w-[1240px] table-fixed border-separate border-spacing-0 text-left text-sm" style={{ tableLayout: "fixed" }}>
             <colgroup>
-              <col className="w-[56px]" />
-              <col className="w-[320px]" />
-              <col className="w-[190px]" />
-              <col className="w-[135px]" />
-              <col className="w-[120px]" />
-              <col className="w-[165px]" />
-              <col className="w-[180px]" />
+              <col style={{ width: "56px" }} />
+              <col style={{ width: "320px" }} />
+              <col style={{ width: "190px" }} />
+              <col style={{ width: "135px" }} />
+              <col style={{ width: "120px" }} />
+              <col style={{ width: "165px" }} />
+              <col style={{ width: "180px" }} />
             </colgroup>
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
@@ -858,8 +858,8 @@ if (
                             </div>
                           )}
 
-                          <div>
-                            <p className="font-semibold text-slate-800">
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-slate-800" title={product.name}>
                               {
                                 product.name
                               }
@@ -873,8 +873,8 @@ if (
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 align-middle text-slate-600">
-                        <div className="truncate max-w-full">
+                      <td className="px-5 py-4 align-middle text-slate-600 overflow-hidden">
+                        <div className="truncate max-w-full" title={product.category || "—"}>
                         {product.category ||
                           "—"}
                         </div>
