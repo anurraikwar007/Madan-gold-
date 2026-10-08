@@ -8,12 +8,19 @@ import CartRepository from "../repositories/cart.repository.js";
 export const createCoupon = async (
   payload
 ) => {
+  const normalizedDiscountType =
+    String(payload.discountType || "").trim().toLowerCase() === "flat"
+      ? "Flat"
+      : String(payload.discountType || "").trim().toLowerCase() === "percentage"
+        ? "Percentage"
+        : payload.discountType;
+
   payload = {
     ...payload,
-    discountType: payload.discountType === "flat" ? "Flat" : payload.discountType,
+    discountType: normalizedDiscountType,
     discountValue: Number(payload.discountValue),
     maximumDiscount:
-      payload.discountType === "Flat"
+      normalizedDiscountType === "Flat"
         ? 0
         : Number(payload.maximumDiscount) || 0,
   };
@@ -267,15 +274,24 @@ async (
   couponId,
   payload
 ) => {
+  const normalizedDiscountType =
+    payload.discountType !== undefined
+      ? String(payload.discountType).trim().toLowerCase() === "flat"
+        ? "Flat"
+        : String(payload.discountType).trim().toLowerCase() === "percentage"
+          ? "Percentage"
+          : payload.discountType
+      : undefined;
+
   payload = {
     ...payload,
-    ...(payload.discountType !== undefined
-      ? { discountType: payload.discountType === "flat" ? "Flat" : payload.discountType }
+    ...(normalizedDiscountType !== undefined
+      ? { discountType: normalizedDiscountType }
       : {}),
     ...(payload.discountValue !== undefined
       ? { discountValue: Number(payload.discountValue) }
       : {}),
-    ...(payload.discountType === "Flat"
+    ...(normalizedDiscountType === "Flat"
       ? { maximumDiscount: 0 }
       : {}),
   };

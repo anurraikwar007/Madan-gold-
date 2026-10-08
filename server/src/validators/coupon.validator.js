@@ -30,10 +30,8 @@ export const createCouponSchema = {
       .trim()
       .custom((value, helpers) => {
         const normalized = String(value).toLowerCase();
-
         if (normalized === "percentage") return "Percentage";
         if (normalized === "flat") return "Flat";
-
         return helpers.error("any.only");
       })
       .required()
@@ -93,10 +91,8 @@ export const updateCouponSchema = {
       .trim()
       .custom((value, helpers) => {
         const normalized = String(value).toLowerCase();
-
         if (normalized === "percentage") return "Percentage";
         if (normalized === "flat") return "Flat";
-
         return helpers.error("any.only");
       })
       .messages({

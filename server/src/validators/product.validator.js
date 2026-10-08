@@ -130,7 +130,7 @@ export const createProductSchema = {
    images: Joi.array()
     .items(imageSchema)
     .min(1)
-    .max(3)
+    .max(5)
     .required()
     .messages({
       "array.min": "At least one product image is required.",

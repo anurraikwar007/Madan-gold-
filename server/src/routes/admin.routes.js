@@ -156,7 +156,7 @@ router.post(
   "/products/upload-images",
   authMiddleware,
   roleMiddleware("Admin", "SuperAdmin"),
-  multipleUpload("images", 3),
+  multipleUpload("images", 5),
   uploadErrorHandler,
   ProductController.uploadImages
 );

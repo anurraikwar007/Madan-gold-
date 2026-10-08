@@ -231,7 +231,7 @@ customerProductBySlug = asyncHandler(
   if (files.length > 3) {
     return res.status(400).json(
       apiResponse.error(
-        "Maximum 3 images are allowed per product. Upload was stopped before processing the product."
+        "Maximum 5 images are allowed per product. Upload was stopped before processing the product."
       )
     );
   }

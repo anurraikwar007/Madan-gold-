@@ -77,7 +77,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
-  const MAX_PRODUCT_IMAGES = 3;
+  const MAX_PRODUCT_IMAGES = 5;
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [togglingId, setTogglingId] = useState(null);
   const [, setPage] = useState(1);
@@ -743,7 +743,16 @@ if (
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1050px] table-auto text-left text-sm">
+          <table className="w-full min-w-[1120px] table-fixed border-separate border-spacing-0 text-left text-sm">
+            <colgroup>
+              <col className="w-[56px]" />
+              <col className="w-[320px]" />
+              <col className="w-[190px]" />
+              <col className="w-[135px]" />
+              <col className="w-[120px]" />
+              <col className="w-[165px]" />
+              <col className="w-[180px]" />
+            </colgroup>
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
                   <th className="w-[56px] px-4 py-4">
@@ -762,27 +771,27 @@ if (
                   </button>
                 </th>
 
-                <th className="min-w-[280px] px-5 py-4">
+                <th className="px-5 py-4">
                   Product
                 </th>
 
-                <th className="min-w-[150px] px-5 py-4">
+                <th className="px-5 py-4">
                   Category
                 </th>
 
-                <th className="min-w-[110px] px-5 py-4">
+                <th className="px-5 py-4">
                   Price
                 </th>
 
-                <th className="min-w-[110px] px-5 py-4">
+                <th className="px-5 py-4">
                   Stock
                 </th>
 
-                <th className="min-w-[110px] px-5 py-4">
+                <th className="px-5 py-4">
                   Status
                 </th>
 
-                <th className="min-w-[160px] px-5 py-4 text-right whitespace-nowrap">
+                <th className="px-5 py-4 text-right whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -865,7 +874,7 @@ if (
                       </td>
 
                       <td className="px-5 py-4 align-middle text-slate-600">
-                        <div className="truncate">
+                        <div className="truncate max-w-full">
                         {product.category ||
                           "—"}
                         </div>
@@ -948,8 +957,8 @@ if (
                         />
                       </td>
 
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-5 py-4 align-middle">
+                        <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                           <AdminButton
                             variant="soft"
                             onClick={() =>
@@ -1256,6 +1265,10 @@ if (
               }`}>
                 {(form.images?.length || 0) + selectedFiles.length} / {MAX_PRODUCT_IMAGES}
               </span>
+            </div>
+
+            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-800">
+              You can upload a maximum of 5 images per product. Please select only 5 images.
             </div>
 
             <input
