@@ -12,6 +12,10 @@ export const createCoupon = async (
     ...payload,
     discountType: payload.discountType === "flat" ? "Flat" : payload.discountType,
     discountValue: Number(payload.discountValue),
+    maximumDiscount:
+      payload.discountType === "Flat"
+        ? 0
+        : Number(payload.maximumDiscount) || 0,
   };
 
   // ------------------------------------------
@@ -270,6 +274,9 @@ async (
       : {}),
     ...(payload.discountValue !== undefined
       ? { discountValue: Number(payload.discountValue) }
+      : {}),
+    ...(payload.discountType === "Flat"
+      ? { maximumDiscount: 0 }
       : {}),
   };
 

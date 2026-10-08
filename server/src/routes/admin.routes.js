@@ -208,6 +208,12 @@ router.get(
     ProductController.update
   );
 
+// Toggle product visibility
+router.patch(
+  "/products/:id/toggle-active",
+  ProductController.toggleActive
+);
+
  router.patch(
   "/categories/:id/toggle-active",
   validate(categoryIdSchema),

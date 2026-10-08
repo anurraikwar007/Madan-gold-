@@ -43,7 +43,7 @@ export const toggleAdminProduct = (
   id
 ) =>
   api.patch(
-    `/products/${id}/toggle-active`
+    `/admin/products/${id}/toggle-active`
   );
 
 export const deleteAdminProduct = (

@@ -27,8 +27,19 @@ export const createCouponSchema = {
     }).optional(),
 
     discountType: Joi.string()
-      .valid("Percentage", "Flat")
-      .required(),
+      .trim()
+      .custom((value, helpers) => {
+        const normalized = String(value).toLowerCase();
+
+        if (normalized === "percentage") return "Percentage";
+        if (normalized === "flat") return "Flat";
+
+        return helpers.error("any.only");
+      })
+      .required()
+      .messages({
+        "any.only": "Discount type must be Percentage or Flat.",
+      }),
 
     discountValue: Joi.number()
       .positive()
@@ -78,7 +89,19 @@ export const updateCouponSchema = {
         .allow(""),
     }).optional(),
 
-    discountType: Joi.string().valid("Percentage", "Flat"),
+    discountType: Joi.string()
+      .trim()
+      .custom((value, helpers) => {
+        const normalized = String(value).toLowerCase();
+
+        if (normalized === "percentage") return "Percentage";
+        if (normalized === "flat") return "Flat";
+
+        return helpers.error("any.only");
+      })
+      .messages({
+        "any.only": "Discount type must be Percentage or Flat.",
+      }),
 
     discountValue: Joi.number().positive(),
 

@@ -30,6 +30,15 @@ const inventorySchema = Joi.object({
     .integer()
     .min(0)
     .default(5),
+}).custom((value, helpers) => {
+  if (value.reservedStock > value.stock) {
+    return helpers.error("inventory.reservedExceedsStock");
+  }
+
+  return value;
+}).messages({
+  "inventory.reservedExceedsStock":
+    "Reserved stock cannot be greater than total stock.",
 });
  
  // =====================================
@@ -121,7 +130,7 @@ export const createProductSchema = {
    images: Joi.array()
     .items(imageSchema)
     .min(1)
-    .max(10)
+    .max(3)
     .required()
     .messages({
       "array.min": "At least one product image is required.",

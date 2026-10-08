@@ -101,21 +101,24 @@ export class ProductDTO {
         ? data.seoKeywords
         : [],
 
-    inventory: {
-      stock:
-        Number(data.inventory?.stock || 0),
+    inventory: (() => {
+      const stock = Number(data.inventory?.stock || 0);
+      const reservedStock = Number(
+        data.inventory?.reservedStock || 0
+      );
 
-      reservedStock:
-        Number(
-          data.inventory?.reservedStock || 0
+      return {
+        stock,
+        reservedStock,
+        availableStock: Math.max(
+          stock - reservedStock,
+          0
         ),
-
-      lowStockThreshold:
-        Number(
-          data.inventory
-            ?.lowStockThreshold || 5
+        lowStockThreshold: Number(
+          data.inventory?.lowStockThreshold || 5
         ),
-    },
+      };
+    })(),
 
     images:
       Array.isArray(data.images)

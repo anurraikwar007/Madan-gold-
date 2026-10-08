@@ -79,6 +79,7 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const MAX_PRODUCT_IMAGES = 3;
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [togglingId, setTogglingId] = useState(null);
   const [, setPage] = useState(1);
   
 
@@ -254,19 +255,42 @@ export default function AdminProducts() {
 
   const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
-    const existingCount = Array.isArray(form.images) ? form.images.length : 0;
-    const remaining = MAX_PRODUCT_IMAGES - existingCount;
+    const existingCount = Array.isArray(form.images)
+      ? form.images.length
+      : 0;
+    const remaining = Math.max(
+      MAX_PRODUCT_IMAGES - existingCount,
+      0
+    );
 
-    if (files.length > remaining) {
+    if (!remaining) {
       event.target.value = "";
-      setSelectedFiles([]);
       alert(
-        `Maximum ${MAX_PRODUCT_IMAGES} images are allowed per product. You already have ${existingCount} image${existingCount === 1 ? "" : "s"}. You can select only ${Math.max(remaining, 0)} more.`
+        `Maximum ${MAX_PRODUCT_IMAGES} images are already added. Remove an existing image before selecting another.`
       );
       return;
     }
 
-    setSelectedFiles(files);
+    const validFiles = files.filter((file) =>
+      ["image/jpeg", "image/png", "image/webp"].includes(file.type)
+    );
+
+    if (validFiles.length !== files.length) {
+      alert("Only JPG, PNG and WEBP images are allowed.");
+    }
+
+    if (validFiles.length > remaining) {
+      const acceptedFiles = validFiles.slice(0, remaining);
+      setSelectedFiles(acceptedFiles);
+      event.target.value = "";
+      alert(
+        `Only ${remaining} more image${remaining === 1 ? "" : "s"} can be selected. The first ${remaining} valid image${remaining === 1 ? "" : "s"} have been kept.`
+      );
+      return;
+    }
+
+    setSelectedFiles(validFiles);
+    event.target.value = "";
   };
 
   const save = async (event) => {
@@ -364,12 +388,11 @@ export default function AdminProducts() {
               form.reservedStock
             ) || 0,
 
-          availableStock:
-            form.availableStock === ""
-              ? Number(form.stock) || 0
-              : Number(
-                  form.availableStock
-                ),
+          availableStock: Math.max(
+            (Number(form.stock) || 0) -
+              (Number(form.reservedStock) || 0),
+            0
+          ),
 
           lowStockThreshold:
             Number(
@@ -720,7 +743,7 @@ if (
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
+          <table className="w-full min-w-[1050px] table-auto text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-400">
               <tr>
                   <th className="w-[56px] px-4 py-4">
@@ -739,27 +762,27 @@ if (
                   </button>
                 </th>
 
-                <th className="w-[34%] px-5 py-4">
+                <th className="min-w-[280px] px-5 py-4">
                   Product
                 </th>
 
-                <th className="w-[16%] px-5 py-4">
+                <th className="min-w-[150px] px-5 py-4">
                   Category
                 </th>
 
-                <th className="w-[12%] px-5 py-4">
+                <th className="min-w-[110px] px-5 py-4">
                   Price
                 </th>
 
-                <th className="w-[12%] px-5 py-4">
+                <th className="min-w-[110px] px-5 py-4">
                   Stock
                 </th>
 
-                <th className="w-[12%] px-5 py-4">
+                <th className="min-w-[110px] px-5 py-4">
                   Status
                 </th>
 
-                <th className="w-[14%] px-5 py-4 text-right">
+                <th className="min-w-[160px] px-5 py-4 text-right whitespace-nowrap">
                   Actions
                 </th>
               </tr>
@@ -848,7 +871,7 @@ if (
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 font-semibold text-slate-800">
+                      <td className="px-5 py-4 font-semibold text-slate-800 whitespace-nowrap">
                         ₹
                         {Number(
                           product.price ||
@@ -858,7 +881,7 @@ if (
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-slate-600 whitespace-nowrap">
                         {product.inventory
                           ?.availableStock ??
                           product.inventory
@@ -867,11 +890,16 @@ if (
                       </td>
 
                       
-                       <td className="px-5 py-4">
+                       <td className="px-5 py-4 whitespace-nowrap">
                         <AdminToggle
+                          disabled={togglingId === product._id}
                           checked={product.isActive !== false}
                           label
                           onChange={async () => {
+                            if (togglingId) return;
+
+                            setTogglingId(product._id);
+
                             try {
                               const response =
                                 await toggleAdminProduct(product._id);
@@ -879,14 +907,21 @@ if (
                               const updatedProduct =
                                 response?.data?.data;
 
+                              if (!updatedProduct?._id) {
+                                throw new Error(
+                                  "Invalid response received while updating product visibility."
+                                );
+                              }
+
                               setProducts((prev) =>
                                 prev.map((item) =>
                                   item._id === product._id
                                     ? {
                                         ...item,
                                         isActive:
-                                          updatedProduct?.isActive ??
-                                          !item.isActive,
+                                          updatedProduct.isActive !== undefined
+                                            ? updatedProduct.isActive
+                                            : !item.isActive,
                                       }
                                     : item
                                 )
@@ -903,8 +938,11 @@ if (
 
                               alert(
                                 error?.response?.data?.message ||
+                                  error?.message ||
                                   "Unable to update product visibility."
                               );
+                            } finally {
+                              setTogglingId(null);
                             }
                           }}
                         />
@@ -945,7 +983,7 @@ if (
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="px-5 py-12 text-center text-slate-400"
                   >
                     No products found.
@@ -997,8 +1035,8 @@ if (
               }
               required
             >
-              <option value="925 Silver" >
-                925 Silver (92.5% Sterling Silver)
+              <option value="" disabled>
+                Select category
               </option>
 
               {categories.map(
@@ -1058,11 +1096,11 @@ if (
  
             <AdminSelect
             label="Purity"
-            value="92.5 Silver"
+            value={form.purity}
             disabled
           >
             <option value="925 Silver">
-              92.5 Silver (92.5% Sterling Silver)
+              925 Silver (92.5% Sterling Silver)
             </option>
           </AdminSelect>
 
@@ -1150,18 +1188,16 @@ if (
             />
 
             <AdminInput
-              label="Available Stock"
+              label="Available Stock (Auto)"
               type="number"
               min="0"
-              value={
-                form.availableStock
-              }
-              onChange={(e) =>
-                updateField(
-                  "availableStock",
-                  e.target.value
-                )
-              }
+              value={Math.max(
+                Number(form.stock || 0) -
+                  Number(form.reservedStock || 0),
+                0
+              )}
+              readOnly
+              className="bg-slate-50"
             />
 
             <AdminInput
@@ -1211,7 +1247,7 @@ if (
 
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-xs font-semibold text-slate-600">
-                Select up to {MAX_PRODUCT_IMAGES} images per product.
+                Select up to {MAX_PRODUCT_IMAGES} images per product. JPG, PNG or WEBP only.
               </p>
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                 ((form.images?.length || 0) + selectedFiles.length) >= MAX_PRODUCT_IMAGES
@@ -1228,6 +1264,7 @@ if (
               multiple
               onChange={handleFiles}
               className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm"
+              disabled={(form.images?.length || 0) >= MAX_PRODUCT_IMAGES}
             />
 
             {selectedFiles.length > 0 && (
