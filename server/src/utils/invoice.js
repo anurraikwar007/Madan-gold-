@@ -614,7 +614,7 @@ const drawRow = (
     );
 
     doc.text(
-        `${item.weight} g`,
+        (item.weight !== undefined && item.weight !== null && item.weight !== "" ? `${item.weight} g` : "—"),
         TABLE.columns.weight,
         y + 8
     );

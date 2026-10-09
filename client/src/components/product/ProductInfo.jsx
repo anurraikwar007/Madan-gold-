@@ -156,19 +156,12 @@ const ProductInfo = ({ product }) => {
 
         {/* WEIGHT */}
 
-        <div className="bg-white rounded-xl p-4">
-
-          <p className="text-xs text-gray-500">
-            Weight
-          </p>
-
-          <p className="font-semibold mt-1">
-            {product.weight
-              ? `${product.weight} g`
-              : "Available"}
-          </p>
-
-        </div>
+        {product.weight !== undefined && product.weight !== null && product.weight !== "" && Number(product.weight) > 0 && (
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-xs text-gray-500">Weight</p>
+            <p className="font-semibold mt-1">{product.weight} g</p>
+          </div>
+        )}
 
         {/* STOCK */}
 

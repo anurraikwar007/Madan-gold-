@@ -158,8 +158,14 @@ const productSchema = new mongoose.Schema(
 
     weight: {
       type: Number,
-      required: true,
+      required: false,
       min: 0,
+      validate: {
+        validator(value) {
+          return value === undefined || value === null || (Number.isFinite(Number(value)) && Number(value) > 0);
+        },
+        message: "Product weight must be greater than 0 when provided.",
+      },
     },
 
     // =====================================
@@ -341,15 +347,13 @@ productSchema.pre(
     }
 
     if (
-      this.weight === undefined ||
-      this.weight === null ||
-      !Number.isFinite(
-        Number(this.weight)
-      ) ||
-      Number(this.weight) <= 0
+      this.weight !== undefined &&
+      this.weight !== null &&
+      this.weight !== "" &&
+      (!Number.isFinite(Number(this.weight)) || Number(this.weight) <= 0)
     ) {
       throw new Error(
-        "Product weight must be greater than 0."
+        "Product weight must be greater than 0 when provided."
       );
     }
 

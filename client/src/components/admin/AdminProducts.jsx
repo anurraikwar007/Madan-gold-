@@ -355,8 +355,9 @@ export default function AdminProducts() {
 
         gender: form.gender,
 
-        weight:
-          Number(form.weight) || 0,
+        ...(String(form.weight ?? "").trim() !== ""
+          ? { weight: Number(form.weight) }
+          : {}),
 
         price:
           Number(form.price) || 0,
@@ -461,10 +462,11 @@ if (
   }
 
   if (
-    payload.weight <= 0
+    payload.weight !== undefined &&
+    (!Number.isFinite(payload.weight) || payload.weight <= 0)
   ) {
     throw new Error(
-      "Product weight must be greater than 0."
+      "Enter a valid weight greater than 0, or leave it blank."
     );
   }
 
@@ -1108,9 +1110,11 @@ if (
           </AdminSelect>
 
            <AdminInput
-             label="Silver Weight (grams)"
+             label="Silver Weight (grams) — Optional"
               type="number"
+              min="0.01"
               step="0.01"
+              placeholder="Leave blank if not applicable"
               value={form.weight}
               onChange={(e) =>
                 updateField(

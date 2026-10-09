@@ -70,8 +70,9 @@ export class ProductDTO {
     gender:
       data.gender || "Unisex",
 
-    weight:
-      Number(data.weight),
+    ...(data.weight !== undefined && data.weight !== null && String(data.weight).trim() !== ""
+      ? { weight: Number(data.weight) }
+      : {}),
 
     price,
 

@@ -86,7 +86,7 @@ export const createProductSchema = {
       .valid("Men", "Women", "Kids", "Unisex")
       .default("Unisex"),
 
-    weight: Joi.number().positive().required(),
+    weight: Joi.number().positive().optional().allow(null, ""),
 
     price: Joi.number().positive().required(),
 
