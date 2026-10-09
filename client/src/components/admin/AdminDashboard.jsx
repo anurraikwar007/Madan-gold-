@@ -305,52 +305,33 @@ export default function AdminDashboard() {
       setError("");
 
       try {
-        const [
-          dashboardResponse,
-          revenueResponse,
-          salesResponse,
-          dailyRevenueResponse,
-          analyticsResponse,
-        ] = await Promise.all([
+        // Keep dashboard sections independent: a failure in one analytics endpoint
+        // must not blank every other section.
+        const results = await Promise.allSettled([
           getAdminDashboard(range),
-
           getRevenueAnalytics(range),
-
           getSalesTrend(range),
-
           getDailyRevenue(range),
-
           getDashboardAnalytics(),
         ]);
 
-        if (!mounted) {
-          return;
+        if (!mounted) return;
+
+        const valueAt = (index) => results[index]?.status === "fulfilled"
+          ? getResponseData(results[index].value)
+          : null;
+        const dashboardData = valueAt(0) || {};
+        const revenueData = valueAt(1) || {};
+        const salesData = valueAt(2) || [];
+        const dailyData = valueAt(3) || [];
+        const analyticsData = valueAt(4) || {};
+        const failedSections = results
+          .map((result, index) => result.status === "rejected" ? index : -1)
+          .filter((index) => index >= 0);
+        if (failedSections.length) {
+          console.error("Some dashboard data sections failed to load:", results.filter((result) => result.status === "rejected").map((result) => result.reason));
+          setError("Some dashboard metrics could not refresh. Showing all data that loaded successfully.");
         }
-
-        const dashboardData =
-          getResponseData(
-            dashboardResponse
-          ) || {};
-
-        const revenueData =
-          getResponseData(
-            revenueResponse
-          ) || {};
-
-        const salesData =
-          getResponseData(
-            salesResponse
-          ) || [];
-
-        const dailyData =
-          getResponseData(
-            dailyRevenueResponse
-          ) || [];
-
-        const analyticsData =
-          getResponseData(
-            analyticsResponse
-          ) || {};
 
         setDashboard(
           dashboardData
@@ -408,8 +389,17 @@ export default function AdminDashboard() {
 
     void loadDashboard();
 
+    // Refresh live dashboard figures periodically and after product/order changes.
+    const refreshTimer = window.setInterval(() => { void loadDashboard(); }, 60_000);
+    const handleDashboardUpdate = () => { void loadDashboard(); };
+    window.addEventListener("products-updated", handleDashboardUpdate);
+    window.addEventListener("orders-updated", handleDashboardUpdate);
+
     return () => {
       mounted = false;
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("products-updated", handleDashboardUpdate);
+      window.removeEventListener("orders-updated", handleDashboardUpdate);
     };
   }, [range, refreshKey]);
 

@@ -155,7 +155,7 @@ export const uploadErrorHandler = (
         return next(
           new ApiError(
             400,
-            "Too many images uploaded."
+            "A maximum of 5 product images can be uploaded at once."
           )
         );
 
@@ -163,7 +163,7 @@ export const uploadErrorHandler = (
         return next(
           new ApiError(
             400,
-            "Unexpected upload field."
+            "Maximum 5 product images are allowed per product. Use the images upload field and select JPG, JPEG, PNG or WEBP files up to 5 MB each."
           )
         );
 

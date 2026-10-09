@@ -253,44 +253,44 @@ export default function AdminProducts() {
     setOpen(true);
   };
 
+  const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
   const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
-    const existingCount = Array.isArray(form.images)
-      ? form.images.length
-      : 0;
-    const remaining = Math.max(
-      MAX_PRODUCT_IMAGES - existingCount,
-      0
-    );
-
-    if (!remaining) {
-      event.target.value = "";
-      alert(
-        `Maximum ${MAX_PRODUCT_IMAGES} images are already added. Remove an existing image before selecting another.`
-      );
-      return;
-    }
-
-    const validFiles = files.filter((file) =>
-      ["image/jpeg", "image/png", "image/webp"].includes(file.type)
-    );
-
-    if (validFiles.length !== files.length) {
-      alert("Only JPG, PNG and WEBP images are allowed.");
-    }
-
-    if (validFiles.length > remaining) {
-      const acceptedFiles = validFiles.slice(0, remaining);
-      setSelectedFiles(acceptedFiles);
-      event.target.value = "";
-      alert(
-        `Only ${remaining} more image${remaining === 1 ? "" : "s"} can be selected. The first ${remaining} valid image${remaining === 1 ? "" : "s"} have been kept.`
-      );
-      return;
-    }
-
-    setSelectedFiles(validFiles);
     event.target.value = "";
+    if (!files.length) return;
+
+    const existingCount = (Array.isArray(form.images) ? form.images.length : 0) + selectedFiles.length;
+    const remaining = Math.max(MAX_PRODUCT_IMAGES - existingCount, 0);
+    if (!remaining) {
+      toast.error(`Maximum ${MAX_PRODUCT_IMAGES} images per product. Remove an image before adding another.`, { duration: 5000 });
+      return;
+    }
+
+    const accepted = [];
+    const rejected = [];
+    for (const file of files) {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        rejected.push(`${file.name}: unsupported format`);
+      } else if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        rejected.push(`${file.name}: larger than 5 MB`);
+      } else if (accepted.length < remaining) {
+        accepted.push(file);
+      } else {
+        rejected.push(`${file.name}: product image limit reached`);
+      }
+    }
+
+    if (accepted.length) setSelectedFiles((previous) => [...previous, ...accepted]);
+    if (rejected.length) {
+      const message = rejected.length === 1
+        ? rejected[0]
+        : `${rejected.length} files were skipped. Use JPG/PNG/WEBP up to 5 MB each, with a maximum of 5 images per product.`;
+      toast.error(message, { duration: 6000, style: { borderRadius: "14px", maxWidth: "420px" } });
+    } else if (accepted.length) {
+      toast.success(`${accepted.length} image${accepted.length === 1 ? "" : "s"} added. ${existingCount + accepted.length}/${MAX_PRODUCT_IMAGES} image slots used.`);
+    }
   };
 
   const save = async (event) => {
@@ -299,7 +299,7 @@ export default function AdminProducts() {
     const existingImages = Array.isArray(form.images) ? form.images : [];
 
     if (existingImages.length + selectedFiles.length > MAX_PRODUCT_IMAGES) {
-      alert(`Maximum ${MAX_PRODUCT_IMAGES} images are allowed per product. Please remove extra images before uploading.`);
+      toast.error(`Maximum ${MAX_PRODUCT_IMAGES} images are allowed per product. Remove extra images before uploading.`, { duration: 5000 });
       return;
     }
 
@@ -387,12 +387,6 @@ export default function AdminProducts() {
             Number(
               form.reservedStock
             ) || 0,
-
-          availableStock: Math.max(
-            (Number(form.stock) || 0) -
-              (Number(form.reservedStock) || 0),
-            0
-          ),
 
           lowStockThreshold:
             Number(
@@ -510,11 +504,11 @@ if (
         error
       );
 
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Product save failed."
-      );
+      const validationDetails = error?.response?.data?.errors;
+      const message = Array.isArray(validationDetails) && validationDetails.length
+        ? validationDetails.join(" • ")
+        : (error?.response?.data?.message || error?.message || "Product save failed.");
+      toast.error(message, { duration: 7000, style: { borderRadius: "14px", maxWidth: "520px" } });
     } finally {
       setSaving(false);
     }
@@ -1256,7 +1250,7 @@ if (
 
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-xs font-semibold text-slate-600">
-                Select up to {MAX_PRODUCT_IMAGES} images per product. JPG, PNG or WEBP only.
+                Up to {MAX_PRODUCT_IMAGES} images per product • Max 5 MB each • JPG, PNG or WEBP
               </p>
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                 ((form.images?.length || 0) + selectedFiles.length) >= MAX_PRODUCT_IMAGES
@@ -1267,8 +1261,10 @@ if (
               </span>
             </div>
 
-            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs font-semibold text-amber-800">
-              You can upload a maximum of 5 images per product. Please select only 5 images.
+            <div className="mb-3 rounded-xl border border-sky-200 bg-gradient-to-r from-sky-50 to-indigo-50 px-4 py-3 text-xs leading-5 text-slate-700">
+              <p className="font-bold text-slate-900">Image requirements</p>
+              <p>Maximum <strong>5 images total</strong> per product, including images already saved. Each image must be <strong>5 MB or smaller</strong>.</p>
+              <p>Supported formats: JPG, JPEG, PNG and WEBP. Oversized or unsupported files are skipped with a clear message.</p>
             </div>
 
             <input
@@ -1283,8 +1279,13 @@ if (
             {selectedFiles.length > 0 && (
               <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
                 {selectedFiles.map((file) => (
-                  <div key={`${file.name}-${file.lastModified}`} className="aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                    <img src={URL.createObjectURL(file)} alt="Selected product" className="h-full w-full object-cover" />
+                  <div key={`${file.name}-${file.lastModified}`} className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <div className="aspect-square overflow-hidden bg-slate-50">
+                      <img src={URL.createObjectURL(file)} alt={file.name} className="h-full w-full object-cover" />
+                    </div>
+                    <p className="truncate px-2 pt-1 text-[10px] font-semibold text-slate-700" title={file.name}>{file.name}</p>
+                    <p className="px-2 pb-2 text-[10px] text-slate-500">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    <button type="button" onClick={() => setSelectedFiles((previous) => previous.filter((item) => item !== file))} className="mx-2 mb-2 text-[10px] font-bold text-rose-600 hover:text-rose-700">Remove</button>
                   </div>
                 ))}
               </div>
